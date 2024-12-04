@@ -1,14 +1,12 @@
 import React, { useContext, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import AppKeypad from "../../components/AppKeypad";
-import Screen from "../../components/Screen";
-import colors from "../../config/colors";
-import AppText from "../../components/AppText";
-import AppButton from "../../components/AppButton";
-import fonts from "../../config/fonts";
-import routes from "../../navigation/routes";
+
+import { AppButton, AppText, Screen } from "../../components";
+import AppKeypad from "../../components/forms/AppKeypad";
 import { TransactionContext } from "../../contexts/TransactionContext";
+import { colors, fonts } from "../../config";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
+import routes from "../../navigation/routes";
 
 function TransactScreen({ navigation }) {
   const { transaction, setTransaction } = useContext(TransactionContext);

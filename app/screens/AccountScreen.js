@@ -1,10 +1,9 @@
 import React from "react";
 import { View, StyleSheet, Image } from "react-native";
-import AppText from "../components/AppText";
-import Header from "../components/Header";
-import Screen from "../components/Screen";
 import { Settings } from "lucide-react-native";
-import colors from "../config/colors";
+
+import { AppText, Header, Screen } from "../components/primitives";
+import { colors } from "../config";
 
 const FAKEPROFILE = {
   fullName: "Aaron Fan",

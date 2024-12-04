@@ -1,9 +1,10 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "../components/AppText";
+
+import { Screen } from "../components/primitives";
+import { TransactionCard } from "../components/cards";
 import colors from "../config/colors";
-import Screen from "../components/Screen";
-import TransactionCard from "../components/TransactionCard";
+
 function TransactionDetailScreen({ navigation, route }) {
   const { from, to, amount, memo, score, commentCount, time, txid } =
     route.params;

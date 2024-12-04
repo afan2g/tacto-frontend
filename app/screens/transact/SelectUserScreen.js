@@ -1,12 +1,11 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
-import FindUserBar from "../../components/users/FindUserBar";
-import UserCard from "../../components/users/UserCard";
-import Screen from "../../components/Screen";
 import { ChevronLeft } from "lucide-react-native";
-import colors from "../../config/colors";
-import AppText from "../../components/AppText";
-import fonts from "../../config/fonts";
+
+import { AppText, Screen } from "../../components";
+import FindUserBar from "../../components/forms/FindUserBar";
+import UserCard from "../../components/cards/UserCard";
+import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { TransactionContext } from "../../contexts/TransactionContext";
 

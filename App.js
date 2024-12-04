@@ -1,30 +1,15 @@
 // App.js
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
-import SignUpNavigator from "./app/navigation/SignUpNavigator";
-import colors from "./app/config/colors";
-import fonts from "./app/config/fonts";
-import { FormProvider } from "./app/contexts/FormContext";
+
+import { colors, fonts } from "./app/config";
 import { NavigationContainer } from "@react-navigation/native";
-import AuthNavigator from "./app/navigation/AuthNavigator";
-import AppTabNavigator from "./app/navigation/AppTabNavigator";
-import HomeScreen from "./app/screens/HomeScreen";
-import HomeNavigator from "./app/navigation/HomeNavigator";
 import navigationTheme from "./app/navigation/navigationTheme";
-import AppNavigator from "./app/navigation/AppNavigator";
-import TransactScreen from "./app/screens/transact/TransactScreen";
-import FindUserBar from "./app/components/users/FindUserBar";
-import Screen from "./app/components/Screen";
-import SelectUserScreen from "./app/screens/transact/SelectUserScreen";
-import TransactNavigator from "./app/navigation/TransactNavigator";
-import ConfirmTransactionScreen from "./app/screens/transact/ConfirmTransactionScreen";
-import { Pressable } from "react-native";
-import formatRelativeTime from "./app/utils/formatRelativeTime";
+import { Screen } from "./app/components/primitives";
+import { ActivityTransactionCard } from "./app/components/cards";
 import getRandomDate from "./app/utils/getRandomDate";
-import UserCard from "./app/components/users/UserCard";
-import ActivityTransactionCard from "./app/components/activity/ActivityTransactionCard";
 SplashScreen.preventAutoHideAsync();
 
 const USER = {

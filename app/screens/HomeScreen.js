@@ -1,14 +1,13 @@
 import React from "react";
 import { View, StyleSheet, FlatList } from "react-native";
-import AppText from "../components/AppText";
-import Screen from "../components/Screen";
+
+import { TransactionCard, TransactionCardSeparator } from "../components/cards";
+import { AppText, Header, Screen } from "../components/primitives";
+import { colors } from "../config";
 import useGreeting from "../hooks/useGreeting";
-import Header from "../components/Header";
-import colors from "../config/colors";
-import TransactionCard from "../components/TransactionCard";
 import getRandomDate from "../utils/getRandomDate";
 import formatRelativeTime from "../utils/formatRelativeTime";
-import TransactionCardSeparator from "../components/TransactionCardSeparator";
+
 const FAKEDATA = [
   {
     from: {

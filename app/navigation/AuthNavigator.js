@@ -1,9 +1,9 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import routes from "./routes";
-import LandingScreen from "../screens/LandingScreen";
-import LoginScreen from "../screens/LoginScreen";
-import SignUpScreen from "../screens/signup/SignUpScreen";
+import LandingScreen from "../screens/entry/LandingScreen";
+import LoginScreen from "../screens/entry/LoginScreen";
+import SignUpScreen from "../screens/entry/SignUpScreen";
 import SignUpNavigator from "./SignUpNavigator";
 import LoginNavigator from "./LoginNavigator";
 

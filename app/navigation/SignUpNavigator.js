@@ -7,7 +7,7 @@ import {
   SignUpPassword,
   SignUpVerify,
   SignUpUsername,
-} from "../screens/signup";
+} from "../screens/entry";
 import { FormProvider } from "../contexts/FormContext";
 
 const Stack = createNativeStackNavigator();

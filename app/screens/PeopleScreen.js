@@ -1,9 +1,9 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 
-import AppText from "../components/AppText";
-import Screen from "../components/Screen";
-import colors from "../config/colors";
+import { AppText, Screen } from "../components/primitives";
+import { colors } from "../config";
+
 function PeopleScreen(props) {
   return (
     <Screen style={styles.screen}>

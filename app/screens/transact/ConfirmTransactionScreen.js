@@ -9,15 +9,13 @@ import {
   Pressable,
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
-import Screen from "../../components/Screen";
-import UserCardVertical from "../../components/users/UserCardVertical";
+
+import { AppButton, AppText, Screen } from "../../components";
+import { UserCardVertical } from "../../components/cards";
 import { TransactionContext } from "../../contexts/TransactionContext";
-import AppText from "../../components/AppText";
-import fonts from "../../config/fonts";
-import colors from "../../config/colors";
-import AppKeypad from "../../components/AppKeypad";
+import { colors, fonts } from "../../config";
+import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
-import AppButton from "../../components/AppButton";
 
 function ConfirmTransactionScreen({ navigation }) {
   const { transaction, setTransaction } = useContext(TransactionContext);
