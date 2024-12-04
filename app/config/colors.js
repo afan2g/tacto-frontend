@@ -7,5 +7,8 @@ export default {
   invisibleGray: "#e0e2db0d",
   yellow: "#fca311",
   danger: "red",
-  green: "#3DE713",
+  green: "#46E041",
+  softGreen: "#46E04180",
+  red: "#E04146",
+  softRed: "#E0414680",
 };

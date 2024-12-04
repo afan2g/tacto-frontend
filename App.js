@@ -24,6 +24,7 @@ import { Pressable } from "react-native";
 import formatRelativeTime from "./app/utils/formatRelativeTime";
 import getRandomDate from "./app/utils/getRandomDate";
 import UserCard from "./app/components/users/UserCard";
+import ActivityTransactionCard from "./app/components/activity/ActivityTransactionCard";
 SplashScreen.preventAutoHideAsync();
 
 const USER = {
@@ -32,6 +33,52 @@ const USER = {
   profilePicUrl: "https://i.pravatar.cc/80",
 };
 
+const TRANSACTION = [
+  {
+    timestamp: getRandomDate(),
+    amount: 100,
+    status: "completed",
+    otherUser: {
+      fullName: "Kyle Li",
+      username: "@wheresme2010",
+      profilePicUrl: "https://i.pravatar.cc/80",
+    },
+    action: "send",
+  },
+  {
+    timestamp: getRandomDate(),
+    amount: 100,
+    status: "completed",
+    otherUser: {
+      fullName: "Kyle Li",
+      username: "@wheresme2010",
+      profilePicUrl: "https://i.pravatar.cc/80",
+    },
+    action: "receive",
+  },
+  {
+    timestamp: getRandomDate(),
+    amount: 100,
+    status: "pending",
+    otherUser: {
+      fullName: "Kyle Li",
+      username: "@wheresme2010",
+      profilePicUrl: "https://i.pravatar.cc/80",
+    },
+    action: "send",
+  },
+  {
+    timestamp: getRandomDate(),
+    amount: 100,
+    status: "pending",
+    otherUser: {
+      fullName: "Kyle Li",
+      username: "@wheresme2010",
+      profilePicUrl: "https://i.pravatar.cc/80",
+    },
+    action: "receive",
+  },
+];
 export default function App() {
   const [loaded, error] = useFonts({
     "Satoshi-Black": require("./app/assets/fonts/Satoshi-Black.otf"),
@@ -60,11 +107,10 @@ export default function App() {
     //   <AppTabNavigator />
     // </NavigationContainer>
     <Screen style={styles.screen}>
-      <UserCard
-        user={USER}
-        time={formatRelativeTime(getRandomDate("week"))}
-        onPress={() => console.log()}
-      />
+      <ActivityTransactionCard transaction={TRANSACTION[0]} />
+      <ActivityTransactionCard transaction={TRANSACTION[1]} />
+      <ActivityTransactionCard transaction={TRANSACTION[2]} />
+      <ActivityTransactionCard transaction={TRANSACTION[3]} />
     </Screen>
   );
 }

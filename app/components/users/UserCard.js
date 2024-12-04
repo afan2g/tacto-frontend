@@ -4,7 +4,7 @@ import AppText from "../AppText";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 
-function UserCard({ user, time = "", onPress, navigation }) {
+function UserCard({ user, subtext = "", onPress, navigation }) {
   return (
     <TouchableHighlight style={styles.container} onPress={onPress}>
       <>
@@ -16,7 +16,7 @@ function UserCard({ user, time = "", onPress, navigation }) {
         <View style={styles.userNameContainer}>
           <AppText style={styles.fullName}>{user.fullName}</AppText>
           <AppText style={styles.username}>
-            {time ? time : user.username}
+            {subtext ? subtext : user.username}
           </AppText>
         </View>
       </>
