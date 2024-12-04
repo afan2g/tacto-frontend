@@ -9,8 +9,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import navigationTheme from "./app/navigation/navigationTheme";
 import AppTabNavigator from "./app/navigation/AppTabNavigator";
 import { Screen } from "./app/components/primitives";
-import { ActivityTransactionCard } from "./app/components/cards";
+import {
+  AccountBalanceCard,
+  ActivityTransactionCard,
+} from "./app/components/cards";
 import getRandomDate from "./app/utils/getRandomDate";
+import ActivityScreen from "./app/screens/ActivityScreen";
 SplashScreen.preventAutoHideAsync();
 
 const USER = {
@@ -92,12 +96,6 @@ export default function App() {
     <NavigationContainer theme={navigationTheme}>
       <AppTabNavigator />
     </NavigationContainer>
-    // <Screen style={styles.screen}>
-    //   <ActivityTransactionCard transaction={TRANSACTION[0]} />
-    //   <ActivityTransactionCard transaction={TRANSACTION[1]} />
-    //   <ActivityTransactionCard transaction={TRANSACTION[2]} />
-    //   <ActivityTransactionCard transaction={TRANSACTION[3]} />
-    // </Screen>
   );
 }
 

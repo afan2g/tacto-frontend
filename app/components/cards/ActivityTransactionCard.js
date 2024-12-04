@@ -86,7 +86,7 @@ function ActivityTransactionCard({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 10, // Add some vertical spacing between transactions
-    padding: 10,
+    paddingHorizontal: 10,
   },
   textContainer: {
     width: "100%",
