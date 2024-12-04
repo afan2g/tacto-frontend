@@ -21,7 +21,16 @@ import SelectUserScreen from "./app/screens/transact/SelectUserScreen";
 import TransactNavigator from "./app/navigation/TransactNavigator";
 import ConfirmTransactionScreen from "./app/screens/transact/ConfirmTransactionScreen";
 import { Pressable } from "react-native";
+import formatRelativeTime from "./app/utils/formatRelativeTime";
+import getRandomDate from "./app/utils/getRandomDate";
+import UserCard from "./app/components/users/UserCard";
 SplashScreen.preventAutoHideAsync();
+
+const USER = {
+  fullName: "Kyle Li",
+  username: "@wheresme2010",
+  profilePicUrl: "https://i.pravatar.cc/80",
+};
 
 export default function App() {
   const [loaded, error] = useFonts({
@@ -47,13 +56,24 @@ export default function App() {
     return null;
   }
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <AppTabNavigator />
-    </NavigationContainer>
+    // <NavigationContainer theme={navigationTheme}>
+    //   <AppTabNavigator />
+    // </NavigationContainer>
+    <Screen style={styles.screen}>
+      <UserCard
+        user={USER}
+        time={formatRelativeTime(getRandomDate("week"))}
+        onPress={() => console.log()}
+      />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   text: {
     color: colors.gray,
     fontFamily: fonts.regular,
