@@ -1,0 +1,18 @@
+export default Object.freeze({
+  LANDING: "Landing",
+  LOGIN: "Login",
+  FORGOTPASSWORD: "ForgotPassword",
+  SIGNUPCREATE: "SignupCreate",
+  SIGNUPVERIFY: "SignupVerify",
+  SIGNUPFULLNAME: "SignupFullName",
+  SIGNUPUSERNAME: "SignupUsername",
+  SIGNUPPASSWORD: "SignupPassword",
+  HOME: "Home",
+  TRANSACTHOME: "Transaction",
+  TRANSACTSELECTUSER: "TransactionSelectUser",
+  TRANSACTCONFIRM: "ConfirmTransaction",
+  ACCOUNT: "Account",
+  TRANSACTIONDETAIL: "TransactionDetails",
+  AUTH: "LandingAuth",
+  APP: "App",
+});
