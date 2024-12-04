@@ -7,6 +7,7 @@ import { useFonts } from "expo-font";
 import { colors, fonts } from "./app/config";
 import { NavigationContainer } from "@react-navigation/native";
 import navigationTheme from "./app/navigation/navigationTheme";
+import AppTabNavigator from "./app/navigation/AppTabNavigator";
 import { Screen } from "./app/components/primitives";
 import { ActivityTransactionCard } from "./app/components/cards";
 import getRandomDate from "./app/utils/getRandomDate";
@@ -88,15 +89,15 @@ export default function App() {
     return null;
   }
   return (
-    // <NavigationContainer theme={navigationTheme}>
-    //   <AppTabNavigator />
-    // </NavigationContainer>
-    <Screen style={styles.screen}>
-      <ActivityTransactionCard transaction={TRANSACTION[0]} />
-      <ActivityTransactionCard transaction={TRANSACTION[1]} />
-      <ActivityTransactionCard transaction={TRANSACTION[2]} />
-      <ActivityTransactionCard transaction={TRANSACTION[3]} />
-    </Screen>
+    <NavigationContainer theme={navigationTheme}>
+      <AppTabNavigator />
+    </NavigationContainer>
+    // <Screen style={styles.screen}>
+    //   <ActivityTransactionCard transaction={TRANSACTION[0]} />
+    //   <ActivityTransactionCard transaction={TRANSACTION[1]} />
+    //   <ActivityTransactionCard transaction={TRANSACTION[2]} />
+    //   <ActivityTransactionCard transaction={TRANSACTION[3]} />
+    // </Screen>
   );
 }
 

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 
-import { AppButton, AppText, Screen } from "../../components";
+import { AppButton, AppText, Screen } from "../../components/primitives";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { TransactionContext } from "../../contexts/TransactionContext";
 import { colors, fonts } from "../../config";

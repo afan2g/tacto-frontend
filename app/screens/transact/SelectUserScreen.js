@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 
-import { AppText, Screen } from "../../components";
+import { AppText, Screen } from "../../components/primitives";
 import FindUserBar from "../../components/forms/FindUserBar";
 import UserCard from "../../components/cards/UserCard";
 import { colors, fonts } from "../../config";

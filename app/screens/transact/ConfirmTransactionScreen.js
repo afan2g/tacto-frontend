@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 
-import { AppButton, AppText, Screen } from "../../components";
+import { AppButton, AppText, Screen } from "../../components/primitives";
 import { UserCardVertical } from "../../components/cards";
 import { TransactionContext } from "../../contexts/TransactionContext";
 import { colors, fonts } from "../../config";
