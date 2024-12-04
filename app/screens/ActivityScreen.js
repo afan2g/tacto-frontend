@@ -133,21 +133,23 @@ const styles = StyleSheet.create({
   screen: {
     paddingHorizontal: 0,
   },
-  balanceCard: {},
+  balanceCard: {
+    borderBottomColor: colors.fadedGray,
+  },
   header: {
-    borderBottomColor: colors.softGray,
+    borderBottomColor: colors.lightGray,
     borderBottomWidth: 1,
-    paddingBottom: 5,
+    paddingBottom: 10,
     fontSize: 24,
     fontFamily: fonts.bold,
     color: colors.lightGray,
+    paddingHorizontal: 10,
   },
   pendingContainer: {},
   completedContainer: {
     marginBottom: 10,
   },
   flatList: {
-    paddingHorizontal: 10,
     paddingTop: 10,
   },
 });

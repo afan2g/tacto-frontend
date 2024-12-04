@@ -17,27 +17,25 @@ function AccountBalanceCard({ balance, navigation, style }) {
   };
 
   return (
-    <View style={[styles.container, style]}>
-      <View style={styles.balanceContainer}>
-        <AppText style={styles.balanceText}>Your balance:</AppText>
-        <View style={styles.balanceVisibility}>
-          <AppText style={styles.balance} onPress={handleBalancePress}>
-            ${visible ? balance : "\u2217".repeat(8) + "." + "\u2217".repeat(2)}
-          </AppText>
-          {visible ? (
-            <EyeOff
-              size={24}
-              color={colors.lightGray}
-              onPress={handleVisibiltyPress}
-            />
-          ) : (
-            <Eye
-              size={24}
-              color={colors.lightGray}
-              onPress={handleVisibiltyPress}
-            />
-          )}
-        </View>
+    <View style={[styles.balanceContainer, style]}>
+      <AppText style={styles.balanceText}>Your balance:</AppText>
+      <View style={styles.balanceVisibility}>
+        <AppText style={styles.balance} onPress={handleBalancePress}>
+          ${visible ? balance : "\u2217".repeat(8) + "." + "\u2217".repeat(2)}
+        </AppText>
+        {visible ? (
+          <EyeOff
+            size={24}
+            color={colors.lightGray}
+            onPress={handleVisibiltyPress}
+          />
+        ) : (
+          <Eye
+            size={24}
+            color={colors.lightGray}
+            onPress={handleVisibiltyPress}
+          />
+        )}
       </View>
     </View>
   );
@@ -55,6 +53,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.invisibleGray,
     paddingHorizontal: 10,
+    width: "100%",
   },
   balanceText: {
     fontSize: 24,

@@ -59,7 +59,7 @@ const TRANSACTION = [
   },
   {
     timestamp: getRandomDate(),
-    amount: 10,
+    amount: 100,
     status: "pending",
     otherUser: {
       fullName: "Kyle Li",

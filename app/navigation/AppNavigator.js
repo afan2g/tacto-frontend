@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import routes from "./routes";
-import AuthNavigator from "./AuthNavigator";
+import AuthNavigator from "./entry/AuthNavigator";
 import AppTabNavigator from "./AppTabNavigator";
 
 const Stack = createNativeStackNavigator();
