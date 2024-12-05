@@ -7,97 +7,10 @@ import {
   AccountBalanceCard,
   ActivityTransactionCard,
 } from "../components/cards";
-import getRandomDate from "../utils/getRandomDate";
-
-const FAKE_TRANSACTIONS_PENDING = [
-  {
-    id: 1,
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "pending",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "send",
-  },
-  {
-    id: 2,
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "pending",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "send",
-  },
-  {
-    id: 3,
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "pending",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "receive",
-  },
-];
-
-const FAKE_TRANSACTIONS_COMPLETED = [
-  {
-    id: 1,
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "completed",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "receive",
-  },
-  {
-    id: 2,
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "completed",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "send",
-  },
-  {
-    id: 3,
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "completed",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "send",
-  },
-  {
-    id: 4,
-    timestamp: getRandomDate(),
-    amount: 104,
-    status: "completed",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "receive",
-  },
-];
+import {
+  FAKE_TRANSACTIONS_COMPLETED,
+  FAKE_TRANSACTIONS_PENDING,
+} from "../data/fakeData";
 
 function ActivityScreen(props) {
   return (

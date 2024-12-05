@@ -8,34 +8,7 @@ import UserCard from "../../components/cards/UserCard";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { TransactionContext } from "../../contexts/TransactionContext";
-
-const FAKEUSERS = [
-  {
-    fullName: "Aaron Fan",
-    username: "@afan2k",
-    profilePicUrl: "https://i.pravatar.cc/80",
-  },
-  {
-    fullName: "Cindy Fan",
-    username: "@cf96",
-    profilePicUrl: "https://i.pravatar.cc/80",
-  },
-  {
-    fullName: "Andrew Zhai",
-    username: "@zhaizhaizhai",
-    profilePicUrl: "https://i.pravatar.cc/80",
-  },
-  {
-    fullName: "Nate Gale",
-    username: "@nutgel",
-    profilePicUrl: "https://i.pravatar.cc/80",
-  },
-  {
-    fullName: "Kyle Li",
-    username: "@wheresme2010",
-    profilePicUrl: "https://i.pravatar.cc/80",
-  },
-];
+import { FAKEUSERS } from "../../data/fakeData";
 
 function SelectUserScreen({ navigation }) {
   // Access transaction and setTransaction from context

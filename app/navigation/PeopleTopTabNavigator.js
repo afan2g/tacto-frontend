@@ -18,6 +18,10 @@ function PeopleTopTabNavigator(props) {
           paddingTop: insets.top,
         },
         tabBarPressColor: "none",
+        tabBarLabelStyle: {
+          fontSize: 20,
+          fontWeight: "bold",
+        },
       }}
     >
       <Tab.Screen

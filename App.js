@@ -96,7 +96,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer theme={navigationTheme}>
-        <PeopleTopTabNavigator />
+        <AppTabNavigator />
       </NavigationContainer>
     </SafeAreaProvider>
   );

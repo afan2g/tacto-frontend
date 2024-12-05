@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, StyleSheet, TextInput } from "react-native";
 import colors from "../../config/colors";
 import fonts from "../../config/fonts";
-import { QrCode } from "lucide-react-native";
+import { Key, QrCode } from "lucide-react-native";
 import AppNFCIcon from "../icons/AppNFCIcon";
-function FindUserBar({ style, action }) {
+function FindUserBar({ style, action, icon }) {
   const [search, setSearch] = useState("");
 
   const handleInputChange = (value) => {
@@ -13,23 +13,26 @@ function FindUserBar({ style, action }) {
 
   return (
     <View style={[styles.container, style]}>
-      <TextInput
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoComplete="username"
-        name="username"
-        numberOfLines={1}
-        multiline={false}
-        onChangeText={(value) => handleInputChange(value)}
-        onSubmitEditing={() => passwordRef.current?.focus()}
-        placeholder="Username, email, or phone #"
-        placeholderTextColor={colors.softGray}
-        returnKeyType="next"
-        selectionColor={colors.lightGray}
-        style={[styles.input, styles.placeholder, search && styles.text]}
-        value={search}
-      />
-      <View style={styles.iconContainer}>
+      <View style={styles.inputContainer}>
+        {icon}
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="username"
+          name="username"
+          numberOfLines={1}
+          multiline={false}
+          onChangeText={(value) => handleInputChange(value)}
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          placeholder="Username, email, or phone #"
+          placeholderTextColor={colors.softGray}
+          returnKeyType="next"
+          selectionColor={colors.lightGray}
+          style={[styles.input, styles.placeholder, search && styles.text]}
+          value={search}
+        />
+      </View>
+      <View style={styles.actionIconsContainer}>
         <QrCode size={24} color={colors.lightGray} />
         <AppNFCIcon action={action} size={36} />
       </View>
@@ -44,16 +47,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
   },
-  input: {
+  inputContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    flex: 1, // This will make the container take up available space
     borderColor: colors.fadedGray,
     borderWidth: 1,
     borderRadius: 5,
+    paddingLeft: 10,
+
+    marginRight: 20, // Add some space between input and icons
+  },
+  input: {
+    marginLeft: 10,
     fontSize: 16,
     lineHeight: 22,
     overflow: "hidden",
-    padding: 10,
-    flex: 1, // This will make the TextInput take up available space
-    marginRight: 20, // Add some space between input and icons
     textAlignVertical: "bottom",
   },
   placeholder: {
@@ -63,7 +73,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: colors.lightGray,
   },
-  iconContainer: {
+  actionIconsContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10, // Space between icons

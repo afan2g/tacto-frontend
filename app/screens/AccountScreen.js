@@ -4,13 +4,8 @@ import { Settings } from "lucide-react-native";
 
 import { AppText, Header, Screen } from "../components/primitives";
 import { colors } from "../config";
+import { FAKEPROFILE } from "../data/fakeData";
 
-const FAKEPROFILE = {
-  fullName: "Aaron Fan",
-  username: "@afan2k",
-  profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
-  balance: 123456.12,
-};
 function AccountScreen({ navigation }) {
   return (
     <Screen style={styles.screen}>

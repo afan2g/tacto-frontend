@@ -6,8 +6,6 @@ import { TransactionCard } from "../components/cards";
 import colors from "../config/colors";
 
 function TransactionDetailScreen({ navigation, route }) {
-  const { from, to, amount, memo, score, commentCount, time, txid } =
-    route.params;
   return (
     <Screen style={styles.screen}>
       <TransactionCard navigation={navigation} transaction={route.params} />
