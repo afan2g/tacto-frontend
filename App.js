@@ -14,7 +14,8 @@ import {
   ActivityTransactionCard,
 } from "./app/components/cards";
 import getRandomDate from "./app/utils/getRandomDate";
-import ActivityScreen from "./app/screens/ActivityScreen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import PeopleTopTabNavigator from "./app/navigation/PeopleTopTabNavigator";
 SplashScreen.preventAutoHideAsync();
 
 const USER = {
@@ -93,9 +94,11 @@ export default function App() {
     return null;
   }
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <AppTabNavigator />
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <PeopleTopTabNavigator />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
