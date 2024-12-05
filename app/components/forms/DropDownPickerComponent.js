@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { colors, fonts } from "../../config";
+import { ChevronsDownUp, ChevronsUpDown } from "lucide-react-native";
 
 export default function DropDownPickerComponent({
   items,
   defaultValue,
   onChangeItem,
+  onPressIcon,
 }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue || items[0]?.value); // Set default to first item's value
@@ -33,16 +35,27 @@ export default function DropDownPickerComponent({
         listItemContainerStyle={styles.listItemContainerStyle}
         dropDownContainerStyle={styles.dropDownContainerStyle}
       />
+      <ChevronsUpDown
+        size={24}
+        color={colors.lightGray}
+        style={styles.icon}
+        onPress={onPressIcon}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+  containerStyle: {
     paddingVertical: 10,
     maxWidth: "50%",
     borderWidth: 0,
-    marginHorizontal: 10,
+    marginLeft: 10,
   },
   pickerStyle: {
     backgroundColor: "transparent",
@@ -65,5 +78,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.fadedGray,
     borderRadius: 5,
+  },
+  icon: {
+    marginLeft: 10,
   },
 });
