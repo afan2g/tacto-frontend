@@ -1,5 +1,11 @@
 import getRandomDate from "../utils/getRandomDate";
-
+import { colors } from "../config";
+import {
+  Clock,
+  ChartSpline,
+  ArrowDownUp,
+  CircleDollarSign,
+} from "lucide-react-native";
 export const FAKEPROFILE = {
   fullName: "Aaron Fan",
   username: "@afan2k",
@@ -189,5 +195,28 @@ export const FAKEUSERS = [
     fullName: "Kyle Li",
     username: "@wheresme2010",
     profilePicUrl: "https://i.pravatar.cc/80",
+  },
+];
+
+export const FAKE_DROPDOWN_ITEMS = [
+  {
+    label: "Age",
+    value: "age",
+    icon: () => <Clock size={24} color={colors.fadedGray} />,
+  },
+  {
+    label: "Volume",
+    value: "volume",
+    icon: () => <ChartSpline size={24} color={colors.fadedGray} />,
+  },
+  {
+    label: "Transaction Count",
+    value: "transactionCount",
+    icon: () => <ArrowDownUp size={24} color={colors.fadedGray} />,
+  },
+  {
+    label: "Net Value",
+    value: "netValue",
+    icon: () => <CircleDollarSign size={24} color={colors.fadedGray} />,
   },
 ];

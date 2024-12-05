@@ -18,58 +18,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import PeopleTopTabNavigator from "./app/navigation/PeopleTopTabNavigator";
 SplashScreen.preventAutoHideAsync();
 
-const USER = {
-  fullName: "Kyle Li",
-  username: "@wheresme2010",
-  profilePicUrl: "https://i.pravatar.cc/80",
-};
-
-const TRANSACTION = [
-  {
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "completed",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "send",
-  },
-  {
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "completed",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "receive",
-  },
-  {
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "pending",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "send",
-  },
-  {
-    timestamp: getRandomDate(),
-    amount: 100,
-    status: "pending",
-    otherUser: {
-      fullName: "Kyle Li",
-      username: "@wheresme2010",
-      profilePicUrl: "https://i.pravatar.cc/80",
-    },
-    action: "receive",
-  },
-];
 export default function App() {
   const [loaded, error] = useFonts({
     "Satoshi-Black": require("./app/assets/fonts/Satoshi-Black.otf"),
