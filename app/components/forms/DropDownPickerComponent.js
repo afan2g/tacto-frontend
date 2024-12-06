@@ -27,18 +27,21 @@ export default function DropDownPickerComponent({
         setOpen={setOpen}
         setValue={setValue}
         setItems={setItemsList}
-        containerStyle={styles.containerStyle}
         style={styles.pickerStyle}
+        containerStyle={styles.dropDownPickerContainerStyle}
         textStyle={styles.textStyle}
+        labelStyle={styles.labelStyle}
         onChangeValue={onChangeItem}
         arrowIconStyle={styles.arrowIconStyle}
-        listItemContainerStyle={styles.listItemContainerStyle}
+        tickIconStyle={styles.tickIconStyle}
         dropDownContainerStyle={styles.dropDownContainerStyle}
+        selectedItemContainerStyle={styles.selectedItemContainerStyle}
+        selectedItemLabelStyle={styles.selectedItemLabelStyle}
       />
       <ChevronsUpDown
         size={24}
         color={colors.lightGray}
-        style={styles.icon}
+        style={styles.sortByIcon}
         onPress={onPressIcon}
       />
     </View>
@@ -51,9 +54,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
   },
-  containerStyle: {
-    paddingVertical: 10,
-    maxWidth: "50%",
+  dropDownPickerContainerStyle: {
+    maxWidth: "52%",
     borderWidth: 0,
     marginLeft: 10,
   },
@@ -66,11 +68,17 @@ const styles = StyleSheet.create({
   },
   textStyle: {
     fontSize: 14,
-    fontFamily: fonts.medium,
+    fontFamily: fonts.regular,
     lineHeight: 20,
     color: colors.lightGray,
   },
+  labelStyle: {
+    fontFamily: fonts.black,
+  },
   arrowIconStyle: {
+    tintColor: colors.lightGray,
+  },
+  tickIconStyle: {
     tintColor: colors.lightGray,
   },
   dropDownContainerStyle: {
@@ -79,7 +87,13 @@ const styles = StyleSheet.create({
     borderColor: colors.fadedGray,
     borderRadius: 5,
   },
-  icon: {
+  sortByIcon: {
     marginLeft: 10,
+  },
+  selectedItemContainerStyle: {
+    backgroundColor: colors.blueShade50,
+  },
+  selectedItemLabelStyle: {
+    fontFamily: fonts.black,
   },
 });
