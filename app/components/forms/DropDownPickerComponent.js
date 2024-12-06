@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   dropDownPickerContainerStyle: {
-    maxWidth: "52%",
+    maxWidth: "54%",
   },
   pickerStyle: {
     backgroundColor: "transparent",

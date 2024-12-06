@@ -1,32 +1,47 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 
-function PeopleSplitCardPreview({ group, style }) {
+function PeopleSplitCardPreview({ group, style, onPress, onLongPress }) {
   const { title, recentTransactions, volume } = group;
   return (
-    <View style={[styles.container, style]}>
-      <View style={styles.leftContainer}>
-        <AppText style={styles.title}>{title}</AppText>
-        <AppText style={styles.subtitle}>
-          {recentTransactions} new transaction{recentTransactions !== 1 && "s"}
-        </AppText>
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={({ pressed }) => (pressed ? styles.pressed : styles.notPressed)}
+    >
+      <View style={[styles.container, style]}>
+        <View style={styles.leftContainer}>
+          <AppText style={styles.title}>{title}</AppText>
+          <AppText style={styles.subtitle}>
+            {recentTransactions} new transaction
+            {recentTransactions !== 1 && "s"}
+          </AppText>
+        </View>
+        <View style={styles.rightContainer}>
+          <AppText style={styles.title}>${volume}</AppText>
+          <AppText style={styles.subtitle}>volume</AppText>
+        </View>
       </View>
-      <View style={styles.rightContainer}>
-        <AppText style={styles.title}>${volume}</AppText>
-        <AppText style={styles.subtitle}>volume</AppText>
-      </View>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  pressed: {
+    backgroundColor: colors.blueShade40,
+  },
+  notPressed: {
+    backgroundColor: "transparent",
+  },
   container: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
   },
   leftContainer: {
     justifyContent: "flex-start",

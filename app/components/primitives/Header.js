@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "./AppText";
 import colors from "../../config/colors";
+import { fonts } from "../../config";
 
 function Header({ children, style }) {
   return (
@@ -18,10 +19,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontFamily: "Satoshi-Bold",
-    fontSize: 32,
+    fontFamily: fonts.bold,
+    fontSize: 28,
     color: colors.lightGray,
     textAlign: "left",
+    paddingBottom: 5,
   },
 });
 
