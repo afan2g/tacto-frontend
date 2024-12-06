@@ -10,17 +10,29 @@ function PeopleFriendsScreen(props) {
   const handleItemChange = (item) => {
     console.log(item);
   };
+
+  const handleSortChange = () => {
+    console.log("sorting changed!");
+  };
+
+  const handleDismiss = () => {
+    Keyboard.dismiss();
+  };
   return (
-    <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
+    <Pressable style={styles.screen} onPress={handleDismiss}>
       <FindUserBar
         action="send"
         style={styles.findUserBar}
         icon={<Search color={colors.lightGray} size={16} />}
       />
-      <DropDownPickerComponent
-        items={FAKE_DROPDOWN_ITEMS}
-        onChangeItem={handleItemChange}
-      />
+      <View style={styles.dropDownPicker}>
+        <DropDownPickerComponent
+          items={FAKE_DROPDOWN_ITEMS}
+          onChangeItem={handleItemChange}
+          defaultValue={null}
+          onPressIcon={handleSortChange}
+        />
+      </View>
       <FlatList
         data={FAKEUSERS}
         renderItem={({ item }) => <UserCard user={item} />}
@@ -38,6 +50,9 @@ const styles = StyleSheet.create({
   },
   findUserBar: {
     paddingHorizontal: 10,
+  },
+  dropDownPicker: {
+    padding: 10,
   },
   flatList: {
     paddingHorizontal: 10,

@@ -39,7 +39,7 @@ export default function DropDownPickerComponent({
         selectedItemLabelStyle={styles.selectedItemLabelStyle}
       />
       <ChevronsUpDown
-        size={24}
+        size={28}
         color={colors.lightGray}
         style={styles.sortByIcon}
         onPress={onPressIcon}
@@ -56,8 +56,6 @@ const styles = StyleSheet.create({
   },
   dropDownPickerContainerStyle: {
     maxWidth: "52%",
-    borderWidth: 0,
-    marginLeft: 10,
   },
   pickerStyle: {
     backgroundColor: "transparent",

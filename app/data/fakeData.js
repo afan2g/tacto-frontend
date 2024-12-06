@@ -220,3 +220,21 @@ export const FAKE_DROPDOWN_ITEMS = [
     icon: () => <CircleDollarSign size={24} color={colors.fadedGray} />,
   },
 ];
+
+export const FAKE_SPLIT_GROUPS_PREVIEW = [
+  {
+    title: "Roommates",
+    recentTransactions: 1,
+    volume: 100,
+  },
+  {
+    title: "Friends",
+    recentTransactions: 3,
+    volume: 300,
+  },
+  {
+    title: "Family",
+    recentTransactions: 2,
+    volume: 200,
+  },
+];
