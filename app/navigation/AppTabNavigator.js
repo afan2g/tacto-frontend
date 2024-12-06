@@ -2,7 +2,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { StyleSheet } from "react-native";
 import routes from "./routes";
-import AccountScreen from "../screens/AccountScreen";
 import HomeNavigator from "./HomeNavigator";
 import {
   ArrowDownUp,
@@ -14,6 +13,7 @@ import {
 import TransactNavigator from "./TransactNavigator";
 import PeopleTopTabNavigator from "../navigation/PeopleTopTabNavigator";
 import ActivityScreen from "../screens/ActivityScreen";
+import AccountNavigator from "./AccountNavigator";
 
 const Tab = createBottomTabNavigator();
 function AppTabNavigator(props) {
@@ -64,7 +64,7 @@ function AppTabNavigator(props) {
       />
       <Tab.Screen
         name={routes.ACCOUNT}
-        component={AccountScreen}
+        component={AccountNavigator}
         options={{
           tabBarIcon: ({ color, size }) => {
             return <UserRound color={color} size={size} />;

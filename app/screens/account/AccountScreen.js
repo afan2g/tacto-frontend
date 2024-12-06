@@ -2,15 +2,15 @@ import React from "react";
 import { View, StyleSheet, Image, SectionList } from "react-native";
 import { Settings } from "lucide-react-native";
 
-import { AppText, Header, Screen } from "../components/primitives";
-import { colors, fonts } from "../config";
-import { FAKEPROFILE } from "../data/fakeData";
+import { AppText, Header, Screen } from "../../components/primitives";
+import { colors, fonts } from "../../config";
+import { FAKEPROFILE } from "../../data/fakeData";
 import {
   AccountBalanceCard,
   TransactionCard,
   TransactionCardSeparator,
   UserCard,
-} from "../components/cards";
+} from "../../components/cards";
 
 const SECTIONS = [
   {

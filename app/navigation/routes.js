@@ -1,5 +1,9 @@
 export default Object.freeze({
   ACCOUNT: "Account",
+  ACCOUNTPROFILE: "AccountProfile",
+  ACCOUNTSECURITY: "AccountSecurity",
+  ACCOUNTNOTIFICATIONS: "AccountNotifications",
+  ACCOUNTSUPPORT: "AccountSupport",
   ACTIVITY: "ActivityLog",
   APP: "App",
   AUTH: "LandingAuth",
