@@ -4,9 +4,9 @@ import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 
-function UserCard({ user, subtext = "", onPress, navigation }) {
+function UserCard({ user, subtext = "", onPress, navigation, style }) {
   return (
-    <TouchableHighlight style={styles.container} onPress={onPress}>
+    <TouchableHighlight style={[styles.container, style]} onPress={onPress}>
       <>
         <Image
           source={{ uri: user.profilePicUrl }}

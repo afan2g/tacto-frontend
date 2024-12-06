@@ -48,10 +48,19 @@ const SECTIONS = [
 ];
 
 function AccountScreen({ navigation }) {
+  const handleUserCardPress = () => {
+    console.log("User card pressed!");
+  };
   return (
     <Screen style={styles.screen}>
-      <UserCard user={FAKEPROFILE} style={styles.userCard} />
-      <AccountBalanceCard balance={FAKEPROFILE.balance} />
+      <View style={styles.accountContainer}>
+        <UserCard
+          user={FAKEPROFILE}
+          style={styles.userCard}
+          onPress={handleUserCardPress}
+        />
+        <AccountBalanceCard balance={FAKEPROFILE.balance} />
+      </View>
       <SectionList
         sections={SECTIONS}
         keyExtractor={(item, index) => item + index}
@@ -63,7 +72,7 @@ function AccountScreen({ navigation }) {
         renderSectionHeader={({ section: { title } }) => (
           <Header style={styles.sectionHeader}>{title}</Header>
         )}
-        style={styles.sectionList}
+        contentContainerStyle={styles.sectionList}
         ItemSeparatorComponent={() => <TransactionCardSeparator />}
       />
     </Screen>
@@ -74,7 +83,10 @@ const styles = StyleSheet.create({
   screen: {
     paddingHorizontal: 0,
   },
-  userCard: {},
+  accountContainer: {},
+  userCard: {
+    marginHorizontal: 10,
+  },
   item: {
     padding: 20,
   },
@@ -93,6 +105,7 @@ const styles = StyleSheet.create({
   sectionList: {
     width: "100%",
     paddingTop: 10,
+    paddingBottom: 20,
   },
 });
 
