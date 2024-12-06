@@ -7,8 +7,7 @@ import { colors, fonts } from "../../config";
 import { FAKEPROFILE } from "../../data/fakeData";
 import {
   AccountBalanceCard,
-  TransactionCard,
-  TransactionCardSeparator,
+  AppCardSeparator,
   UserCard,
 } from "../../components/cards";
 
@@ -73,7 +72,7 @@ function AccountScreen({ navigation }) {
           <Header style={styles.sectionHeader}>{title}</Header>
         )}
         contentContainerStyle={styles.sectionList}
-        ItemSeparatorComponent={() => <TransactionCardSeparator />}
+        ItemSeparatorComponent={() => <AppCardSeparator />}
       />
     </Screen>
   );

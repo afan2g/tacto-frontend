@@ -1,7 +1,7 @@
 import React from "react";
-import { View, StyleSheet, FlatList, ScrollView } from "react-native";
+import { View, StyleSheet, FlatList } from "react-native";
 
-import { AppText, Header, Screen } from "../components/primitives";
+import { AppText, Screen } from "../components/primitives";
 import { colors, fonts } from "../config";
 import {
   AccountBalanceCard,

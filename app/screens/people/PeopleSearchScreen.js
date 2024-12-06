@@ -1,25 +1,29 @@
 import React from "react";
 import { StyleSheet, Pressable, Keyboard, FlatList } from "react-native";
-import { Search } from "lucide-react-native";
 
 import { FindUserBar } from "../../components/forms";
-import { colors } from "../../config";
-import { UserCard } from "../../components/cards";
+import { UserCard, AppCardSeparator } from "../../components/cards";
 import { FAKEUSERS } from "../../data/fakeData";
 
 function PeopleSearchScreen(props) {
+  const handleCardPress = (item) => {
+    console.log("User pressed:", item);
+  };
   return (
     <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
-      <FindUserBar
-        action="send"
-        style={styles.findUserBar}
-        icon={<Search color={colors.lightGray} size={16} />}
-      />
+      <FindUserBar action="send" style={styles.findUserBar} />
       <FlatList
         data={FAKEUSERS}
-        renderItem={({ item }) => <UserCard user={item} />}
+        renderItem={({ item }) => (
+          <UserCard
+            user={item}
+            style={styles.userCard}
+            onPress={() => handleCardPress(item)}
+          />
+        )}
         keyExtractor={(item) => item.username}
-        style={styles.flatList}
+        contentContainerStyle={styles.flatList}
+        ItemSeparatorComponent={<AppCardSeparator />}
       />
     </Pressable>
   );
@@ -31,11 +35,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   findUserBar: {
+    paddingHorizontal: 5,
+  },
+  userCard: {
     paddingHorizontal: 10,
   },
-  flatList: {
-    paddingHorizontal: 10,
-  },
+  flatList: {},
 });
 
 export default PeopleSearchScreen;

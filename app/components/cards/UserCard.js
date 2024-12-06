@@ -1,13 +1,24 @@
 import React from "react";
-import { View, StyleSheet, Image, TouchableHighlight } from "react-native";
+import { View, StyleSheet, Image, Pressable } from "react-native";
 import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 
-function UserCard({ user, subtext = "", onPress, navigation, style }) {
+function UserCard({
+  user,
+  subtext = "",
+  onPress,
+  onLongPress,
+  navigation,
+  style,
+}) {
   return (
-    <TouchableHighlight style={[styles.container, style]} onPress={onPress}>
-      <>
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={({ pressed }) => (pressed ? styles.pressed : styles.notPressed)}
+    >
+      <View style={[styles.container, style]}>
         <Image
           source={{ uri: user.profilePicUrl }}
           resizeMode="contain"
@@ -19,12 +30,18 @@ function UserCard({ user, subtext = "", onPress, navigation, style }) {
             {subtext ? subtext : user.username}
           </AppText>
         </View>
-      </>
-    </TouchableHighlight>
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  pressed: {
+    backgroundColor: colors.blueShade40,
+  },
+  notPressed: {
+    backgroundColor: "transparent",
+  },
   container: {
     flexDirection: "row",
     alignItems: "center",

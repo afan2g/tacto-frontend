@@ -9,6 +9,7 @@ import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { TransactionContext } from "../../contexts/TransactionContext";
 import { FAKEUSERS } from "../../data/fakeData";
+import { AppCardSeparator } from "../../components/cards";
 
 function SelectUserScreen({ navigation }) {
   // Access transaction and setTransaction from context
@@ -46,33 +47,51 @@ function SelectUserScreen({ navigation }) {
       <FlatList
         data={FAKEUSERS}
         renderItem={({ item }) => (
-          <UserCard user={item} onPress={() => handleCardPress(item)} />
+          <UserCard
+            user={item}
+            onPress={() => handleCardPress(item)}
+            style={styles.userCard}
+          />
         )}
         keyExtractor={(item) => item.username}
+        contentContainerStyle={styles.flatList}
+        ItemSeparatorComponent={() => <AppCardSeparator />}
       />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {},
+  screen: {
+    paddingHorizontal: 0,
+  },
   headerContainer: {
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
     marginBottom: 10,
     paddingHorizontal: 10,
+  },
+  headerTextContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
   },
   headerText: {
     fontFamily: fonts.medium,
     fontSize: 28,
     color: colors.yellow,
-    alignSelf: "center",
     textAlign: "left",
+    alignSelf: "center",
   },
   value: {
     fontFamily: fonts.medium,
     fontSize: 28,
     color: colors.yellow,
+  },
+  FindUserBar: {
+    paddingHorizontal: 10,
+  },
+  userCard: {
+    paddingHorizontal: 10,
   },
 });
 

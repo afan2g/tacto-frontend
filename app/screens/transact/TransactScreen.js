@@ -88,13 +88,16 @@ const styles = StyleSheet.create({
   placeholder: {
     color: colors.softGray,
   },
-  input: {},
+  input: {
+    width: "100%",
+    alignItems: "center",
+  },
   sendReceiveContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    paddingHorizontal: 10,
     paddingVertical: 20,
+    paddingHorizontal: 5,
   },
   button: {
     width: "40%",

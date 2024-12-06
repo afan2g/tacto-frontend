@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TextInput } from "react-native";
+import { QrCode, Search } from "lucide-react-native";
 import colors from "../../config/colors";
 import fonts from "../../config/fonts";
-import { Key, QrCode } from "lucide-react-native";
 import AppNFCIcon from "../icons/AppNFCIcon";
-function FindUserBar({ style, action, icon }) {
+function FindUserBar({ style, action }) {
   const [search, setSearch] = useState("");
 
   const handleInputChange = (value) => {
@@ -14,7 +14,7 @@ function FindUserBar({ style, action, icon }) {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.inputContainer}>
-        {icon}
+        <Search color={colors.lightGray} size={16} />
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}

@@ -1,7 +1,11 @@
 import React from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 
-import { TransactionCard, TransactionCardSeparator } from "../components/cards";
+import {
+  AppCardSeparator,
+  TransactionCard,
+  TransactionCardSeparator,
+} from "../components/cards";
 import { AppText, Header, Screen } from "../components/primitives";
 import { colors } from "../config";
 import useGreeting from "../hooks/useGreeting";
@@ -36,7 +40,7 @@ function HomeScreen({ navigation }) {
           />
         )}
         keyExtractor={(item) => item.txid.toString()}
-        ItemSeparatorComponent={TransactionCardSeparator}
+        ItemSeparatorComponent={() => <AppCardSeparator />}
       />
     </Screen>
   );

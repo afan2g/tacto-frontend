@@ -1,10 +1,11 @@
 import React from "react";
 import { View, StyleSheet, Pressable, Keyboard, FlatList } from "react-native";
-import { Search } from "lucide-react-native";
+import { ChevronsUpDown } from "lucide-react-native";
+
+import { colors } from "../../config";
 import { FindUserBar } from "../../components/forms";
 import { FAKEUSERS, FAKE_DROPDOWN_ITEMS } from "../../data/fakeData";
-import { UserCard } from "../../components/cards";
-import { colors } from "../../config";
+import { UserCard, AppCardSeparator } from "../../components/cards";
 import DropDownPickerComponent from "../../components/forms/DropDownPickerComponent";
 function PeopleFriendsScreen(props) {
   const handleItemChange = (item) => {
@@ -15,29 +16,37 @@ function PeopleFriendsScreen(props) {
     console.log("sorting changed!");
   };
 
-  const handleDismiss = () => {
-    Keyboard.dismiss();
+  const handleCardPress = (item) => {
+    console.log("User pressed:", item);
   };
   return (
-    <Pressable style={styles.screen} onPress={handleDismiss}>
-      <FindUserBar
-        action="send"
-        style={styles.findUserBar}
-        icon={<Search color={colors.lightGray} size={16} />}
-      />
+    <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
+      <FindUserBar action="send" style={styles.findUserBar} />
       <View style={styles.dropDownPicker}>
         <DropDownPickerComponent
           items={FAKE_DROPDOWN_ITEMS}
           onChangeItem={handleItemChange}
           defaultValue={null}
-          onPressIcon={handleSortChange}
+        />
+        <ChevronsUpDown
+          size={28}
+          color={colors.lightGray}
+          style={styles.sortByIcon}
+          onPress={handleSortChange}
         />
       </View>
       <FlatList
         data={FAKEUSERS}
-        renderItem={({ item }) => <UserCard user={item} />}
+        renderItem={({ item }) => (
+          <UserCard
+            user={item}
+            onPress={() => handleCardPress(item)}
+            style={styles.userCard}
+          />
+        )}
         keyExtractor={(item) => item.username}
-        style={styles.flatList}
+        contentContainerStyle={styles.flatList}
+        ItemSeparatorComponent={<AppCardSeparator />}
       />
     </Pressable>
   );
@@ -49,14 +58,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   findUserBar: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
   },
   dropDownPicker: {
-    padding: 10,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    padding: 5,
+    marginVertical: 5,
   },
-  flatList: {
+  sortByIcon: {
+    marginLeft: 10,
+  },
+  userCard: {
     paddingHorizontal: 10,
   },
+  flatList: {},
 });
 
 export default PeopleFriendsScreen;

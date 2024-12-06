@@ -8,7 +8,6 @@ export default function DropDownPickerComponent({
   items,
   defaultValue,
   onChangeItem,
-  onPressIcon,
 }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue || items[0]?.value); // Set default to first item's value
@@ -19,41 +18,28 @@ export default function DropDownPickerComponent({
   }, [defaultValue, items]);
 
   return (
-    <View style={styles.container}>
-      <DropDownPicker
-        open={open}
-        value={value}
-        items={itemsList}
-        setOpen={setOpen}
-        setValue={setValue}
-        setItems={setItemsList}
-        style={styles.pickerStyle}
-        containerStyle={styles.dropDownPickerContainerStyle}
-        textStyle={styles.textStyle}
-        labelStyle={styles.labelStyle}
-        onChangeValue={onChangeItem}
-        arrowIconStyle={styles.arrowIconStyle}
-        tickIconStyle={styles.tickIconStyle}
-        dropDownContainerStyle={styles.dropDownContainerStyle}
-        selectedItemContainerStyle={styles.selectedItemContainerStyle}
-        selectedItemLabelStyle={styles.selectedItemLabelStyle}
-      />
-      <ChevronsUpDown
-        size={28}
-        color={colors.lightGray}
-        style={styles.sortByIcon}
-        onPress={onPressIcon}
-      />
-    </View>
+    <DropDownPicker
+      open={open}
+      value={value}
+      items={itemsList}
+      setOpen={setOpen}
+      setValue={setValue}
+      setItems={setItemsList}
+      style={styles.pickerStyle}
+      containerStyle={styles.dropDownPickerContainerStyle}
+      textStyle={styles.textStyle}
+      labelStyle={styles.labelStyle}
+      onChangeValue={onChangeItem}
+      arrowIconStyle={styles.arrowIconStyle}
+      tickIconStyle={styles.tickIconStyle}
+      dropDownContainerStyle={styles.dropDownContainerStyle}
+      selectedItemContainerStyle={styles.selectedItemContainerStyle}
+      selectedItemLabelStyle={styles.selectedItemLabelStyle}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-  },
   dropDownPickerContainerStyle: {
     maxWidth: "54%",
   },
@@ -85,9 +71,7 @@ const styles = StyleSheet.create({
     borderColor: colors.fadedGray,
     borderRadius: 5,
   },
-  sortByIcon: {
-    marginLeft: 10,
-  },
+
   selectedItemContainerStyle: {
     backgroundColor: colors.blueShade50,
   },
