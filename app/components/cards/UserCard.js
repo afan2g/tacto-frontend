@@ -6,29 +6,56 @@ import colors from "../../config/colors";
 
 function UserCard({
   user,
-  subtext = "",
+  subtext,
   onPress,
   onLongPress,
   navigation,
   style,
+  scale,
 }) {
+  const displayText = subtext === null ? null : subtext ?? user.username;
+
+  const scaleStyle = {
+    profilePic: {
+      height: 54 * (scale ?? 1),
+      width: 54 * (scale ?? 1),
+      borderRadius: 30 * (scale ?? 1),
+    },
+    fullName: {
+      fontSize: 20 * (scale ?? 1),
+    },
+    username: {
+      fontSize: 15 * (scale ?? 1),
+    },
+  };
+
+  const flexDirection = StyleSheet.flatten(style)?.flexDirection;
   return (
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      style={({ pressed }) => (pressed ? styles.pressed : styles.notPressed)}
+      style={[({ pressed }) => (pressed ? styles.pressed : styles.notPressed)]}
     >
       <View style={[styles.container, style]}>
         <Image
           source={{ uri: user.profilePicUrl }}
           resizeMode="contain"
-          style={styles.profilePic}
+          style={[scaleStyle.profilePic, styles.profilePic]}
         />
-        <View style={styles.userNameContainer}>
-          <AppText style={styles.fullName}>{user.fullName}</AppText>
-          <AppText style={styles.username}>
-            {subtext ? subtext : user.username}
+        <View
+          style={[
+            styles.userNameContainer,
+            flexDirection === "row-reverse" && { alignItems: "flex-end" },
+          ]}
+        >
+          <AppText style={[scaleStyle.fullName, styles.fullName]}>
+            {user.fullName}
           </AppText>
+          {displayText && (
+            <AppText style={[scaleStyle.username, styles.username]}>
+              {displayText}
+            </AppText>
+          )}
         </View>
       </View>
     </Pressable>
@@ -46,23 +73,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
+    justifyContent: "flex-start",
   },
-  profilePic: {
-    height: 54,
-    width: 54,
-    borderRadius: 30,
-  },
+  profilePic: {},
   userNameContainer: {
-    paddingLeft: 10,
+    alignItems: "flex-start",
+    paddingHorizontal: 10,
   },
   fullName: {
     fontFamily: fonts.medium,
-    fontSize: 20,
     color: colors.lightGray,
   },
   username: {
     fontFamily: fonts.light,
-    fontSize: 15,
     color: colors.lightGray,
   },
 });

@@ -106,12 +106,14 @@ export const FAKE_TRANSACTIONS_COMPLETED = [
 export const FAKE_HOME_SCREEN_DATA = [
   {
     from: {
-      name: "Aaron Fan",
+      fullName: "Aaron Fan",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+      username: "@afan2k",
     },
     to: {
-      name: "Kyle Li",
+      fullName: "Kyle Li",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+      username: "@wheresme2010",
     },
     amount: 10.0,
     memo: "Ullamco excepteur reprehenderit reprehenderit non eiusmod velit ullamco ullamco eu ullamco voluptate.",
@@ -122,11 +124,11 @@ export const FAKE_HOME_SCREEN_DATA = [
   },
   {
     from: {
-      name: "Kevin Liu",
+      fullName: "Kevin Liu",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
     },
     to: {
-      name: "Nate Gale",
+      fullName: "Nate Gale",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
     },
     amount: 121.1,
@@ -138,11 +140,11 @@ export const FAKE_HOME_SCREEN_DATA = [
   },
   {
     from: {
-      name: "James Hill",
+      fullName: "James Hill",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
     },
     to: {
-      name: "Michael Reeves",
+      fullName: "Michael Reeves",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
     },
     amount: 6.51,
@@ -154,11 +156,11 @@ export const FAKE_HOME_SCREEN_DATA = [
   },
   {
     from: {
-      name: "Jill Pyle",
+      fullName: "Jill Pyle",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
     },
     to: {
-      name: "Miranda Knox",
+      fullName: "Miranda Knox",
       profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
     },
     amount: 7.01,

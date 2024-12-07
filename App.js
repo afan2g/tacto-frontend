@@ -16,6 +16,8 @@ import {
 import getRandomDate from "./app/utils/getRandomDate";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import PeopleTopTabNavigator from "./app/navigation/PeopleTopTabNavigator";
+import TransactionCardTest from "./app/components/cards/TransactionCardTest";
+import { FAKE_HOME_SCREEN_DATA } from "./app/data/fakeData";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -42,11 +44,14 @@ export default function App() {
     return null;
   }
   return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <AppTabNavigator />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    // <SafeAreaProvider>
+    //   <NavigationContainer theme={navigationTheme}>
+    //     <AppTabNavigator />
+    //   </NavigationContainer>
+    // </SafeAreaProvider>
+    <Screen style={styles.screen}>
+      <TransactionCardTest transaction={FAKE_HOME_SCREEN_DATA[0]} />
+    </Screen>
   );
 }
 
