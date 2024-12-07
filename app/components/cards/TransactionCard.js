@@ -1,153 +1,124 @@
-import { ArrowBigUp, ArrowBigDown, MoveRight } from "lucide-react-native";
+import { ArrowBigDown, ArrowBigUp } from "lucide-react-native";
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  Image,
-  TouchableWithoutFeedback,
-} from "react-native";
-import { AppText } from "../primitives";
-import colors from "../../config/colors";
-import fonts from "../../config/fonts";
-import routes from "../../navigation/routes";
+import { View, StyleSheet, Pressable } from "react-native";
 
-function TransactionCard({ transaction, navigation }) {
+import { AppText } from "../primitives";
+import { colors, fonts } from "../../config";
+import AvatarList from "./AvatarList";
+
+function TransactionCard({ transaction, style, navigation }) {
   const { from, to, amount, memo, score, commentCount, time, txid } =
     transaction;
-  const handleCardPress = () => {
-    console.log("Card pressed:", { from, to, amount, memo, txid });
-    navigation.navigate(routes.TRANSACTIONDETAIL, transaction);
+  const handlePress = () => {
+    console.log("TransactionCardTest pressed");
   };
-
-  const handleFromProfilePress = () => {
-    console.log("From profile pressed:", from);
+  const handleLongPress = () => {
+    console.log("TransactionCardTest long pressed");
   };
-
-  const handleToProfilePress = () => {
-    console.log("To profile pressed:", to);
-  };
-
   const handleUpVotePress = () => {
-    console.log("Upvote pressed:", { txid, currentScore: score });
+    console.log("TransactionCardTest upvoted");
   };
-
   const handleDownVotePress = () => {
-    console.log("Downvote pressed:", { txid, currentScore: score });
-  };
-
-  const handleCommentPress = () => {
-    console.log("Comments pressed:", { txid, commentCount });
+    console.log("TransactionCardTest downvoted");
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handleCardPress}>
-      <View style={styles.container}>
-        <View style={styles.headerBarContainer}>
-          <View style={styles.fromToContainer}>
-            <TouchableWithoutFeedback onPress={handleFromProfilePress}>
-              <View style={styles.profileContainer}>
-                <Image
-                  style={styles.profilePic}
-                  source={{ uri: from.profilePicUrl }}
-                />
-                <AppText style={styles.nameText}>{from.name}</AppText>
-              </View>
-            </TouchableWithoutFeedback>
-            <MoveRight color={colors.green} size={24} style={styles.arrow} />
-            <TouchableWithoutFeedback onPress={handleToProfilePress}>
-              <View style={styles.profileContainer}>
-                <Image
-                  style={styles.profilePic}
-                  source={{ uri: to.profilePicUrl }}
-                />
-                <AppText style={styles.nameText}>{to.name}</AppText>
-              </View>
-            </TouchableWithoutFeedback>
+    <Pressable
+      style={[styles.container, style]}
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+    >
+      <View style={styles.topContainer}>
+        <View style={styles.actionContainer}>
+          <AvatarList
+            avatars={[from.profilePicUrl, to.profilePicUrl]}
+            size={32}
+            style={styles.avatarList}
+          />
+          <View style={styles.usersContainer}>
+            <AppText style={styles.users} onPress={handlePress}>
+              {from.fullName}
+            </AppText>
+            <AppText style={styles.sent}> paid </AppText>
+            <AppText style={styles.users} onPress={handlePress}>
+              {to.fullName}
+            </AppText>
           </View>
-          <AppText style={styles.amount}>${amount.toFixed(2)}</AppText>
         </View>
-        <AppText style={styles.memo}>{memo}</AppText>
-
-        <View style={styles.bottomRowContainer}>
-          <View style={styles.scoreContainer}>
-            <TouchableWithoutFeedback onPress={handleUpVotePress}>
-              <View>
-                <ArrowBigUp
-                  color={colors.lightGray}
-                  size={24}
-                  style={styles.vote}
-                />
-              </View>
-            </TouchableWithoutFeedback>
-            <AppText style={styles.score}>{score}</AppText>
-            <TouchableWithoutFeedback onPress={handleDownVotePress}>
-              <View>
-                <ArrowBigDown
-                  color={colors.lightGray}
-                  size={24}
-                  style={styles.vote}
-                />
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback onPress={handleCommentPress}>
-              <View>
-                <AppText style={styles.comments}>
-                  {commentCount} comment{commentCount != 1 ? "s" : ""}
-                </AppText>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-          <AppText style={styles.time}>{time} ago</AppText>
-        </View>
+        <AppText style={styles.amount}>${amount.toFixed(2)}</AppText>
       </View>
-    </TouchableWithoutFeedback>
+      <AppText style={styles.memo}>{memo}</AppText>
+      <View style={styles.bottomContainer}>
+        <View style={styles.scoreContainer}>
+          <View style={styles.voteContainer}>
+            <ArrowBigUp
+              color={colors.lightGray}
+              size={24}
+              style={styles.vote}
+              onPress={handleUpVotePress}
+            />
+            <AppText style={styles.score}>{score}</AppText>
+            <ArrowBigDown
+              color={colors.lightGray}
+              size={24}
+              style={styles.vote}
+              onPress={handleDownVotePress}
+            />
+          </View>
+          <AppText style={styles.comments}>
+            {commentCount} comment{commentCount != 1 ? "s" : ""}
+          </AppText>
+        </View>
+        <AppText style={styles.time}>{time} ago</AppText>
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    width: "100%",
+    padding: 10,
+    backgroundColor: colors.blue,
   },
-  headerBarContainer: {
+  topContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  fromToContainer: {
+  actionContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-  profileContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profilePic: {
-    height: 30,
-    width: 30,
-    borderRadius: 20,
+  avatarList: {
     marginRight: 10,
   },
-  nameText: {
+  usersContainer: {
+    flexDirection: "row",
+  },
+  users: {
     color: colors.lightGray,
     fontFamily: fonts.medium,
     fontSize: 16,
   },
-  arrow: {
-    marginHorizontal: 5,
+  sent: {
+    color: colors.lightGray,
+    fontFamily: fonts.medium,
+    fontSize: 16,
   },
   amount: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
     color: colors.lightGray,
-    fontFamily: fonts.black,
   },
   memo: {
-    paddingVertical: 10,
-    color: colors.softGray,
+    color: colors.blackShade10,
+    textAlign: "justify",
     fontFamily: fonts.regular,
-    fontSize: 14,
-    textAlign: "left",
+    fontSize: 16,
+    marginVertical: 5,
   },
-  bottomRowContainer: {
+  bottomContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -156,18 +127,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  voteContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 10,
+  },
   vote: {},
   score: {
     color: colors.lightGray,
-    paddingHorizontal: 5,
+    fontFamily: fonts.medium,
+    marginHorizontal: 5,
   },
   comments: {
-    paddingLeft: 20,
     color: colors.lightGray,
+    fontFamily: fonts.medium,
   },
   time: {
+    color: colors.blackShade10,
     fontFamily: fonts.medium,
-    color: colors.softGray,
   },
 });
 

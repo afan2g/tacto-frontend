@@ -16,7 +16,7 @@ import {
 import getRandomDate from "./app/utils/getRandomDate";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import PeopleTopTabNavigator from "./app/navigation/PeopleTopTabNavigator";
-import TransactionCardTest from "./app/components/cards/TransactionCardTest";
+import TransactionCard from "./app/components/cards/TransactionCard";
 import { FAKE_HOME_SCREEN_DATA } from "./app/data/fakeData";
 import formatRelativeTime from "./app/utils/formatRelativeTime";
 import { Home } from "lucide-react-native";
@@ -53,15 +53,8 @@ export default function App() {
     //     <AppTabNavigator />
     //   </NavigationContainer>
     // </SafeAreaProvider>
-    <Screen style={styles.screen}>
-      <TransactionCardTest
-        transaction={{
-          ...FAKE_HOME_SCREEN_DATA[0],
-          time: formatRelativeTime(FAKE_HOME_SCREEN_DATA[0].time),
-        }}
-      />
-    </Screen>
-    // <HomeScreen />
+
+    <HomeScreen />
   );
 }
 

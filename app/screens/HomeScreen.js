@@ -11,7 +11,6 @@ import { colors } from "../config";
 import useGreeting from "../hooks/useGreeting";
 import formatRelativeTime from "../utils/formatRelativeTime";
 import { FAKE_HOME_SCREEN_DATA } from "../data/fakeData";
-import TransactionCardTest from "../components/cards/TransactionCardTest";
 
 function HomeScreen({ navigation }) {
   const greeting = useGreeting();
@@ -35,7 +34,7 @@ function HomeScreen({ navigation }) {
       <FlatList
         data={FAKE_HOME_SCREEN_DATA}
         renderItem={({ item }) => (
-          <TransactionCardTest
+          <TransactionCard
             transaction={{ ...item, time: formatRelativeTime(item.time) }}
             navigation={navigation}
           />
