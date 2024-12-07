@@ -31,7 +31,7 @@ function TransactionCard({ transaction, style, navigation }) {
       ]}
       onPress={handlePress}
       onLongPress={handleLongPress}
-      unstable_pressDelay={250}
+      unstable_pressDelay={750}
     >
       <View style={styles.topContainer}>
         <View style={styles.actionContainer}>
