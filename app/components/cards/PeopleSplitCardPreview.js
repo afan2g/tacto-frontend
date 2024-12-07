@@ -10,6 +10,7 @@ function PeopleSplitCardPreview({ group, style, onPress, onLongPress }) {
       onPress={onPress}
       onLongPress={onLongPress}
       style={({ pressed }) => (pressed ? styles.pressed : styles.notPressed)}
+      unstable_pressDelay={175}
     >
       <View style={[styles.container, style]}>
         <View style={styles.leftContainer}>

@@ -10,7 +10,7 @@ function AvatarList({ avatars, size = 50, style }) {
       marginRight: -(size * 0.4),
       borderRadius: size / 2,
       borderWidth: 2,
-      borderColor: colors.blackTint10,
+      borderColor: colors.redShade20,
       shadowColor: colors.black,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.3,
@@ -27,12 +27,12 @@ function AvatarList({ avatars, size = 50, style }) {
           <Image
             key={index}
             source={{ uri: avatar }}
-            style={scaledStyle.avatar}
+            style={[scaledStyle.avatar, { zIndex: avatars.length - index }]}
           />
         ))}
         <Image
           source={{ uri: avatars[avatars.length - 1] }}
-          style={[scaledStyle.avatar, styles.lastAvatar]}
+          style={[scaledStyle.avatar, styles.lastAvatar, { zIndex: 0 }]}
         />
       </View>
     </View>
@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   },
   lastAvatar: {
     marginRight: 0,
+    borderColor: colors.greenShade40,
   },
 });
 

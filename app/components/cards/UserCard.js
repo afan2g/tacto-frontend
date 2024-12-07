@@ -35,6 +35,7 @@ function UserCard({
       onPress={onPress}
       onLongPress={onLongPress}
       style={[({ pressed }) => (pressed ? styles.pressed : styles.notPressed)]}
+      unstable_pressDelay={200}
     >
       <View style={[styles.container, style]}>
         <Image

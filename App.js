@@ -48,13 +48,11 @@ export default function App() {
     return null;
   }
   return (
-    // <SafeAreaProvider>
-    //   <NavigationContainer theme={navigationTheme}>
-    //     <AppTabNavigator />
-    //   </NavigationContainer>
-    // </SafeAreaProvider>
-
-    <HomeScreen />
+    <SafeAreaProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <AppTabNavigator />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

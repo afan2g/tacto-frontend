@@ -1,6 +1,6 @@
 import React from "react";
-import { View, StyleSheet, Image, SectionList } from "react-native";
-import { Settings } from "lucide-react-native";
+import { View, StyleSheet, SectionList, Pressable } from "react-native";
+import { ChevronRight, Settings } from "lucide-react-native";
 
 import { AppText, Header, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
@@ -64,9 +64,17 @@ function AccountScreen({ navigation }) {
         sections={SECTIONS}
         keyExtractor={(item, index) => item + index}
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.item,
+              pressed ? styles.pressed : styles.notPressed,
+            ]}
+            onPress={() => console.log(item.title)}
+            unstable_pressDelay={250}
+          >
             <AppText style={styles.title}>{item.title}</AppText>
-          </View>
+            <ChevronRight color={colors.lightGray} size={24} />
+          </Pressable>
         )}
         renderSectionHeader={({ section: { title } }) => (
           <Header style={styles.sectionHeader}>{title}</Header>
@@ -88,6 +96,14 @@ const styles = StyleSheet.create({
   },
   item: {
     padding: 20,
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  pressed: {
+    backgroundColor: colors.blueShade40,
+  },
+  notPressed: {
+    backgroundColor: "transparent",
   },
   title: {
     fontSize: 16,

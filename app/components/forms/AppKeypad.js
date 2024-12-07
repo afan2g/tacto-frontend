@@ -1,93 +1,172 @@
-import React from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Pressable, Text, StyleSheet } from "react-native";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 import { Delete } from "lucide-react-native";
 
+const PRESS_DELAY = 40;
 const CustomKeypad = ({ onPress }) => {
+  const [deleteInterval, setDeleteInterval] = useState(null);
+
+  const handleDeleteLongPress = () => {
+    const intervalId = setInterval(() => {
+      onPress("<");
+    }, 100);
+    setDeleteInterval(intervalId);
+  };
+
+  const handleDeletePressOut = () => {
+    if (deleteInterval) {
+      clearInterval(deleteInterval);
+      setDeleteInterval(null);
+    }
+  };
+
   return (
     <View style={styles.keypadContainer}>
       <View style={[styles.row, styles.firstRow]}>
-        <TouchableOpacity
-          style={[styles.key, styles.keyOne]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyOne,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("1")}
         >
           <Text style={styles.keyText}>1</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keyTwo]}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyTwo,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("2")}
         >
           <Text style={styles.keyText}>2</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keyThree]}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyThree,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("3")}
         >
           <Text style={styles.keyText}>3</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <View style={[styles.row, styles.secondRow]}>
-        <TouchableOpacity
+        <Pressable
           key={"4"}
-          style={[styles.key, styles.keyFour]}
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyFour,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("4")}
         >
           <Text style={styles.keyText}>4</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keyFive]}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyFive,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("5")}
         >
           <Text style={styles.keyText}>5</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keySix]}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keySix,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("6")}
         >
           <Text style={styles.keyText}>6</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <View style={[styles.row, styles.thirdRow]}>
-        <TouchableOpacity
-          style={[styles.key, styles.keySeven]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keySeven,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("7")}
         >
           <Text style={styles.keyText}>7</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keyEight]}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyEight,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("8")}
         >
           <Text style={styles.keyText}>8</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keyNine]}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyNine,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("9")}
         >
           <Text style={styles.keyText}>9</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <View style={[styles.row, styles.fourthRow]}>
-        <TouchableOpacity
-          style={[styles.key, styles.keyDot]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyDot,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress(".")}
         >
           <Text style={styles.keyText}>.</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keyZero]}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyZero,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
           onPress={() => onPress("0")}
         >
           <Text style={styles.keyText}>0</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.key, styles.keyDelete]}
-          onPress={() => onPress("<")}
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.key,
+            styles.keyDelete,
+            pressed ? styles.pressed : styles.notPressed,
+          ]}
+          unstable_pressDelay={PRESS_DELAY}
+          onPress={() => onPress("<", false)} // Single character delete
+          onLongPress={handleDeleteLongPress} // Start continuous delete
+          onPressOut={handleDeletePressOut} // Stop continuous delete
         >
           <Delete color={colors.lightGray} size={40} style={styles.delete} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
@@ -113,6 +192,14 @@ const styles = StyleSheet.create({
     height: 80,
     justifyContent: "center",
     alignItems: "center",
+  },
+  pressed: {
+    // Add styles for the pressed key
+    backgroundColor: colors.blueShade40,
+  },
+  notPressed: {
+    // Add styles for the not pressed key
+    backgroundColor: "transparent",
   },
   keyText: {
     // Add styles for the key text
