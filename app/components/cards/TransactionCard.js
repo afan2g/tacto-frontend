@@ -24,7 +24,11 @@ function TransactionCard({ transaction, style, navigation }) {
 
   return (
     <Pressable
-      style={[styles.container, style]}
+      style={({ pressed }) => [
+        styles.container,
+        style,
+        pressed ? styles.pressed : styles.notPressed,
+      ]}
       onPress={handlePress}
       onLongPress={handleLongPress}
     >
@@ -80,6 +84,12 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
     backgroundColor: colors.blue,
+  },
+  pressed: {
+    backgroundColor: colors.blueShade40,
+  },
+  notPressed: {
+    backgroundColor: "transparent",
   },
   topContainer: {
     flexDirection: "row",
