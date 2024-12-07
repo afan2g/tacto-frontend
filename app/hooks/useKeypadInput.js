@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const useKeypadInput = (
   initialValue = "",
   options = {
     maxDecimalPlaces: 2,
     allowLeadingZero: false,
+    maxValue: 999999.99,
   }
 ) => {
   const [value, setValue] = useState(initialValue);
@@ -18,13 +19,20 @@ export const useKeypadInput = (
     switch (key) {
       case "<":
         if (currentValue === "") return;
-        setValue(currentValue.slice(0, -1) || "");
+        setValue((prevValue) => {
+          const updatedValue = prevValue.slice(0, -1);
+          return updatedValue;
+        });
         break;
       case "0":
         if (currentValue === "0" && !options.allowLeadingZero) return;
 
         if (decimalRegex.test(currentValue + "0")) {
-          setValue(currentValue + "0");
+          const newValue = currentValue + "0";
+          const numericValue = parseFloat(newValue);
+          if (numericValue <= options.maxValue) {
+            setValue(newValue);
+          }
         }
         break;
       case ".":
@@ -47,7 +55,10 @@ export const useKeypadInput = (
           // New regex to strictly enforce decimal precision
           const newValue = currentValue + key;
           if (decimalRegex.test(newValue)) {
-            setValue(newValue);
+            const numericValue = parseFloat(newValue);
+            if (numericValue <= options.maxValue && numericValue >= 0) {
+              setValue(newValue);
+            }
           }
         }
     }

@@ -5,23 +5,20 @@ import colors from "../../config/colors";
 import { Delete } from "lucide-react-native";
 
 const PRESS_DELAY = 40;
+const LONG_PRESS_DELAY = 500;
 const CustomKeypad = ({ onPress }) => {
   const [deleteInterval, setDeleteInterval] = useState(null);
 
-  const handleDeleteLongPress = () => {
-    const intervalId = setInterval(() => {
+  const handleLongPress = () => {
+    const timer = setInterval(() => {
       onPress("<");
     }, 100);
-    setDeleteInterval(intervalId);
+    setDeleteInterval(timer);
   };
 
-  const handleDeletePressOut = () => {
-    if (deleteInterval) {
-      clearInterval(deleteInterval);
-      setDeleteInterval(null);
-    }
+  const handlePressOut = () => {
+    clearInterval(deleteInterval);
   };
-
   return (
     <View style={styles.keypadContainer}>
       <View style={[styles.row, styles.firstRow]}>
@@ -160,10 +157,10 @@ const CustomKeypad = ({ onPress }) => {
             styles.keyDelete,
             pressed ? styles.pressed : styles.notPressed,
           ]}
-          unstable_pressDelay={PRESS_DELAY}
-          onPress={() => onPress("<", false)} // Single character delete
-          onLongPress={handleDeleteLongPress} // Start continuous delete
-          onPressOut={handleDeletePressOut} // Stop continuous delete
+          onPress={() => onPress("<")}
+          onLongPress={handleLongPress}
+          onPressOut={handlePressOut}
+          delayLongPress={LONG_PRESS_DELAY}
         >
           <Delete color={colors.lightGray} size={40} style={styles.delete} />
         </Pressable>

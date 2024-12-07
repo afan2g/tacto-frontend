@@ -15,6 +15,7 @@ function TransactScreen({ navigation }) {
   const { value, handleKeyPress } = useKeypadInput("", {
     maxDecimalPlaces: 2,
     allowLeadingZero: false,
+    maxValue: 999999.99,
   });
 
   // Update transaction.amount whenever value changes
