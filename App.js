@@ -1,27 +1,13 @@
 // App.js
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 
-import { colors, fonts } from "./app/config";
-import { NavigationContainer } from "@react-navigation/native";
-import navigationTheme from "./app/navigation/navigationTheme";
-import AppTabNavigator from "./app/navigation/AppTabNavigator";
 import { Screen } from "./app/components/primitives";
-import {
-  AccountBalanceCard,
-  ActivityTransactionCard,
-} from "./app/components/cards";
-import getRandomDate from "./app/utils/getRandomDate";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import PeopleTopTabNavigator from "./app/navigation/PeopleTopTabNavigator";
-import TransactionCard from "./app/components/cards/TransactionCard";
-import { FAKE_HOME_SCREEN_DATA } from "./app/data/fakeData";
-import formatRelativeTime from "./app/utils/formatRelativeTime";
-import { Home } from "lucide-react-native";
-import HomeScreen from "./app/screens/HomeScreen";
-import AvatarList from "./app/components/cards/AvatarList";
+import OtherUserHeader from "./app/components/cards/OtherUserHeader";
+import { FAKE_OTHER_USERS } from "./app/data/fakeData";
+
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -47,29 +33,19 @@ export default function App() {
   if (!loaded && !error) {
     return null;
   }
+  const user = FAKE_OTHER_USERS[2];
+  const status = user.friendStatus;
   return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <AppTabNavigator />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <Screen style={styles.container}>
+      <OtherUserHeader user={user} />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  container: {
     justifyContent: "center",
     alignItems: "center",
-  },
-  container: {
-    alignItems: "center",
-    flexDirection: "row",
-  },
-  text: {
-    color: colors.gray,
-    fontFamily: fonts.regular,
-    fontSize: 16,
-    padding: 0,
-    margin: 0,
+    paddingHorizontal: 0,
   },
 });

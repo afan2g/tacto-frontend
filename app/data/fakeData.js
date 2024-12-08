@@ -240,3 +240,46 @@ export const FAKE_SPLIT_GROUPS_PREVIEW = [
     volume: 200,
   },
 ];
+
+export const FAKE_OTHER_USERS = [
+  {
+    fullName: "Aaron Fan",
+    username: "@afan2k",
+    profilePicUrl: "https://i.pravatar.cc/80",
+    friends: 10,
+    mutualFriends: 5,
+    friendStatus: "pending",
+  },
+  {
+    fullName: "Cindy Fan",
+    username: "@cf96",
+    profilePicUrl: "https://i.pravatar.cc/80",
+    friends: 10,
+    mutualFriends: 5,
+    friendStatus: "accepted",
+  },
+  {
+    fullName: "Andrew Zhai",
+    username: "@zhaizhaizhai",
+    profilePicUrl: "https://i.pravatar.cc/80",
+    friends: 10,
+    mutualFriends: 5,
+    friendStatus: "none",
+  },
+  {
+    fullName: "Nate Gale",
+    username: "@nutgel",
+    profilePicUrl: "https://i.pravatar.cc/80",
+    friends: 10,
+    mutualFriends: 5,
+    friendStatus: "pending",
+  },
+  {
+    fullName: "Kyle Li",
+    username: "@wheresme2010",
+    profilePicUrl: "https://i.pravatar.cc/80",
+    friends: 10,
+    mutualFriends: 5,
+    friendStatus: "accepted",
+  },
+];

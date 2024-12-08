@@ -6,8 +6,9 @@ import routes from "./routes";
 import SelectUserScreen from "../screens/transact/SelectUserScreen";
 import ConfirmTransactionScreen from "../screens/transact/ConfirmTransactionScreen";
 import TransactionProvider from "../contexts/TransactionContext";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 const Stack = createNativeStackNavigator();
-function TransactNavigator(props) {
+function TransactNavigator({ navigation }) {
   return (
     <TransactionProvider>
       <Stack.Navigator screenOptions={{ headerShown: false }}>

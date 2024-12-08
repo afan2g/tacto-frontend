@@ -10,6 +10,7 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react-native";
+
 import TransactNavigator from "./TransactNavigator";
 import PeopleTopTabNavigator from "../navigation/PeopleTopTabNavigator";
 import ActivityScreen from "../screens/ActivityScreen";

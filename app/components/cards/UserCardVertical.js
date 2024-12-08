@@ -1,24 +1,47 @@
 import React from "react";
-import { View, StyleSheet, Image, TouchableHighlight } from "react-native";
+import { View, StyleSheet, Image, Pressable } from "react-native";
 import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 
-function UserCardVertical({ user, onPress, navigation }) {
+function UserCardVertical({ user, onPress, navigation, scale }) {
+  const scaleStyle = {
+    profilePic: {
+      height: 72 * (scale ?? 1),
+      width: 72 * (scale ?? 1),
+      borderRadius: 36 * (scale ?? 1),
+    },
+    fullName: {
+      fontSize: 26 * (scale ?? 1),
+    },
+    username: {
+      fontSize: 20 * (scale ?? 1),
+    },
+  };
   return (
-    <TouchableHighlight style={styles.container} onPress={onPress}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.container,
+        pressed ? styles.pressed : styles.notPressed,
+      ]}
+    >
       <>
         <Image
           source={{ uri: user.profilePicUrl }}
           resizeMode="contain"
-          style={styles.profilePic}
+          style={scaleStyle.profilePic}
         />
         <View style={styles.userNameContainer}>
-          <AppText style={styles.fullName}>{user.fullName}</AppText>
-          <AppText style={styles.username}>{user.username}</AppText>
+          <AppText style={[styles.fullName, scaleStyle.fullName]}>
+            {user.fullName}
+          </AppText>
+          <AppText style={[styles.username, scaleStyle.username]}>
+            {user.username}
+          </AppText>
         </View>
       </>
-    </TouchableHighlight>
+    </Pressable>
   );
 }
 
@@ -28,24 +51,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
   },
-  profilePic: {
-    height: 72,
-    width: 72,
-    borderRadius: 36,
-    marginBottom: 10,
-  },
   userNameContainer: {
     justifyContent: "center",
     alignItems: "center",
   },
   fullName: {
     fontFamily: fonts.medium,
-    fontSize: 26,
+
     color: colors.lightGray,
   },
   username: {
     fontFamily: fonts.light,
-    fontSize: 20,
     color: colors.lightGray,
   },
 });
