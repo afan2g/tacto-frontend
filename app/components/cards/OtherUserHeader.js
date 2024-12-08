@@ -4,6 +4,7 @@ import { View, StyleSheet, Pressable } from "react-native";
 import { AppText } from "../primitives";
 import UserCardVertical from "./UserCardVertical";
 import { colors, fonts } from "../../config";
+import { X } from "lucide-react-native";
 
 function OtherUserHeader({ user }) {
   const status = user.friendStatus;
@@ -13,7 +14,7 @@ function OtherUserHeader({ user }) {
       <View style={styles.userStats}>
         <Pressable style={styles.stat}>
           <AppText style={styles.statNumber}>{user.friends}</AppText>
-          <AppText style={styles.statLabel}>Friends</AppText>
+          <AppText style={styles.statLabel}>friends</AppText>
         </Pressable>
         <Pressable style={styles.stat}>
           <AppText style={styles.statNumber}>{user.mutualFriends}</AppText>
@@ -62,6 +63,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
   },
+
   userStats: {
     flexDirection: "row",
     alignItems: "center",

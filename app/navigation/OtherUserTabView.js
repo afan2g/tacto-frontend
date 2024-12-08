@@ -6,17 +6,14 @@ import { FAKE_HOME_SCREEN_DATA } from "../data/fakeData";
 import { colors, fonts } from "../config";
 import { AppText } from "../components/primitives";
 import OtherUserActivity from "../screens/other_users/OtherUserActivity";
+import OtherUserStatsScreen from "../screens/other_users/OtherUserStatsScreen";
 
 const renderScene = ({ route, jumpTo }) => {
   switch (route.key) {
     case "activity":
       return <OtherUserActivity transactions={FAKE_HOME_SCREEN_DATA} />;
     case "stats":
-      return (
-        <View style={{ flex: 1.0, backgroundColor: colors.blue }}>
-          <AppText>stats</AppText>
-        </View>
-      );
+      return <OtherUserStatsScreen />;
     default:
       return null;
   }
