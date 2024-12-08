@@ -4,10 +4,10 @@ import { StyleSheet } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 
-import { Screen } from "./app/components/primitives";
-import OtherUserHeader from "./app/components/cards/OtherUserHeader";
-import { FAKE_OTHER_USERS } from "./app/data/fakeData";
-
+import AppTabNavigator from "./app/navigation/AppTabNavigator";
+import { NavigationContainer } from "@react-navigation/native";
+import navigationTheme from "./app/navigation/navigationTheme";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -33,12 +33,12 @@ export default function App() {
   if (!loaded && !error) {
     return null;
   }
-  const user = FAKE_OTHER_USERS[2];
-  const status = user.friendStatus;
   return (
-    <Screen style={styles.container}>
-      <OtherUserHeader user={user} />
-    </Screen>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer theme={navigationTheme}>
+        <AppTabNavigator />
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
 
