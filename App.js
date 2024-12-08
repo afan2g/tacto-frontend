@@ -8,6 +8,7 @@ import AppTabNavigator from "./app/navigation/AppTabNavigator";
 import { NavigationContainer } from "@react-navigation/native";
 import navigationTheme from "./app/navigation/navigationTheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import OtherUserTabView from "./app/navigation/OtherUserTabView";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -34,11 +35,12 @@ export default function App() {
     return null;
   }
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer theme={navigationTheme}>
-        <AppTabNavigator />
-      </NavigationContainer>
-    </GestureHandlerRootView>
+    // <GestureHandlerRootView style={{ flex: 1 }}>
+    //   <NavigationContainer theme={navigationTheme}>
+    //     <AppTabNavigator />
+    //   </NavigationContainer>
+    // </GestureHandlerRootView>
+    <OtherUserTabView />
   );
 }
 

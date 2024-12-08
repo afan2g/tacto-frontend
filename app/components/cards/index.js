@@ -5,3 +5,4 @@ export { default as UserCard } from "./UserCard";
 export { default as UserCardVertical } from "./UserCardVertical";
 export { default as AccountBalanceCard } from "./AccountBalanceCard";
 export { default as AvatarList } from "./AvatarList";
+export { default as OtherUserHeader } from "./OtherUserHeader";
