@@ -10,6 +10,7 @@ import navigationTheme from "./app/navigation/navigationTheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import OtherUserTabView from "./app/navigation/OtherUserTabView";
 import OtherUserScreen from "./app/screens/other_users/OtherUserScreen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -41,7 +42,11 @@ export default function App() {
     //     <AppTabNavigator />
     //   </NavigationContainer>
     // </GestureHandlerRootView>
-    <OtherUserScreen />
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <OtherUserScreen />
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 
