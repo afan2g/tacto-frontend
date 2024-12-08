@@ -28,6 +28,7 @@ function OtherUserHeader({ user }) {
             status === "none" && styles.buttonNotFriends,
             status === "pending" && styles.buttonPending,
             status === "accepted" && styles.buttonAccepted,
+            pressed && { opacity: 0.7 },
           ]}
           onPress={() => console.log(status)}
         >
