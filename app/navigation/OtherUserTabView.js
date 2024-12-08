@@ -1,19 +1,38 @@
 import React from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
-import { TabView, SceneMap } from "react-native-tab-view";
+import { TabView, TabBar } from "react-native-tab-view";
 
-import { OtherUserHeader } from "../components/cards";
-import { FAKE_OTHER_USERS } from "../data/fakeData";
-import { colors } from "../config";
-import { Screen } from "../components/primitives";
-const renderScene = SceneMap({
-  activity: () => <View style={{ flex: 1, backgroundColor: "blue" }} />,
-  stats: () => <View style={{ flex: 1, backgroundColor: "green" }} />,
-});
+import { FAKE_HOME_SCREEN_DATA } from "../data/fakeData";
+import { colors, fonts } from "../config";
+import { AppText } from "../components/primitives";
+import OtherUserActivity from "../screens/other_users/OtherUserActivity";
+
+const renderScene = ({ route, jumpTo }) => {
+  switch (route.key) {
+    case "activity":
+      return <OtherUserActivity transactions={FAKE_HOME_SCREEN_DATA} />;
+    case "stats":
+      return (
+        <View style={{ flex: 1.0, backgroundColor: colors.blue }}>
+          <AppText>stats</AppText>
+        </View>
+      );
+    default:
+      return null;
+  }
+};
 const routes = [
   { key: "activity", title: "Activity" },
   { key: "stats", title: "Stats" },
 ];
+
+const renderTabBar = (props) => (
+  <TabBar
+    {...props}
+    indicatorStyle={{ backgroundColor: colors.yellow }}
+    style={{ backgroundColor: colors.blue, paddingVertical: 5 }}
+  />
+);
 
 function OtherUserTabView(props) {
   const layout = useWindowDimensions();
@@ -25,6 +44,14 @@ function OtherUserTabView(props) {
       renderScene={renderScene}
       onIndexChange={setIndex}
       initialLayout={{ width: layout.width }}
+      renderTabBar={renderTabBar}
+      commonOptions={{
+        labelStyle: {
+          fontFamily: fonts.medium,
+          fontSize: 16,
+          textTransform: "capitalize",
+        },
+      }}
     />
   );
 }

@@ -100,4 +100,5 @@ export default {
   redShade70: "#431315",
   redShade80: "#2c0c0d",
   redShade90: "#160606",
+  bluePop: "#E0FC11",
 };

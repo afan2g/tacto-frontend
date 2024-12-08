@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayOpacity40,
   },
   buttonNotFriends: {
-    backgroundColor: colors.purplePop,
+    backgroundColor: colors.bluePop,
   },
   buttonAccepted: {
     borderWidth: 0,
