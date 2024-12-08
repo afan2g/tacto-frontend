@@ -30,8 +30,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   closeIcon: {
-    alignSelf: "flex-start",
-    marginLeft: 20,
+    position: "absolute",
+    left: 20,
   },
 });
 

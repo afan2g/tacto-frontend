@@ -10,7 +10,7 @@ function OtherUserHeader({ user }) {
   const status = user.friendStatus;
   return (
     <View style={styles.headerContainer}>
-      <UserCardVertical user={user} scale={0.9} />
+      <UserCardVertical user={user} scale={0.8} />
       <View style={styles.userStats}>
         <Pressable style={styles.stat}>
           <AppText style={styles.statNumber}>{user.friends}</AppText>
@@ -79,12 +79,12 @@ const styles = StyleSheet.create({
   statNumber: {
     color: colors.lightGray,
     fontFamily: fonts.bold,
-    fontSize: 20,
+    fontSize: 16,
   },
   statLabel: {
     color: colors.blackTint40,
     fontFamily: fonts.medium,
-    fontSize: 20,
+    fontSize: 14,
   },
   friendButtonContainer: {
     width: "100%",
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.black,
     borderRadius: 5,
-    padding: 15,
+    padding: 10,
     margin: 10,
     width: "100%",
     alignItems: "center",
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   text: {
     color: colors.black,
     fontFamily: fonts.bold,
-    fontSize: 16,
+    fontSize: 14,
     padding: 0,
     margin: 0,
   },
@@ -136,16 +136,19 @@ const styles = StyleSheet.create({
   },
   send: {
     backgroundColor: colors.yellow,
-    padding: 15,
-    margin: 10,
+    padding: 10,
+    marginHorizontal: 10,
+    marginRight: 5,
+
     borderRadius: 5,
     flex: 1,
     alignItems: "center",
   },
   request: {
     backgroundColor: colors.lightGray,
-    padding: 15,
-    margin: 10,
+    padding: 10,
+    marginHorizontal: 10,
+    marginLeft: 5,
     borderRadius: 5,
     flex: 1,
     alignItems: "center",
