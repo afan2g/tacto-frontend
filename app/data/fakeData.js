@@ -170,6 +170,102 @@ export const FAKE_HOME_SCREEN_DATA = [
     txid: 4,
     time: getRandomDate(),
   },
+  {
+    from: {
+      fullName: "Jill Pyle",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    to: {
+      fullName: "Miranda Knox",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    amount: 7.01,
+    memo: "Magna deserunt ipsum fugiat reprehenderit anim velit.",
+    score: 1,
+    commentCount: 1,
+    txid: 5,
+    time: getRandomDate(),
+  },
+  {
+    from: {
+      fullName: "Jill Pyle",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    to: {
+      fullName: "Miranda Knox",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    amount: 7.01,
+    memo: "Magna deserunt ipsum fugiat reprehenderit anim velit.",
+    score: 1,
+    commentCount: 1,
+    txid: 6,
+    time: getRandomDate(),
+  },
+  {
+    from: {
+      fullName: "Jill Pyle",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    to: {
+      fullName: "Miranda Knox",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    amount: 7.01,
+    memo: "Magna deserunt ipsum fugiat reprehenderit anim velit.",
+    score: 1,
+    commentCount: 1,
+    txid: 7,
+    time: getRandomDate(),
+  },
+  {
+    from: {
+      fullName: "Jill Pyle",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    to: {
+      fullName: "Miranda Knox",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    amount: 7.01,
+    memo: "Magna deserunt ipsum fugiat reprehenderit anim velit.",
+    score: 1,
+    commentCount: 1,
+    txid: 8,
+    time: getRandomDate(),
+  },
+  {
+    from: {
+      fullName: "Jill Pyle",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    to: {
+      fullName: "Miranda Knox",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    amount: 7.01,
+    memo: "Magna deserunt ipsum fugiat reprehenderit anim velit.",
+    score: 1,
+    commentCount: 1,
+    txid: 9,
+    time: getRandomDate(),
+  },
+  {
+    from: {
+      fullName: "Jill Pyle",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    to: {
+      fullName: "Miranda Knox",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    amount: 7.01,
+    memo: "Magna deserunt ipsum fugiat reprehenderit anim velit.",
+    score: 1,
+    commentCount: 1,
+    txid: 10,
+    time: getRandomDate(),
+  },
 ];
 
 export const FAKEUSERS = [

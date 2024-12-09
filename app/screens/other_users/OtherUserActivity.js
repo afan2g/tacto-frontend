@@ -8,7 +8,7 @@ import formatRelativeTime from "../../utils/formatRelativeTime";
 function OtherUserActivity({ transactions }) {
   return (
     <View style={styles.container}>
-      <FlatList
+      {/* <FlatList
         data={transactions}
         renderItem={({ item }) => (
           <TransactionCard
@@ -17,7 +17,13 @@ function OtherUserActivity({ transactions }) {
         )}
         keyExtractor={(item) => item.txid.toString()}
         ItemSeparatorComponent={() => <AppCardSeparator />}
-      />
+      /> */}
+      {transactions.map((item) => (
+        <TransactionCard
+          transaction={{ ...item, time: formatRelativeTime(item.time) }}
+          key={item.txid.toString()}
+        />
+      ))}
     </View>
   );
 }
