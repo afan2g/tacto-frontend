@@ -16,7 +16,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   interpolate,
-  Extrapolate,
 } from "react-native-reanimated";
 import {
   SafeAreaView,
@@ -24,7 +23,7 @@ import {
 } from "react-native-safe-area-context";
 
 const HEADER_MAX_HEIGHT = 300;
-const HEADER_MIN_HEIGHT = 100;
+const HEADER_MIN_HEIGHT = 50;
 
 function OtherUserScreen(props) {
   const handleClose = () => {
@@ -42,25 +41,28 @@ function OtherUserScreen(props) {
     const height = interpolate(
       sv.value,
       [0, HEADER_MAX_HEIGHT],
-      [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-      Extrapolate.CLAMP
+      [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT]
     );
     return {
       height,
     };
   });
 
-  const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
 
   return (
     <Screen style={styles.screen}>
-      <X
-        size={30}
-        color={colors.lightGray}
-        style={[styles.closeIcon]}
-        onPress={handleClose}
-      />
+      <Animated.View style={[styles.topHeader]}>
+        <X
+          size={30}
+          color={colors.lightGray}
+          style={[styles.closeIcon]}
+          onPress={handleClose}
+        />
+      </Animated.View>
+      <Animated.View style={[styles.headerContainer, animatedHeaderStyle]}>
+        <OtherUserHeader user={FAKE_OTHER_USERS[2]} />
+      </Animated.View>
 
       <Animated.ScrollView
         onScroll={scrollHandler}
@@ -78,9 +80,6 @@ function OtherUserScreen(props) {
       </Animated.ScrollView>
 
       {/* The header is absolutely positioned on top */}
-      <Animated.View style={[styles.headerContainer, animatedHeaderStyle]}>
-        <OtherUserHeader user={FAKE_OTHER_USERS[2]} />
-      </Animated.View>
     </Screen>
   );
 }
@@ -90,6 +89,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.blue,
     paddingHorizontal: 0,
+  },
+  topHeader: {
+    width: "100%",
+    zIndex: 10,
   },
   closeIcon: {
     position: "absolute",

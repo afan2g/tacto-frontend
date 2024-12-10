@@ -8,6 +8,7 @@ import { X } from "lucide-react-native";
 
 function OtherUserHeader({ user }) {
   const status = user.friendStatus;
+
   return (
     <View style={styles.headerContainer}>
       <UserCardVertical user={user} scale={0.8} />
@@ -63,6 +64,8 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: "center",
     width: "100%",
+    backgroundColor: colors.blue,
+    paddingBottom: 20,
   },
 
   userStats: {

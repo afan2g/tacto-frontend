@@ -1,16 +1,21 @@
 // App.js
 import React, { useEffect } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 
-import AppTabNavigator from "./app/navigation/AppTabNavigator";
-import { NavigationContainer } from "@react-navigation/native";
-import navigationTheme from "./app/navigation/navigationTheme";
+import Profile from "./app/testing/Profile";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import OtherUserTabView from "./app/navigation/OtherUserTabView";
-import OtherUserScreen from "./app/screens/other_users/OtherUserScreen";
+
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import ActivityList from "./app/testing/ActivityList";
+import { FAKE_HOME_SCREEN_DATA } from "./app/data/fakeData";
+import { colors } from "./app/config";
+import { Navigation } from "lucide-react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import Profile1 from "./app/testing/Profile1";
+import OtherUserTabView from "./app/navigation/OtherUserTabView";
+
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -37,23 +42,20 @@ export default function App() {
     return null;
   }
   return (
-    // <GestureHandlerRootView style={{ flex: 1 }}>
-    //   <NavigationContainer theme={navigationTheme}>
-    //     <AppTabNavigator />
-    //   </NavigationContainer>
-    // </GestureHandlerRootView>
-    <SafeAreaProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <OtherUserScreen />
-      </GestureHandlerRootView>
-    </SafeAreaProvider>
+    <NavigationContainer>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <Profile />
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "center",
-    alignItems: "center",
     paddingHorizontal: 0,
+    backgroundColor: colors.blue,
+    flex: 1,
   },
 });
