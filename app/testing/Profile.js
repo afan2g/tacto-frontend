@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
 import { TabView, TabBar } from "react-native-tab-view";
 import {
@@ -20,6 +20,7 @@ import { AppText } from "../components/primitives";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ActivityList from "./ActivityList";
 import { OtherUserHeader } from "../components/cards";
+import AppTabBar from "./AppTabBar";
 
 const TAB_BAR_HEIGHT = 50;
 const HEADER_HEIGHT = 50;
@@ -49,6 +50,10 @@ function Profile(props) {
     setHeaderHeight(306);
   };
 
+  useEffect(() => {
+    console.log("Tab index:", index);
+  }, [index]);
+
   const activityRef = React.useRef(null);
   const statsRef = React.useRef(null);
 
@@ -59,12 +64,15 @@ function Profile(props) {
 
   const statsScrollValue = useSharedValue(0);
   const statsScrollHandler = useAnimatedScrollHandler((event) => {
+    console.log("Stats scroll offset:", event.contentOffset.y);
+
     statsScrollValue.value = event.contentOffset.y;
   });
 
-  const currentScrollValue = useDerivedValue(() => {
-    return index === 0 ? activityScrollValue.value : statsScrollValue.value;
-  });
+  const currentScrollValue = useDerivedValue(
+    () => (index === 0 ? activityScrollValue.value : statsScrollValue.value),
+    [index, activityScrollValue, statsScrollValue]
+  );
 
   const translateY = useDerivedValue(() => {
     return -Math.min(currentScrollValue.value, headerDiff);
@@ -132,7 +140,7 @@ function Profile(props) {
   const renderTabBar = (props) =>
     useCallback(
       <Animated.View style={tabBarStyle}>
-        <MaterialTopTabBar {...props} />
+        <AppTabBar onIndexChange={setIndex} {...props} />
       </Animated.View>,
       [tabBarStyle]
     );
