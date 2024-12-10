@@ -61,8 +61,29 @@ function Profile(props) {
 
   const activityScrollValue = useSharedValue(0);
   const activityScrollHandler = useAnimatedScrollHandler((event) => {
+    console.log("Activity scroll value:", event.contentOffset.y);
     activityScrollValue.value = event.contentOffset.y;
   });
+
+  const handleScrollEndActivity = () => {
+    if (activityScrollValue.value < headerDiff / 3) {
+      activityRef.current.scrollToOffset({ offset: 0 });
+    } else if (activityScrollValue.value < headerDiff) {
+      activityRef.current.scrollToOffset({
+        offset: headerDiff,
+      });
+    }
+  };
+
+  const handleScrollEndStats = () => {
+    if (statsScrollValue.value < 306 / 2) {
+      statsRef.current.scrollToOffset({ offset: 0 });
+    } else if (statsScrollValue.value < headerDiff) {
+      statsRef.current.scrollToOffset({
+        offset: headerDiff,
+      });
+    }
+  };
 
   const statsScrollValue = useSharedValue(0);
   const statsScrollHandler = useAnimatedScrollHandler((event) => {
@@ -112,6 +133,7 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={activityRef}
         onScroll={activityScrollHandler}
+        onMomentumScrollEnd={handleScrollEndActivity}
         {...sharedProps}
       />
     ),
@@ -124,6 +146,7 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={statsRef}
         onScroll={statsScrollHandler}
+        onMomentumScrollEnd={handleScrollEndStats}
         {...sharedProps}
       />
     ),
@@ -174,17 +197,13 @@ function Profile(props) {
     ],
     [heightCollapsed, insets.top]
   );
-  const ref = React.useRef(null);
-  useLayoutEffect(() => {
-    const { width, height } = ref.current.unstable_getBoundingClientRect();
-    console.log("Collapsed header height:", height);
-  }, []);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
         <OtherUserHeader user={FAKE_OTHER_USERS[0]} />
       </Animated.View>
-      <Animated.View style={collapsedHeaderStyle} ref={ref}>
+      <Animated.View style={collapsedHeaderStyle}>
         <AppText>{FAKE_OTHER_USERS[0].fullName}</AppText>
       </Animated.View>
       <Tab.Navigator

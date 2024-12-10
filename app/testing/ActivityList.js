@@ -18,6 +18,7 @@ const ActivityList = React.forwardRef((props, ref) => {
       )}
       keyExtractor={(item) => item.txid.toString()}
       {...props}
+      // onMomentumScrollEnd={() => console.log("Momentum scroll end")}
       ItemSeparatorComponent={() => <AppCardSeparator />}
     />
   );
