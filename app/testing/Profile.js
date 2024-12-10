@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
 import { TabView, TabBar } from "react-native-tab-view";
 import {
@@ -7,6 +7,7 @@ import {
   MaterialTopTabBar,
 } from "@react-navigation/material-top-tabs";
 import Animated, {
+  interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useDerivedValue,
@@ -23,8 +24,9 @@ import { OtherUserHeader } from "../components/cards";
 import AppTabBar from "./AppTabBar";
 
 const TAB_BAR_HEIGHT = 50;
-const HEADER_HEIGHT = 50;
-
+const COLLAPSED_HEADER_HEIGHT = 30;
+const EXPANDED_HEADER_HEIGHT = 306;
+const OVERLAY_VISIBILTIY_OFFSET = 32;
 const Tab = createMaterialTopTabNavigator();
 function Profile(props) {
   const layout = useWindowDimensions();
@@ -34,7 +36,7 @@ function Profile(props) {
   const [headerHeight, setHeaderHeight] = React.useState(0); //determine the height of the header
 
   const rendered = headerHeight > 0; //determine if the header has been rendered
-  const defaultHeaderHeight = insets.top + HEADER_HEIGHT; //default height of the header
+  const defaultHeaderHeight = insets.top + COLLAPSED_HEADER_HEIGHT; //default height of the header
 
   const headerConfig = {
     //configurations for the header
@@ -47,7 +49,7 @@ function Profile(props) {
 
   const handleHeaderLayout = (event) => {
     //handle the layout of the header
-    setHeaderHeight(306);
+    setHeaderHeight(event.nativeEvent.layout.height - insets.top);
   };
 
   useEffect(() => {
@@ -64,8 +66,6 @@ function Profile(props) {
 
   const statsScrollValue = useSharedValue(0);
   const statsScrollHandler = useAnimatedScrollHandler((event) => {
-    console.log("Stats scroll offset:", event.contentOffset.y);
-
     statsScrollValue.value = event.contentOffset.y;
   });
 
@@ -87,6 +87,7 @@ function Profile(props) {
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateY: translateY.value }],
+      opacity: interpolate(translateY.value, [-headerDiff, 0], [0, 1]),
     };
   });
 
@@ -100,7 +101,8 @@ function Profile(props) {
     contentContainerStyle,
     scrollEventThrottle: 16,
     scrollIndicatorInsets: {
-      top: heightExpanded + TAB_BAR_HEIGHT, // Add tab bar height to the top inset
+      top: headerHeight,
+      bottom: insets.bottom,
     },
   };
 
@@ -153,14 +155,38 @@ function Profile(props) {
     ],
     [rendered, insets.top, headerAnimatedStyle]
   );
+
+  const collapsedHeaderAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      translateY.value,
+      [-headerDiff, OVERLAY_VISIBILTIY_OFFSET - headerDiff, 0],
+      [1, 0, 0]
+    ),
+  }));
+  const collapsedHeaderStyle = useMemo(
+    () => [
+      styles.collapsedHeaderStyle,
+      {
+        height: heightCollapsed + insets.top,
+        paddingTop: insets.top,
+      },
+      collapsedHeaderAnimatedStyle,
+    ],
+    [heightCollapsed, insets.top]
+  );
+  const ref = React.useRef(null);
+  useLayoutEffect(() => {
+    const { width, height } = ref.current.unstable_getBoundingClientRect();
+    console.log("Collapsed header height:", height);
+  }, []);
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
         <OtherUserHeader user={FAKE_OTHER_USERS[0]} />
       </Animated.View>
-      {/* <Animated.View style={styles.collapsedHeaderStyle}>
+      <Animated.View style={collapsedHeaderStyle} ref={ref}>
         <AppText>{FAKE_OTHER_USERS[0].fullName}</AppText>
-      </Animated.View> */}
+      </Animated.View>
       <Tab.Navigator
         tabBar={renderTabBar}
         screenOptions={{
@@ -209,11 +235,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 0,
-    height: 50,
-    backgroundColor: colors.blue,
+    backgroundColor: "white",
     justifyContent: "center",
-    alignItems: "center",
+    zIndex: 2,
   },
 });
 
