@@ -22,9 +22,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ActivityList from "./ActivityList";
 import { OtherUserHeader } from "../components/cards";
 import AppTabBar from "./AppTabBar";
+import { X } from "lucide-react-native";
+import CollapsedHeader from "../components/cards/CollapsedHeader";
 
 const TAB_BAR_HEIGHT = 50;
-const COLLAPSED_HEADER_HEIGHT = 30;
+const COLLAPSED_HEADER_HEIGHT = 20;
 const EXPANDED_HEADER_HEIGHT = 306;
 const OVERLAY_VISIBILTIY_OFFSET = 32;
 const Tab = createMaterialTopTabNavigator();
@@ -203,8 +205,14 @@ function Profile(props) {
       <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
         <OtherUserHeader user={FAKE_OTHER_USERS[0]} />
       </Animated.View>
+      <X
+        color={colors.lightGray}
+        size={24}
+        style={[styles.closeIcon, { top: insets.top + 16 }]}
+        onPress={() => console.log("Close profile")}
+      />
       <Animated.View style={collapsedHeaderStyle}>
-        <AppText>{FAKE_OTHER_USERS[0].fullName}</AppText>
+        <CollapsedHeader user={FAKE_OTHER_USERS[0]} />
       </Animated.View>
       <Tab.Navigator
         tabBar={renderTabBar}
@@ -232,6 +240,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.blue,
   },
+  closeIcon: {
+    position: "absolute",
+    marginLeft: 12,
+    zIndex: 3,
+  },
   tabBarContainer: {
     top: 0,
     left: 0,
@@ -254,9 +267,13 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: "white",
+    backgroundColor: colors.blackShade40,
     justifyContent: "center",
     zIndex: 2,
+    alignItems: "center",
+    flexDirection: "row",
+    // borderWidth: 1,
+    // borderColor: "blue",
   },
 });
 
