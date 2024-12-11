@@ -23,9 +23,9 @@ import { FAKE_HOME_SCREEN_DATA, FAKE_OTHER_USERS } from "../data/fakeData";
 import { colors, fonts } from "../config";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ActivityList from "./ActivityList";
+import ActivityList from "../testing/ActivityList";
 import { OtherUserHeader } from "../components/cards";
-import AppTabBar from "./AppTabBar";
+import AppTabBar from "../testing/AppTabBar";
 import { X } from "lucide-react-native";
 import CollapsedHeader from "../components/cards/CollapsedHeader";
 
@@ -162,6 +162,7 @@ function Profile() {
         ref={activityRef}
         onScroll={activityScrollHandler}
         onMomentumScrollEnd={handleScrollEndActivity}
+        // onScrollEndDrag={handleScrollEndActivity}
         {...sharedProps}
       />
     ),
@@ -175,6 +176,7 @@ function Profile() {
         ref={statsRef}
         onScroll={statsScrollHandler}
         onMomentumScrollEnd={handleScrollEndStats}
+        // onScrollEndDrag={handleScrollEndStats}
         {...sharedProps}
       />
     ),

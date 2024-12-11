@@ -18,7 +18,7 @@ const ActivityList = React.forwardRef((props, ref) => {
       )}
       keyExtractor={(item) => item.txid.toString()}
       {...props}
-      // showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
       ItemSeparatorComponent={() => <AppCardSeparator />}
     />
   );

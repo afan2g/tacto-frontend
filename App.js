@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 
-import Profile from "./app/testing/Profile";
+import Profile from "./app/screens/UserProfileScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -13,9 +13,7 @@ import { FAKE_HOME_SCREEN_DATA } from "./app/data/fakeData";
 import { colors } from "./app/config";
 import { Navigation } from "lucide-react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import Profile1 from "./app/testing/Profile1";
-import OtherUserTabView from "./app/navigation/OtherUserTabView";
-
+import UserProfileScreen from "./app/screens/UserProfileScreen";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -45,7 +43,7 @@ export default function App() {
     <NavigationContainer>
       <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <Profile />
+          <UserProfileScreen />
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </NavigationContainer>
