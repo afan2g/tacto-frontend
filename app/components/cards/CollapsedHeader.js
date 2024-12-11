@@ -6,11 +6,6 @@ import { colors, fonts } from "../../config";
 function CollapsedHeader({ user }) {
   const ref = React.useRef(null);
 
-  useEffect(() => {
-    const { width, height } = ref.current.unstable_getBoundingClientRect();
-    console.log("Collapsed header dimensions:", width, height);
-  }, []);
-
   return (
     <View style={styles.container} ref={ref}>
       <Image

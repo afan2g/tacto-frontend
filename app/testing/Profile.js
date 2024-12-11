@@ -54,16 +54,15 @@ function Profile(props) {
     setHeaderHeight(event.nativeEvent.layout.height - insets.top);
   };
 
-  useEffect(() => {
-    console.log("Tab index:", index);
-  }, [index]);
+  // useEffect(() => {
+  //   console.log("Tab index:", index);
+  // }, [index]);
 
   const activityRef = React.useRef(null);
   const statsRef = React.useRef(null);
 
   const activityScrollValue = useSharedValue(0);
   const activityScrollHandler = useAnimatedScrollHandler((event) => {
-    console.log("Activity scroll value:", event.contentOffset.y);
     activityScrollValue.value = event.contentOffset.y;
   });
 
@@ -135,7 +134,7 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={activityRef}
         onScroll={activityScrollHandler}
-        onMomentumScrollEnd={handleScrollEndActivity}
+        onScrollEndDrag={handleScrollEndActivity}
         {...sharedProps}
       />
     ),
@@ -148,7 +147,7 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={statsRef}
         onScroll={statsScrollHandler}
-        onMomentumScrollEnd={handleScrollEndStats}
+        onScrollEndDrag={handleScrollEndStats}
         {...sharedProps}
       />
     ),
@@ -164,14 +163,14 @@ function Profile(props) {
     [rendered, headerHeight, tabBarAnimatedStyle]
   );
 
-  const renderTabBar = (props) =>
-    useCallback(
+  const renderTabBar = useCallback(
+    (props) => (
       <Animated.View style={tabBarStyle}>
         <AppTabBar onIndexChange={setIndex} {...props} />
-      </Animated.View>,
-      [tabBarStyle]
-    );
-
+      </Animated.View>
+    ),
+    [tabBarStyle]
+  );
   const headerContainerStyle = useMemo(
     () => [
       rendered ? styles.headerContainer : "undefined",
