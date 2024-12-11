@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Animated, {
@@ -9,6 +15,8 @@ import Animated, {
   useSharedValue,
   withTiming,
   Extrapolation,
+  useAnimatedReaction,
+  runOnJS,
 } from "react-native-reanimated";
 
 import { FAKE_HOME_SCREEN_DATA, FAKE_OTHER_USERS } from "../data/fakeData";
@@ -25,7 +33,7 @@ const TAB_BAR_HEIGHT = 50;
 const COLLAPSED_HEADER_HEIGHT = 20;
 const OVERLAY_VISIBILTIY_OFFSET = 32;
 const ANIMATION_CONFIG = {
-  duration: 10, // Smoother transition timing
+  duration: 10,
 };
 const Tab = createMaterialTopTabNavigator();
 
@@ -102,7 +110,6 @@ function Profile() {
   );
 
   const translateY = useDerivedValue(() => {
-    // Use withTiming for smoother interpolation
     return withTiming(
       -Math.min(currentScrollValue.value, headerDiff),
       ANIMATION_CONFIG
@@ -139,7 +146,7 @@ function Profile() {
   const sharedProps = useMemo(
     () => ({
       contentContainerStyle,
-      scrollEventThrottle: 1, // Lower throttle for smoother scrolling
+      scrollEventThrottle: 1,
       scrollIndicatorInsets: {
         top: headerHeight,
         bottom: insets.bottom,
@@ -154,7 +161,6 @@ function Profile() {
         data={FAKE_HOME_SCREEN_DATA}
         ref={activityRef}
         onScroll={activityScrollHandler}
-        // onScrollEndDrag={handleScrollEndActivity}
         onMomentumScrollEnd={handleScrollEndActivity}
         {...sharedProps}
       />
@@ -168,7 +174,6 @@ function Profile() {
         data={FAKE_HOME_SCREEN_DATA}
         ref={statsRef}
         onScroll={statsScrollHandler}
-        // onScrollEndDrag={handleScrollEndStats}
         onMomentumScrollEnd={handleScrollEndStats}
         {...sharedProps}
       />
@@ -225,6 +230,36 @@ function Profile() {
     ],
     [heightCollapsed, insets.top, collapsedHeaderAnimatedStyle]
   );
+
+  // Create states to hold the latest offsets in a React-friendly manner
+  const [activityOffset, setActivityOffset] = useState(0);
+  const [statsOffset, setStatsOffset] = useState(0);
+
+  // Update activityOffset when activityScrollValue changes
+  useAnimatedReaction(
+    () => activityScrollValue.value,
+    (val) => {
+      runOnJS(setActivityOffset)(val);
+    },
+    []
+  );
+
+  // Update statsOffset when statsScrollValue changes
+  useAnimatedReaction(
+    () => statsScrollValue.value,
+    (val) => {
+      runOnJS(setStatsOffset)(val);
+    },
+    []
+  );
+
+  useEffect(() => {
+    const currentOffset = index === 0 ? activityOffset : statsOffset;
+    if (currentOffset >= headerDiff) {
+      const otherRef = index === 0 ? statsRef : activityRef;
+      otherRef.current?.scrollToOffset({ offset: headerDiff, animated: false });
+    }
+  }, [index, headerDiff, activityOffset, statsOffset]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
