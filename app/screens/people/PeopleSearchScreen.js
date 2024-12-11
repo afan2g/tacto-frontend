@@ -5,10 +5,12 @@ import { FindUserBar } from "../../components/forms";
 import { UserCard, AppCardSeparator } from "../../components/cards";
 import { FAKEUSERS } from "../../data/fakeData";
 
-function PeopleSearchScreen(props) {
+function PeopleSearchScreen({ navigation, ...props }) {
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
+    navigation.navigate("UserProfile", { user: item });
   };
+
   return (
     <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
       <FindUserBar action="send" style={styles.findUserBar} />

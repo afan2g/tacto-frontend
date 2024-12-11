@@ -23,4 +23,6 @@ export default Object.freeze({
   TRANSACTHOME: "Transaction",
   TRANSACTIONDETAIL: "TransactionDetails",
   TRANSACTSELECTUSER: "TransactionSelectUser",
+  USERPROFILE: "UserProfile",
+  APPTABS: "AppTabs",
 });

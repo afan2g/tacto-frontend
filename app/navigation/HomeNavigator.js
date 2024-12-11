@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 import routes from "./routes";
 import HomeScreen from "../screens/HomeScreen";
 import TransactionDetailScreen from "../screens/TransactionDetailScreen";
-
+import UserProfileScreen from "../screens/UserProfileScreen";
 /*
 component for home screen navigation.
 Shows a  list of cards of transactions

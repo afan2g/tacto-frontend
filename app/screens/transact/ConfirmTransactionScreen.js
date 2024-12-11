@@ -15,6 +15,7 @@ import { TransactionContext } from "../../contexts/TransactionContext";
 import { colors, fonts } from "../../config";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
+import routes from "../../navigation/routes";
 
 function ConfirmTransactionScreen({ navigation }) {
   const { transaction, setTransaction } = useContext(TransactionContext);
@@ -44,6 +45,12 @@ function ConfirmTransactionScreen({ navigation }) {
 
   const handleContentSizeChange = (event) => {
     setInputHeight(event.nativeEvent.contentSize.height);
+  };
+
+  const handleUserPress = () => {
+    // Handle the user press here
+    console.log("User pressed:", transaction.otherUser);
+    navigation.navigate(routes.USERPROFILE, { user: transaction.otherUser });
   };
 
   const handleAmountPress = () => {
@@ -83,7 +90,10 @@ function ConfirmTransactionScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <UserCardVertical user={transaction.otherUser} />
+          <UserCardVertical
+            user={transaction.otherUser}
+            onPress={handleUserPress}
+          />
           <AppText
             style={[
               styles.amount,

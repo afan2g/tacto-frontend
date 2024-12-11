@@ -37,7 +37,8 @@ const ANIMATION_CONFIG = {
 };
 const Tab = createMaterialTopTabNavigator();
 
-function Profile() {
+function Profile(props) {
+  const user = FAKE_OTHER_USERS[0];
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -266,16 +267,16 @@ function Profile() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
-        <OtherUserHeader user={FAKE_OTHER_USERS[0]} />
+        <OtherUserHeader user={user} />
       </Animated.View>
       <X
         color={colors.lightGray}
         size={24}
         style={[styles.closeIcon, { top: insets.top + 16 }]}
-        onPress={() => console.log("Close profile")}
+        onPress={() => props.navigation.goBack()}
       />
       <Animated.View style={collapsedHeaderStyle}>
-        <CollapsedHeader user={FAKE_OTHER_USERS[0]} />
+        <CollapsedHeader user={user} />
       </Animated.View>
       <Tab.Navigator
         tabBar={renderTabBar}
@@ -335,4 +336,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Profile;
+export default React.memo(Profile);

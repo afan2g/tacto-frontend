@@ -5,12 +5,17 @@ import { View, StyleSheet, Pressable } from "react-native";
 import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 import AvatarList from "./AvatarList";
+import routes from "../../navigation/routes";
 
 function TransactionCard({ transaction, style, navigation }) {
   const { from, to, amount, memo, score, commentCount, time, txid } =
     transaction;
   const handlePress = () => {
     console.log("TransactionCardTest pressed");
+  };
+  const handleUserPress = (user) => {
+    console.log("TransactionCardTest user pressed", user);
+    navigation.navigate(routes.USERPROFILE, { user });
   };
   const handleLongPress = () => {
     console.log("TransactionCardTest long pressed");
@@ -41,11 +46,11 @@ function TransactionCard({ transaction, style, navigation }) {
             style={styles.avatarList}
           />
           <View style={styles.usersContainer}>
-            <AppText style={styles.users} onPress={handlePress}>
+            <AppText style={styles.users} onPress={() => handleUserPress(from)}>
               {from.fullName}
             </AppText>
             <AppText style={styles.sent}> paid </AppText>
-            <AppText style={styles.users} onPress={handlePress}>
+            <AppText style={styles.users} onPress={() => handleUserPress(to)}>
               {to.fullName}
             </AppText>
           </View>

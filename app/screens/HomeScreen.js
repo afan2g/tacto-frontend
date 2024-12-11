@@ -22,6 +22,7 @@ function HomeScreen({ navigation }) {
   const handleProfilePress = () => {
     console.log(item.from);
   };
+  console.log("HomeScreenTest rendered");
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>

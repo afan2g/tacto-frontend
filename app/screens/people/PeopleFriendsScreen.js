@@ -7,7 +7,8 @@ import { FindUserBar } from "../../components/forms";
 import { FAKEUSERS, FAKE_DROPDOWN_ITEMS } from "../../data/fakeData";
 import { UserCard, AppCardSeparator } from "../../components/cards";
 import DropDownPickerComponent from "../../components/forms/DropDownPickerComponent";
-function PeopleFriendsScreen(props) {
+import routes from "../../navigation/routes";
+function PeopleFriendsScreen({ navigation }) {
   const handleItemChange = (item) => {
     console.log(item);
   };
@@ -18,6 +19,7 @@ function PeopleFriendsScreen(props) {
 
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
+    navigation.navigate(routes.USERPROFILE, { user: item });
   };
   return (
     <Pressable style={styles.screen} onPress={Keyboard.dismiss}>

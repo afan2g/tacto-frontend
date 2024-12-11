@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList } from "react-native";
 import PeopleSplitCardPreview from "../../components/cards/PeopleSplitCardPreview";
 import { FAKE_SPLIT_GROUPS_PREVIEW } from "../../data/fakeData";
 import { AppCardSeparator } from "../../components/cards";
-function PeopleSplitScreen(props) {
+function PeopleSplitScreen({ navigation }) {
   const handleCardPress = (group) => {
     console.log("Group pressed:", group);
   };

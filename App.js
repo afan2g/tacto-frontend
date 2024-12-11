@@ -14,6 +14,9 @@ import { colors } from "./app/config";
 import { Navigation } from "lucide-react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import UserProfileScreen from "./app/screens/UserProfileScreen";
+import navigationTheme from "./app/navigation/navigationTheme";
+import AppTabNavigator from "./app/navigation/AppTabNavigator";
+import TempNavigator from "./app/navigation/TempNavigator";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -40,10 +43,10 @@ export default function App() {
     return null;
   }
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <UserProfileScreen />
+          <TempNavigator />
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </NavigationContainer>
