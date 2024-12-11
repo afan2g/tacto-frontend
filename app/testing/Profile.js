@@ -1,22 +1,18 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
-import { TabView, TabBar } from "react-native-tab-view";
-import {
-  createMaterialTopTabNavigator,
-  useTabAnimation,
-  MaterialTopTabBar,
-} from "@react-navigation/material-top-tabs";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withTiming,
+  Extrapolation,
 } from "react-native-reanimated";
 
 import { FAKE_HOME_SCREEN_DATA, FAKE_OTHER_USERS } from "../data/fakeData";
 import { colors, fonts } from "../config";
-import { AppText } from "../components/primitives";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ActivityList from "./ActivityList";
@@ -27,106 +23,130 @@ import CollapsedHeader from "../components/cards/CollapsedHeader";
 
 const TAB_BAR_HEIGHT = 50;
 const COLLAPSED_HEADER_HEIGHT = 20;
-const EXPANDED_HEADER_HEIGHT = 306;
 const OVERLAY_VISIBILTIY_OFFSET = 32;
+const ANIMATION_CONFIG = {
+  duration: 10, // Smoother transition timing
+};
 const Tab = createMaterialTopTabNavigator();
-function Profile(props) {
+
+function Profile() {
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
-  const [index, setIndex] = React.useState(0); // 0: activity, 1: stats
-  const [headerHeight, setHeaderHeight] = React.useState(0); //determine the height of the header
+  const [index, setIndex] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
-  const rendered = headerHeight > 0; //determine if the header has been rendered
-  const defaultHeaderHeight = insets.top + COLLAPSED_HEADER_HEIGHT; //default height of the header
+  const rendered = headerHeight > 0;
+  const defaultHeaderHeight = insets.top + COLLAPSED_HEADER_HEIGHT;
 
   const headerConfig = {
-    //configurations for the header
     heightCollapsed: defaultHeaderHeight,
     heightExpanded: headerHeight,
   };
 
   const { heightCollapsed, heightExpanded } = headerConfig;
-  const headerDiff = heightExpanded - heightCollapsed; //difference between the expanded and collapsed header
+  const headerDiff = heightExpanded - heightCollapsed;
 
-  const handleHeaderLayout = (event) => {
-    //handle the layout of the header
-    setHeaderHeight(event.nativeEvent.layout.height - insets.top);
-  };
+  const handleHeaderLayout = useCallback(
+    (event) => {
+      setHeaderHeight(event.nativeEvent.layout.height - insets.top);
+    },
+    [insets.top]
+  );
 
-  // useEffect(() => {
-  //   console.log("Tab index:", index);
-  // }, [index]);
-
-  const activityRef = React.useRef(null);
-  const statsRef = React.useRef(null);
+  const activityRef = useRef(null);
+  const statsRef = useRef(null);
 
   const activityScrollValue = useSharedValue(0);
-  const activityScrollHandler = useAnimatedScrollHandler((event) => {
-    activityScrollValue.value = event.contentOffset.y;
-  });
-
-  const handleScrollEndActivity = () => {
-    if (activityScrollValue.value < headerDiff / 3) {
-      activityRef.current.scrollToOffset({ offset: 0 });
-    } else if (activityScrollValue.value < headerDiff) {
-      activityRef.current.scrollToOffset({
-        offset: headerDiff,
-      });
-    }
-  };
-
-  const handleScrollEndStats = () => {
-    if (statsScrollValue.value < 306 / 2) {
-      statsRef.current.scrollToOffset({ offset: 0 });
-    } else if (statsScrollValue.value < headerDiff) {
-      statsRef.current.scrollToOffset({
-        offset: headerDiff,
-      });
-    }
-  };
-
   const statsScrollValue = useSharedValue(0);
-  const statsScrollHandler = useAnimatedScrollHandler((event) => {
-    statsScrollValue.value = event.contentOffset.y;
-  });
+
+  const createScrollHandler = (scrollValue) =>
+    useAnimatedScrollHandler((event) => {
+      scrollValue.value = event.contentOffset.y;
+    });
+
+  const activityScrollHandler = createScrollHandler(activityScrollValue);
+  const statsScrollHandler = createScrollHandler(statsScrollValue);
+
+  const syncAllOffsets = (offset) => {
+    "worklet";
+    requestAnimationFrame(() => {
+      activityRef.current?.scrollToOffset({ offset, animated: true });
+      statsRef.current?.scrollToOffset({ offset, animated: true });
+    });
+  };
+
+  const syncScrollPositions = useCallback(
+    (scrollValue) => {
+      const currentOffset = scrollValue.value;
+      if (currentOffset < headerDiff / 2) {
+        syncAllOffsets(0);
+      } else if (currentOffset < headerDiff) {
+        syncAllOffsets(headerDiff);
+      }
+    },
+    [headerDiff]
+  );
+
+  const createScrollEndHandler = (scrollValue) =>
+    useCallback(() => {
+      syncScrollPositions(scrollValue);
+    }, [syncScrollPositions, scrollValue]);
+
+  const handleScrollEndActivity = createScrollEndHandler(activityScrollValue);
+  const handleScrollEndStats = createScrollEndHandler(statsScrollValue);
 
   const currentScrollValue = useDerivedValue(
     () => (index === 0 ? activityScrollValue.value : statsScrollValue.value),
-    [index, activityScrollValue, statsScrollValue]
+    [index]
   );
 
   const translateY = useDerivedValue(() => {
-    return -Math.min(currentScrollValue.value, headerDiff);
-  });
+    // Use withTiming for smoother interpolation
+    return withTiming(
+      -Math.min(currentScrollValue.value, headerDiff),
+      ANIMATION_CONFIG
+    );
+  }, [currentScrollValue, headerDiff]);
 
   const tabBarAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateY: translateY.value }],
     };
-  });
+  }, [translateY]);
 
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateY: translateY.value }],
-      opacity: interpolate(translateY.value, [-headerDiff, 0], [0, 1]),
+      opacity: interpolate(
+        translateY.value,
+        [-headerDiff, 0],
+        [0, 1],
+        Extrapolation.CLAMP
+      ),
     };
-  });
+  }, [translateY, headerDiff]);
 
-  const contentContainerStyle = {
-    paddingTop: rendered ? headerHeight + TAB_BAR_HEIGHT : 0, // This ensures content starts below tab bar
-    paddingBottom: insets.bottom,
-    minHeight: layout.height + headerDiff,
-  };
+  const contentContainerStyle = useMemo(
+    () => ({
+      paddingTop: rendered ? headerHeight + TAB_BAR_HEIGHT : 0,
+      paddingBottom: insets.bottom,
+      minHeight: layout.height + headerDiff,
+    }),
+    [rendered, headerHeight, insets.bottom, layout.height, headerDiff]
+  );
 
-  const sharedProps = {
-    contentContainerStyle,
-    scrollEventThrottle: 16,
-    scrollIndicatorInsets: {
-      top: headerHeight,
-      bottom: insets.bottom,
-    },
-  };
+  const sharedProps = useMemo(
+    () => ({
+      contentContainerStyle,
+      scrollEventThrottle: 1, // Lower throttle for smoother scrolling
+      scrollIndicatorInsets: {
+        top: headerHeight,
+        bottom: insets.bottom,
+      },
+    }),
+    [contentContainerStyle, headerHeight, insets.bottom]
+  );
 
   const renderActivityList = useCallback(
     () => (
@@ -134,11 +154,12 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={activityRef}
         onScroll={activityScrollHandler}
-        onScrollEndDrag={handleScrollEndActivity}
+        // onScrollEndDrag={handleScrollEndActivity}
+        onMomentumScrollEnd={handleScrollEndActivity}
         {...sharedProps}
       />
     ),
-    [sharedProps]
+    [sharedProps, handleScrollEndActivity, activityScrollHandler]
   );
 
   const renderStatsList = useCallback(
@@ -147,17 +168,18 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={statsRef}
         onScroll={statsScrollHandler}
-        onScrollEndDrag={handleScrollEndStats}
+        // onScrollEndDrag={handleScrollEndStats}
+        onMomentumScrollEnd={handleScrollEndStats}
         {...sharedProps}
       />
     ),
-    [sharedProps]
+    [sharedProps, handleScrollEndStats, statsScrollHandler]
   );
 
   const tabBarStyle = useMemo(
     () => [
-      rendered ? styles.tabBarContainer : "undefined",
-      { top: rendered ? headerHeight : "undefined" },
+      rendered ? styles.tabBarContainer : undefined,
+      { top: rendered ? headerHeight : undefined },
       tabBarAnimatedStyle,
     ],
     [rendered, headerHeight, tabBarAnimatedStyle]
@@ -171,22 +193,27 @@ function Profile(props) {
     ),
     [tabBarStyle]
   );
+
   const headerContainerStyle = useMemo(
     () => [
-      rendered ? styles.headerContainer : "undefined",
+      rendered ? styles.headerContainer : undefined,
       { paddingTop: insets.top },
       headerAnimatedStyle,
     ],
     [rendered, insets.top, headerAnimatedStyle]
   );
 
-  const collapsedHeaderAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateY.value,
-      [-headerDiff, OVERLAY_VISIBILTIY_OFFSET - headerDiff, 0],
-      [1, 0, 0]
-    ),
-  }));
+  const collapsedHeaderAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(
+        translateY.value,
+        [-headerDiff, OVERLAY_VISIBILTIY_OFFSET - headerDiff, 0],
+        [1, 0, 0],
+        Extrapolation.CLAMP
+      ),
+    };
+  }, [translateY, headerDiff]);
+
   const collapsedHeaderStyle = useMemo(
     () => [
       styles.collapsedHeaderStyle,
@@ -196,7 +223,7 @@ function Profile(props) {
       },
       collapsedHeaderAnimatedStyle,
     ],
-    [heightCollapsed, insets.top]
+    [heightCollapsed, insets.top, collapsedHeaderAnimatedStyle]
   );
 
   return (
@@ -251,9 +278,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     zIndex: 1,
   },
-  tabBar: {
-    backgroundColor: colors.blue,
-  },
   headerContainer: {
     top: 0,
     left: 0,
@@ -271,8 +295,6 @@ const styles = StyleSheet.create({
     zIndex: 2,
     alignItems: "center",
     flexDirection: "row",
-    // borderWidth: 1,
-    // borderColor: "blue",
   },
 });
 
