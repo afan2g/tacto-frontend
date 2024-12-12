@@ -42,6 +42,7 @@ function TempNavigator(props) {
         }}
       >
         <Stack.Screen name={routes.USERPROFILE} component={UserProfileScreen} />
+        {/* <Stack.Screen name={routes.TEST} component={TestScreen} /> */}
       </Stack.Group>
     </Stack.Navigator>
   );

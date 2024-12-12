@@ -37,7 +37,7 @@ const ANIMATION_CONFIG = {
 };
 const Tab = createMaterialTopTabNavigator();
 
-function Profile(props) {
+function Profile({ navigation, route, ...props }) {
   const user = FAKE_OTHER_USERS[0];
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -152,6 +152,7 @@ function Profile(props) {
         top: headerHeight,
         bottom: insets.bottom,
       },
+      navigation,
     }),
     [contentContainerStyle, headerHeight, insets.bottom]
   );
@@ -162,8 +163,8 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={activityRef}
         onScroll={activityScrollHandler}
-        onMomentumScrollEnd={handleScrollEndActivity}
-        // onScrollEndDrag={handleScrollEndActivity}
+        // onMomentumScrollEnd={handleScrollEndActivity}
+        onScrollEndDrag={handleScrollEndActivity}
         {...sharedProps}
       />
     ),
@@ -176,8 +177,8 @@ function Profile(props) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={statsRef}
         onScroll={statsScrollHandler}
-        onMomentumScrollEnd={handleScrollEndStats}
-        // onScrollEndDrag={handleScrollEndStats}
+        // onMomentumScrollEnd={handleScrollEndStats}
+        onScrollEndDrag={handleScrollEndStats}
         {...sharedProps}
       />
     ),
@@ -273,7 +274,7 @@ function Profile(props) {
         color={colors.lightGray}
         size={24}
         style={[styles.closeIcon, { top: insets.top + 16 }]}
-        onPress={() => props.navigation.goBack()}
+        onPress={() => navigation.goBack()}
       />
       <Animated.View style={collapsedHeaderStyle}>
         <CollapsedHeader user={user} />

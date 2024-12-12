@@ -6,14 +6,16 @@ import { colors } from "../config";
 import formatRelativeTime from "../utils/formatRelativeTime";
 
 const ActivityList = React.forwardRef((props, ref) => {
+  const { data, navigation } = props;
   return (
     <Animated.FlatList
       ref={ref}
-      data={props.data}
+      data={data}
       style={[styles.container]}
       renderItem={({ item }) => (
         <TransactionCard
           transaction={{ ...item, time: formatRelativeTime(item.time) }}
+          navigation={navigation}
         />
       )}
       keyExtractor={(item) => item.txid.toString()}
