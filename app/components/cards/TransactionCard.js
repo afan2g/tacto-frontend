@@ -11,10 +11,11 @@ function TransactionCard({ transaction, style, navigation }) {
   const { from, to, amount, memo, score, commentCount, time, txid } =
     transaction;
   const handlePress = () => {
-    console.log("TransactionCardTest pressed");
+    console.log("Transaction Card pressed. Transaction:", transaction);
+    navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
   const handleUserPress = (user) => {
-    console.log("TransactionCardTest user pressed", user);
+    console.log("Transaction Card user pressed", user);
     navigation.navigate(routes.USERPROFILE, { user });
   };
   const handleLongPress = () => {

@@ -11,18 +11,10 @@ import { colors } from "../config";
 import useGreeting from "../hooks/useGreeting";
 import formatRelativeTime from "../utils/formatRelativeTime";
 import { FAKE_HOME_SCREEN_DATA } from "../data/fakeData";
-
+import routes from "../navigation/routes";
 function HomeScreen({ navigation }) {
   const greeting = useGreeting();
 
-  const handleCardPress = () => {
-    console.log(item);
-  };
-
-  const handleProfilePress = () => {
-    console.log(item.from);
-  };
-  console.log("HomeScreenTest rendered");
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>

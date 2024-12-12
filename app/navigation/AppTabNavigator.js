@@ -53,6 +53,7 @@ function AppTabNavigator(props) {
               return <ArrowDownUp color={color} size={size} />;
             },
             tabBarLabel: "T",
+            popToTopOnBlur: true,
           }}
         />
         <Tab.Screen

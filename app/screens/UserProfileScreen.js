@@ -152,7 +152,7 @@ function Profile({ navigation, route, ...props }) {
         top: headerHeight,
         bottom: insets.bottom,
       },
-      navigation,
+      navigation: navigation,
     }),
     [contentContainerStyle, headerHeight, insets.bottom]
   );

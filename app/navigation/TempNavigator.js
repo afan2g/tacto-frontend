@@ -34,7 +34,7 @@ function TempNavigator(props) {
       </Stack.Group>
       <Stack.Group
         screenOptions={{
-          presentation: "fullScreenModal",
+          // presentation: "",
           transitionSpec: {
             open: config,
             close: config,
