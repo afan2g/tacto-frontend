@@ -69,9 +69,17 @@ function Profile({ navigation, route, ...props }) {
   const activityScrollValue = useSharedValue(0);
   const statsScrollValue = useSharedValue(0);
 
+  const isScrolling = useSharedValue(false);
+
   const createScrollHandler = (scrollValue) =>
     useAnimatedScrollHandler((event) => {
       scrollValue.value = event.contentOffset.y;
+      // Detect if user is actively scrolling
+      if (event.velocity?.y !== 0) {
+        isScrolling.value = true;
+      } else {
+        isScrolling.value = false;
+      }
     });
 
   const activityScrollHandler = createScrollHandler(activityScrollValue);
@@ -127,7 +135,7 @@ function Profile({ navigation, route, ...props }) {
       navigation: navigation,
       snapToOffsets: [0, headerDiff],
     }),
-    [contentContainerStyle, headerHeight, insets.bottom]
+    [contentContainerStyle, headerHeight, insets.bottom, headerDiff]
   );
 
   const renderActivityList = useCallback(
@@ -166,10 +174,14 @@ function Profile({ navigation, route, ...props }) {
   const renderTabBar = useCallback(
     (props) => (
       <Animated.View style={tabBarStyle}>
-        <AppTabBar onIndexChange={setIndex} {...props} />
+        <AppTabBar
+          onIndexChange={setIndex}
+          {...props}
+          swipeEnabled={!isScrolling.value}
+        />
       </Animated.View>
     ),
-    [tabBarStyle]
+    [tabBarStyle, isScrolling]
   );
 
   const headerContainerStyle = useMemo(
@@ -226,11 +238,16 @@ function Profile({ navigation, route, ...props }) {
     []
   );
 
+  // Sync offsets between the lists
   useEffect(() => {
     const currentOffset = index === 0 ? activityOffset : statsOffset;
-    if (currentOffset >= headerDiff) {
-      const otherRef = index === 0 ? statsRef : activityRef;
-      otherRef.current?.scrollToOffset({ offset: headerDiff, animated: false });
+    const otherRef = index === 0 ? statsRef : activityRef;
+
+    if (currentOffset >= 0 && currentOffset <= headerDiff) {
+      otherRef.current?.scrollToOffset({
+        offset: currentOffset,
+        animated: false,
+      });
     }
   }, [index, headerDiff, activityOffset, statsOffset]);
 
