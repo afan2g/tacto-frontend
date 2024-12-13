@@ -77,8 +77,7 @@ export default function App() {
             <Stack.Screen name="pg1" component={TestScreen} />
             <Stack.Screen name="pg2" component={TestScreen2} />
           </Stack.Navigator> */}
-          {/* <TempNavigator /> */}
-          <TransactionDetailScreen transactionPost={FAKE_TRANSACTION_POST} />
+          <TempNavigator />
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </NavigationContainer>
