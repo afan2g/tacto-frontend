@@ -35,7 +35,6 @@ function ActivityScreen(props) {
           <ActivityTransactionCard transaction={item} />
         )}
         keyExtractor={(item) => item.id.toString()}
-        overScrollMode="never"
         style={styles.flatList}
       />
     </Screen>

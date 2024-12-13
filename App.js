@@ -8,7 +8,10 @@ import Profile from "./app/screens/UserProfileScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ActivityList from "./app/testing/ActivityList";
-import { FAKE_HOME_SCREEN_DATA } from "./app/data/fakeData";
+import {
+  FAKE_HOME_SCREEN_DATA,
+  FAKE_TRANSACTION_POST,
+} from "./app/data/fakeData";
 import { colors } from "./app/config";
 import { Navigation } from "lucide-react-native";
 import { NavigationContainer } from "@react-navigation/native";
@@ -21,6 +24,7 @@ import HomeScreen from "./app/screens/HomeScreen";
 import TestScreen from "./app/testing/TestScreen";
 import TestScreen2 from "./app/testing/TestScreen2";
 import HomeNavigator from "./app/navigation/HomeNavigator";
+import TransactionDetailScreen from "./app/screens/TransactionDetailScreen";
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -73,7 +77,8 @@ export default function App() {
             <Stack.Screen name="pg1" component={TestScreen} />
             <Stack.Screen name="pg2" component={TestScreen2} />
           </Stack.Navigator> */}
-          <TempNavigator />
+          {/* <TempNavigator /> */}
+          <TransactionDetailScreen transactionPost={FAKE_TRANSACTION_POST} />
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </NavigationContainer>

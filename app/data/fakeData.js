@@ -379,3 +379,37 @@ export const FAKE_OTHER_USERS = [
     friendStatus: "accepted",
   },
 ];
+
+export const FAKE_TRANSACTION_POST = {
+  post: {
+    from: {
+      fullName: "Aaron Fan",
+      username: "@afan2k",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    to: {
+      fullName: "Kyle Li",
+      username: "@wheresme2010",
+      profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+    },
+    amount: 10.0,
+    memo: "Ullamco excepteur reprehenderit reprehenderit non eiusmod velit ullamco ullamco eu ullamco voluptate.",
+    score: 2,
+    commentCount: 1,
+    txid: 1,
+    time: getRandomDate("week"),
+  },
+  replies: [
+    {
+      user: {
+        fullName: "Kyle Li",
+        username: "@wheresme2010",
+        profilePicUrl: "https://api.dicebear.com/9.x/bottts-neutral/png",
+      },
+      text: "This is a reply to the transaction post.",
+      score: 1,
+      commentCount: 0,
+      time: getRandomDate("hour"),
+    },
+  ],
+};
