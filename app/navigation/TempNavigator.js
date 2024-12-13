@@ -3,9 +3,8 @@ import React from "react";
 import { View, StyleSheet, Easing } from "react-native";
 import routes from "./routes";
 import AppTabNavigator from "./AppTabNavigator";
-
 import UserProfileScreen from "../screens/UserProfileScreen";
-import TestScreen from "../screens/TestScreen";
+import TestScreen from "../testing/TestScreen";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -20,29 +19,23 @@ const config = {
   },
 };
 
-const configClose = {
-  animation: "timing",
-  config: {
-    duration: 10000000,
-  },
-};
 function TempNavigator(props) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "fade_from_bottom",
+      }}
+    >
       <Stack.Group>
         <Stack.Screen name={routes.APPTABS} component={AppTabNavigator} />
       </Stack.Group>
       <Stack.Group
         screenOptions={{
-          // presentation: "",
-          transitionSpec: {
-            open: config,
-            close: config,
-          },
+          presentation: "transparentModal",
         }}
       >
         <Stack.Screen name={routes.USERPROFILE} component={UserProfileScreen} />
-        {/* <Stack.Screen name={routes.TEST} component={TestScreen} /> */}
       </Stack.Group>
     </Stack.Navigator>
   );

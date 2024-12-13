@@ -1,10 +1,11 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Easing } from "react-native";
 import routes from "./routes";
 import HomeScreen from "../screens/HomeScreen";
 import TransactionDetailScreen from "../screens/TransactionDetailScreen";
 import UserProfileScreen from "../screens/UserProfileScreen";
+import navigationTheme from "./navigationTheme";
 /*
 component for home screen navigation.
 Shows a  list of cards of transactions
@@ -20,12 +21,23 @@ Transactions from: 24hr, 1week, 1 month, 1 year, all
 const Stack = createNativeStackNavigator();
 function HomeNavigator({ navigation }) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name={routes.HOME} component={HomeScreen} />
-      <Stack.Screen
-        name={routes.TRANSACTIONDETAIL}
-        component={TransactionDetailScreen}
-      />
+    <Stack.Navigator
+      screenOptions={{ headerShown: false, cardStyle: { opacity: 0 } }}
+    >
+      <Stack.Group>
+        <Stack.Screen name={routes.HOME} component={HomeScreen} />
+        <Stack.Screen
+          name={routes.TRANSACTIONDETAIL}
+          component={TransactionDetailScreen}
+        />
+      </Stack.Group>
+      {/* <Stack.Group
+        screenOptions={{
+          presentation: "modal",
+        }}
+      >
+        <Stack.Screen name={routes.USERPROFILE} component={UserProfileScreen} />
+      </Stack.Group> */}
     </Stack.Navigator>
   );
 }

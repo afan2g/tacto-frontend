@@ -16,7 +16,7 @@ function TransactionCard({ transaction, style, navigation }) {
   };
   const handleUserPress = (user) => {
     console.log("Transaction Card user pressed", user);
-    navigation.navigate(routes.USERPROFILE, { user });
+    navigation.navigate(routes.USERPROFILE, { user, navigation });
   };
   const handleLongPress = () => {
     console.log("TransactionCardTest long pressed");

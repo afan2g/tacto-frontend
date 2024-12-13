@@ -7,6 +7,10 @@ function TestScreen(props) {
     <View style={styles.container}>
       <AppText style={styles.text}>TestScreen</AppText>
       <Button title="Go Back" onPress={() => props.navigation.goBack()} />
+      <Button
+        title="Go to TestScreen2"
+        onPress={() => props.navigation.navigate("pg2")}
+      />
     </View>
   );
 }

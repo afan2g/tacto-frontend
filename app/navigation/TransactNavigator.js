@@ -6,21 +6,29 @@ import routes from "./routes";
 import SelectUserScreen from "../screens/transact/SelectUserScreen";
 import ConfirmTransactionScreen from "../screens/transact/ConfirmTransactionScreen";
 import TransactionProvider from "../contexts/TransactionContext";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import UserProfileScreen from "../screens/UserProfileScreen";
 const Stack = createNativeStackNavigator();
 function TransactNavigator({ navigation }) {
   return (
     <TransactionProvider>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name={routes.TRANSACTHOME} component={TransactScreen} />
-        <Stack.Screen
-          name={routes.TRANSACTSELECTUSER}
-          component={SelectUserScreen}
-        />
-        <Stack.Screen
-          name={routes.TRANSACTCONFIRM}
-          component={ConfirmTransactionScreen}
-        />
+        <Stack.Group>
+          <Stack.Screen name={routes.TRANSACTHOME} component={TransactScreen} />
+          <Stack.Screen
+            name={routes.TRANSACTSELECTUSER}
+            component={SelectUserScreen}
+          />
+          <Stack.Screen
+            name={routes.TRANSACTCONFIRM}
+            component={ConfirmTransactionScreen}
+          />
+        </Stack.Group>
+        {/* <Stack.Group screenOptions={{ presentation: "modal" }}>
+          <Stack.Screen
+            name={routes.USERPROFILE}
+            component={UserProfileScreen}
+          />
+        </Stack.Group> */}
       </Stack.Navigator>
     </TransactionProvider>
   );

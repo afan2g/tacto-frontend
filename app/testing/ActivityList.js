@@ -7,6 +7,7 @@ import formatRelativeTime from "../utils/formatRelativeTime";
 
 const ActivityList = React.forwardRef((props, ref) => {
   const { data, navigation } = props;
+
   return (
     <Animated.FlatList
       ref={ref}
@@ -20,6 +21,7 @@ const ActivityList = React.forwardRef((props, ref) => {
       )}
       keyExtractor={(item) => item.txid.toString()}
       {...props}
+      snapToEnd={false}
       showsVerticalScrollIndicator={false}
       ItemSeparatorComponent={() => <AppCardSeparator />}
     />

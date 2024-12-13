@@ -77,34 +77,6 @@ function Profile({ navigation, route, ...props }) {
   const activityScrollHandler = createScrollHandler(activityScrollValue);
   const statsScrollHandler = createScrollHandler(statsScrollValue);
 
-  const syncAllOffsets = (offset) => {
-    "worklet";
-    requestAnimationFrame(() => {
-      activityRef.current?.scrollToOffset({ offset, animated: true });
-      statsRef.current?.scrollToOffset({ offset, animated: true });
-    });
-  };
-
-  const syncScrollPositions = useCallback(
-    (scrollValue) => {
-      const currentOffset = scrollValue.value;
-      if (currentOffset < headerDiff / 2) {
-        syncAllOffsets(0);
-      } else if (currentOffset < headerDiff) {
-        syncAllOffsets(headerDiff);
-      }
-    },
-    [headerDiff]
-  );
-
-  const createScrollEndHandler = (scrollValue) =>
-    useCallback(() => {
-      syncScrollPositions(scrollValue);
-    }, [syncScrollPositions, scrollValue]);
-
-  const handleScrollEndActivity = createScrollEndHandler(activityScrollValue);
-  const handleScrollEndStats = createScrollEndHandler(statsScrollValue);
-
   const currentScrollValue = useDerivedValue(
     () => (index === 0 ? activityScrollValue.value : statsScrollValue.value),
     [index]
@@ -153,6 +125,7 @@ function Profile({ navigation, route, ...props }) {
         bottom: insets.bottom,
       },
       navigation: navigation,
+      snapToOffsets: [0, headerDiff],
     }),
     [contentContainerStyle, headerHeight, insets.bottom]
   );
@@ -163,12 +136,10 @@ function Profile({ navigation, route, ...props }) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={activityRef}
         onScroll={activityScrollHandler}
-        // onMomentumScrollEnd={handleScrollEndActivity}
-        onScrollEndDrag={handleScrollEndActivity}
         {...sharedProps}
       />
     ),
-    [sharedProps, handleScrollEndActivity, activityScrollHandler]
+    [sharedProps, activityScrollHandler]
   );
 
   const renderStatsList = useCallback(
@@ -177,12 +148,10 @@ function Profile({ navigation, route, ...props }) {
         data={FAKE_HOME_SCREEN_DATA}
         ref={statsRef}
         onScroll={statsScrollHandler}
-        // onMomentumScrollEnd={handleScrollEndStats}
-        onScrollEndDrag={handleScrollEndStats}
         {...sharedProps}
       />
     ),
-    [sharedProps, handleScrollEndStats, statsScrollHandler]
+    [sharedProps, statsScrollHandler]
   );
 
   const tabBarStyle = useMemo(
