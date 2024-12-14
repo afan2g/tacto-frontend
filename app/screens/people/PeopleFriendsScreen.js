@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Pressable, Keyboard, FlatList } from "react-native";
-import { ChevronsUpDown } from "lucide-react-native";
+import { ChevronsUpDown, User } from "lucide-react-native";
 
 import { colors } from "../../config";
 import { FindUserBar } from "../../components/forms";
@@ -16,8 +16,7 @@ import routes from "../../navigation/routes";
 import useModal from "../../hooks/useModal";
 
 function PeopleFriendsScreen({ navigation }) {
-  const { modalVisible, selectedUser, openModal, closeModal } = useModal();
-
+  const { selectedItem, modalVisible, openModal, closeModal } = useModal();
   const handleItemChange = (item) => {
     console.log(item);
   };
@@ -29,6 +28,11 @@ function PeopleFriendsScreen({ navigation }) {
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
     navigation.navigate(routes.USERPROFILE, { user: item });
+  };
+
+  const handleCardLongPress = (item) => {
+    console.log("User long pressed:", item);
+    openModal(FAKE_OTHER_USERS[0]);
   };
 
   return (
@@ -53,7 +57,7 @@ function PeopleFriendsScreen({ navigation }) {
           <UserCard
             user={item}
             onPress={() => handleCardPress(item)}
-            onLongPress={() => openModal(item)} // Long press logic here
+            onLongPress={() => handleCardLongPress(item)} // Long press logic here
             style={styles.userCard}
           />
         )}
@@ -62,7 +66,7 @@ function PeopleFriendsScreen({ navigation }) {
         ItemSeparatorComponent={<AppCardSeparator />}
       />
       <UserModal
-        user={selectedUser}
+        user={selectedItem}
         visible={modalVisible}
         close={closeModal}
       />

@@ -7,12 +7,16 @@ import { FAKE_OTHER_USERS, FAKEUSERS } from "../../data/fakeData";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
 function PeopleSearchScreen({ navigation, ...props }) {
-  const { modalVisible, selectedUser, openModal, closeModal } = useModal();
+  const { modalVisible, selectedItem, openModal, closeModal } = useModal();
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
     navigation.navigate("UserProfile", { user: item });
   };
 
+  const handleCardLongPress = (item) => {
+    console.log("User long pressed:", item);
+    openModal(FAKE_OTHER_USERS[0]);
+  };
   return (
     <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
       <FindUserBar action="send" style={styles.findUserBar} />
@@ -23,7 +27,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
             user={item}
             style={styles.userCard}
             onPress={() => handleCardPress(item)}
-            onLongPress={() => openModal(item)} // Long press logic here
+            onLongPress={() => handleCardLongPress(item)} // Long press logic here
           />
         )}
         keyExtractor={(item) => item.username}
@@ -31,7 +35,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
         ItemSeparatorComponent={<AppCardSeparator />}
       />
       <UserModal
-        user={selectedUser}
+        user={selectedItem}
         visible={modalVisible}
         close={closeModal}
       />
