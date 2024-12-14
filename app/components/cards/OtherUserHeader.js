@@ -71,7 +71,7 @@ function OtherUserHeader({ user, style, handleClose }) {
 const styles = StyleSheet.create({
   closeModal: {
     position: "absolute",
-    top: 10,
+    top: 0,
     right: 10,
   },
   headerContainer: {

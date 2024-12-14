@@ -1,14 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, Pressable, Keyboard, FlatList } from "react-native";
 import { ChevronsUpDown } from "lucide-react-native";
 
 import { colors } from "../../config";
 import { FindUserBar } from "../../components/forms";
-import { FAKEUSERS, FAKE_DROPDOWN_ITEMS } from "../../data/fakeData";
+import {
+  FAKEUSERS,
+  FAKE_DROPDOWN_ITEMS,
+  FAKE_OTHER_USERS,
+} from "../../data/fakeData";
 import { UserCard, AppCardSeparator } from "../../components/cards";
 import DropDownPickerComponent from "../../components/forms/DropDownPickerComponent";
+import UserModal from "../../components/modals/UserModal";
 import routes from "../../navigation/routes";
+import useUserModal from "../../hooks/useUserModal";
+
 function PeopleFriendsScreen({ navigation }) {
+  const { modalVisible, selectedUser, openModal, closeModal } = useUserModal();
+
   const handleItemChange = (item) => {
     console.log(item);
   };
@@ -21,6 +30,7 @@ function PeopleFriendsScreen({ navigation }) {
     console.log("User pressed:", item);
     navigation.navigate(routes.USERPROFILE, { user: item });
   };
+
   return (
     <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
       <FindUserBar action="send" style={styles.findUserBar} />
@@ -38,17 +48,23 @@ function PeopleFriendsScreen({ navigation }) {
         />
       </View>
       <FlatList
-        data={FAKEUSERS}
+        data={FAKE_OTHER_USERS}
         renderItem={({ item }) => (
           <UserCard
             user={item}
             onPress={() => handleCardPress(item)}
+            onLongPress={() => openModal(item)} // Long press logic here
             style={styles.userCard}
           />
         )}
         keyExtractor={(item) => item.username}
         contentContainerStyle={styles.flatList}
         ItemSeparatorComponent={<AppCardSeparator />}
+      />
+      <UserModal
+        user={selectedUser}
+        modalVisible={modalVisible}
+        closeModal={closeModal}
       />
     </Pressable>
   );

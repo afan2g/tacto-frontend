@@ -29,6 +29,7 @@ import HomeNavigator from "./app/navigation/HomeNavigator";
 import TransactionDetailScreen from "./app/screens/TransactionDetailScreen";
 import UserModal from "./app/components/modals/UserModal";
 import { Screen } from "./app/components/primitives";
+import PeopleFriendsScreen from "./app/screens/people/PeopleFriendsScreen";
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -61,21 +62,14 @@ export default function App() {
   const handleModalOpen = () => setUserModalVisible(true);
   const handleModalClose = () => setUserModalVisible(false); // Pass this to UserModal
   return (
-    // <NavigationContainer theme={navigationTheme}>
-    //   <SafeAreaProvider>
-    //     <GestureHandlerRootView style={{ flex: 1 }}>
-    //       {/* <TempNavigator /> */}
-    //     </GestureHandlerRootView>
-    //   </SafeAreaProvider>
-    // </NavigationContainer>
-    <View style={styles.container}>
-      <UserModal
-        user={FAKE_OTHER_USERS[3]}
-        modalVisible={userModalVisible}
-        closeModal={handleModalClose}
-      />
-      <Button title="Open Modal" onPress={handleModalOpen} />
-    </View>
+    <NavigationContainer theme={navigationTheme}>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <TempNavigator />
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </NavigationContainer>
+    // <PeopleFriendsScreen />
   );
 }
 

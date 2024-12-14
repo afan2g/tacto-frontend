@@ -1,19 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   StyleSheet,
-  Pressable,
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
 
-import { AppText } from "../primitives";
-import { colors, fonts } from "../../config";
-import { OtherUserHeader, UserCardVertical } from "../cards";
-import { X } from "lucide-react-native";
+import { colors } from "../../config";
+import { OtherUserHeader } from "../cards";
 
-function UserModal({ user, style, modalVisible, closeModal }) {
-  const status = user.friendStatus;
+function UserModal({ user, modalVisible, closeModal }) {
+  if (!user) return null; // Render nothing if no user is selected
   return (
     <Modal
       animationType="slide"
@@ -24,11 +21,13 @@ function UserModal({ user, style, modalVisible, closeModal }) {
       <TouchableWithoutFeedback onPress={closeModal}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <OtherUserHeader
-              user={user}
-              handleClose={closeModal}
-              style={styles.headerContainer}
-            />
+            <View style={styles.headerContainer}>
+              <OtherUserHeader
+                user={user}
+                handleClose={closeModal}
+                style={{ width: "100%", backgroundColor: colors.black }}
+              />
+            </View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -39,7 +38,7 @@ function UserModal({ user, style, modalVisible, closeModal }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.07)", // Keeps the dimmed background
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Keeps the dimmed background
     justifyContent: "center",
     alignItems: "center",
   },
@@ -53,7 +52,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 10,
     paddingVertical: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
 });
 
