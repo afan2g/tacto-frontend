@@ -8,8 +8,9 @@ export default function DropDownPickerComponent({
   items,
   defaultValue,
   onChangeItem,
+  open,
+  setOpen,
 }) {
-  const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue || items[0]?.value); // Set default to first item's value
   const [itemsList, setItemsList] = useState(items);
 

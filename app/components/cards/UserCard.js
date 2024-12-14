@@ -11,6 +11,7 @@ function UserCard({
   onLongPress,
   navigation,
   style,
+  disabled,
   scale,
 }) {
   const displayText = subtext === null ? null : subtext ?? user.username;
@@ -33,6 +34,7 @@ function UserCard({
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
+      disabled={disabled}
       style={({ pressed }) => [pressed ? styles.pressed : styles.notPressed]}
       unstable_pressDelay={200}
     >

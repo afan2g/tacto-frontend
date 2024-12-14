@@ -72,7 +72,7 @@ function TransactionDetailScreen({ navigation, route, transaction, ...props }) {
           style={[
             styles.input,
             {
-              fontFamily: reply ? fonts.black : fonts.italic,
+              fontFamily: reply ? fonts.medium : fonts.italic,
             },
             // errors.username && styles.textError,
           ]}
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingLeft: 10,
     color: colors.lightGray,
-    fontSize: 18,
+    fontSize: 16,
     lineHeight: 22,
     marginTop: 15,
     overflow: "hidden",

@@ -17,6 +17,12 @@ import useModal from "../../hooks/useModal";
 
 function PeopleFriendsScreen({ navigation }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
+  const [dropDownOpen, setDropDownOpen] = useState(false);
+
+  const handleOutsidePress = () => {
+    Keyboard.dismiss;
+    setDropDownOpen(false);
+  };
   const handleItemChange = (item) => {
     console.log(item);
   };
@@ -27,7 +33,11 @@ function PeopleFriendsScreen({ navigation }) {
 
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
-    navigation.navigate(routes.USERPROFILE, { user: item });
+    if (dropDownOpen) {
+      setDropDownOpen(false);
+    } else {
+      navigation.navigate(routes.USERPROFILE, { user: item });
+    }
   };
 
   const handleCardLongPress = (item) => {
@@ -36,13 +46,15 @@ function PeopleFriendsScreen({ navigation }) {
   };
 
   return (
-    <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
+    <Pressable style={styles.screen} onPress={handleOutsidePress}>
       <FindUserBar action="send" style={styles.findUserBar} />
       <View style={styles.dropDownPicker}>
         <DropDownPickerComponent
           items={FAKE_DROPDOWN_ITEMS}
           onChangeItem={handleItemChange}
           defaultValue={null}
+          open={dropDownOpen}
+          setOpen={setDropDownOpen}
         />
         <ChevronsUpDown
           size={28}
@@ -58,7 +70,7 @@ function PeopleFriendsScreen({ navigation }) {
             user={item}
             onPress={() => handleCardPress(item)}
             onLongPress={() => handleCardLongPress(item)} // Long press logic here
-            style={styles.userCard}
+            disabled={dropDownOpen}
           />
         )}
         keyExtractor={(item) => item.username}
@@ -81,6 +93,12 @@ const styles = StyleSheet.create({
   },
   findUserBar: {
     paddingHorizontal: 5,
+  },
+  pressed: {
+    backgroundColor: colors.blueShade40,
+  },
+  notPressed: {
+    backgroundColor: "transparent",
   },
   dropDownPicker: {
     flexDirection: "row",
