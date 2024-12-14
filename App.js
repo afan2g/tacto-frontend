@@ -1,6 +1,6 @@
 // App.js
 import React, { useEffect } from "react";
-import { StyleSheet, View, Easing } from "react-native";
+import { StyleSheet, View, Easing, Button } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -10,7 +10,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import ActivityList from "./app/testing/ActivityList";
 import {
   FAKE_HOME_SCREEN_DATA,
+  FAKE_OTHER_USERS,
   FAKE_TRANSACTION_POST,
+  FAKEUSERS,
 } from "./app/data/fakeData";
 import { colors } from "./app/config";
 import { Navigation } from "lucide-react-native";
@@ -25,6 +27,8 @@ import TestScreen from "./app/testing/TestScreen";
 import TestScreen2 from "./app/testing/TestScreen2";
 import HomeNavigator from "./app/navigation/HomeNavigator";
 import TransactionDetailScreen from "./app/screens/TransactionDetailScreen";
+import UserModal from "./app/components/modals/UserModal";
+import { Screen } from "./app/components/primitives";
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -51,36 +55,27 @@ export default function App() {
   if (!loaded && !error) {
     return null;
   }
+
+  const [userModalVisible, setUserModalVisible] = React.useState(false);
+
+  const handleModalOpen = () => setUserModalVisible(true);
+  const handleModalClose = () => setUserModalVisible(false); // Pass this to UserModal
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <SafeAreaProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          {/* <Stack.Navigator
-            screenOptions={{
-              transitionSpec: {
-                animation: "timing",
-                config: {
-                  duration: 150,
-                  easing: Easing.inOut(Easing.ease),
-                },
-              },
-              sceneStyleInterpolator: ({ current }) => ({
-                sceneStyle: {
-                  opacity: current.progress.interpolate({
-                    inputRange: [-1, 0, 1],
-                    outputRange: [0, 1, 0],
-                  }),
-                },
-              }),
-            }}
-          >
-            <Stack.Screen name="pg1" component={TestScreen} />
-            <Stack.Screen name="pg2" component={TestScreen2} />
-          </Stack.Navigator> */}
-          <TempNavigator />
-        </GestureHandlerRootView>
-      </SafeAreaProvider>
-    </NavigationContainer>
+    // <NavigationContainer theme={navigationTheme}>
+    //   <SafeAreaProvider>
+    //     <GestureHandlerRootView style={{ flex: 1 }}>
+    //       {/* <TempNavigator /> */}
+    //     </GestureHandlerRootView>
+    //   </SafeAreaProvider>
+    // </NavigationContainer>
+    <View style={styles.container}>
+      <UserModal
+        user={FAKE_OTHER_USERS[3]}
+        modalVisible={userModalVisible}
+        closeModal={handleModalClose}
+      />
+      <Button title="Open Modal" onPress={handleModalOpen} />
+    </View>
   );
 }
 
@@ -89,5 +84,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     backgroundColor: colors.blue,
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

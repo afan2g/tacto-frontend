@@ -6,11 +6,19 @@ import UserCardVertical from "./UserCardVertical";
 import { colors, fonts } from "../../config";
 import { X } from "lucide-react-native";
 
-function OtherUserHeader({ user }) {
+function OtherUserHeader({ user, style, handleClose }) {
   const status = user.friendStatus;
 
   return (
-    <View style={styles.headerContainer}>
+    <View style={[styles.headerContainer, style]}>
+      {handleClose && (
+        <X
+          size={24}
+          color={colors.lightGray}
+          style={styles.closeModal}
+          onPress={handleClose}
+        />
+      )}
       <UserCardVertical user={user} scale={0.8} />
       <View style={styles.userStats}>
         <Pressable style={styles.stat}>
@@ -61,6 +69,11 @@ function OtherUserHeader({ user }) {
 }
 
 const styles = StyleSheet.create({
+  closeModal: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+  },
   headerContainer: {
     alignItems: "center",
     width: "100%",

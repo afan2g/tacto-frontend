@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { AppText, Screen } from "../components/primitives";
+import { Screen } from "../components/primitives";
 import TransactionDetailHeader from "../components/cards/TransactionDetailHeader";
 import TransactionDetailReply from "../components/cards/TransactionDetailReply";
 import { FAKE_TRANSACTION_POST } from "../data/fakeData";
