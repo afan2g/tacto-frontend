@@ -29,12 +29,11 @@ function UserCard({
     },
   };
 
-  const flexDirection = StyleSheet.flatten(style)?.flexDirection;
   return (
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      style={[({ pressed }) => (pressed ? styles.pressed : styles.notPressed)]}
+      style={({ pressed }) => [pressed ? styles.pressed : styles.notPressed]}
       unstable_pressDelay={200}
     >
       <View style={[styles.container, style]}>
@@ -43,12 +42,7 @@ function UserCard({
           resizeMode="contain"
           style={[scaleStyle.profilePic, styles.profilePic]}
         />
-        <View
-          style={[
-            styles.userNameContainer,
-            flexDirection === "row-reverse" && { alignItems: "flex-end" },
-          ]}
-        >
+        <View style={styles.userNameContainer}>
           <AppText style={[scaleStyle.fullName, styles.fullName]}>
             {user.fullName}
           </AppText>

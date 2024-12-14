@@ -8,10 +8,17 @@ import UserCard from "../../components/cards/UserCard";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { TransactionContext } from "../../contexts/TransactionContext";
-import { FAKEUSERS } from "../../data/fakeData";
+import {
+  FAKE_OTHER_USERS,
+  FAKE_TRANSACTIONS_FULL,
+  FAKEUSERS,
+} from "../../data/fakeData";
 import { AppCardSeparator } from "../../components/cards";
+import useModal from "../../hooks/useModal";
+import UserModal from "../../components/modals/UserModal";
 
 function SelectUserScreen({ navigation }) {
+  const { selectedItem, modalVisible, openModal, closeModal } = useModal();
   // Access transaction and setTransaction from context
   const { transaction, setTransaction } = useContext(TransactionContext);
 
@@ -24,6 +31,10 @@ function SelectUserScreen({ navigation }) {
     }));
     // Navigate to the Confirm Transaction screen
     navigation.navigate(routes.TRANSACTCONFIRM);
+  };
+
+  const handleCardLongPress = (item) => {
+    openModal(FAKE_OTHER_USERS[0]);
   };
 
   return (
@@ -50,12 +61,18 @@ function SelectUserScreen({ navigation }) {
           <UserCard
             user={item}
             onPress={() => handleCardPress(item)}
+            onLongPress={() => handleCardLongPress(item)}
             style={styles.userCard}
           />
         )}
         keyExtractor={(item) => item.username}
         contentContainerStyle={styles.flatList}
         ItemSeparatorComponent={() => <AppCardSeparator />}
+      />
+      <UserModal
+        user={selectedItem}
+        visible={modalVisible}
+        close={closeModal}
       />
     </Screen>
   );
