@@ -17,6 +17,8 @@ function UserModal({ user, modalVisible, closeModal }) {
       transparent={true}
       visible={modalVisible}
       onRequestClose={closeModal}
+      style={{ backdropColor: colors.black }}
+      statusBarTranslucent={true}
     >
       <TouchableWithoutFeedback onPress={closeModal}>
         <View style={styles.overlay}>
@@ -52,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 10,
     paddingVertical: 20,
-    paddingBottom: 20,
+    paddingBottom: 10,
   },
 });
 

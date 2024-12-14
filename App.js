@@ -30,6 +30,7 @@ import TransactionDetailScreen from "./app/screens/TransactionDetailScreen";
 import UserModal from "./app/components/modals/UserModal";
 import { Screen } from "./app/components/primitives";
 import PeopleFriendsScreen from "./app/screens/people/PeopleFriendsScreen";
+import useUserModal from "./app/hooks/useUserModal";
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -57,10 +58,6 @@ export default function App() {
     return null;
   }
 
-  const [userModalVisible, setUserModalVisible] = React.useState(false);
-
-  const handleModalOpen = () => setUserModalVisible(true);
-  const handleModalClose = () => setUserModalVisible(false); // Pass this to UserModal
   return (
     <NavigationContainer theme={navigationTheme}>
       <SafeAreaProvider>
@@ -69,7 +66,6 @@ export default function App() {
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </NavigationContainer>
-    // <PeopleFriendsScreen />
   );
 }
 
@@ -80,5 +76,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  button: {
+    width: 100,
+    height: 50,
   },
 });
