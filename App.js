@@ -30,7 +30,8 @@ import TransactionDetailScreen from "./app/screens/TransactionDetailScreen";
 import UserModal from "./app/components/modals/UserModal";
 import { Screen } from "./app/components/primitives";
 import PeopleFriendsScreen from "./app/screens/people/PeopleFriendsScreen";
-import useUserModal from "./app/hooks/useUserModal";
+import TransactionModal from "./app/components/modals/TransactionModal";
+import useModal from "./app/hooks/useModal";
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -57,15 +58,22 @@ export default function App() {
   if (!loaded && !error) {
     return null;
   }
-
+  const { modalVisible, selectedItem, closeModal, openModal } = useModal();
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <SafeAreaProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <TempNavigator />
-        </GestureHandlerRootView>
-      </SafeAreaProvider>
-    </NavigationContainer>
+    // <NavigationContainer theme={navigationTheme}>
+    //   <SafeAreaProvider>
+    //     <GestureHandlerRootView style={{ flex: 1 }}>
+    //       <TempNavigator />
+    //     </GestureHandlerRootView>
+    //   </SafeAreaProvider>
+    // </NavigationContainer>
+    <Screen style={styles.container}>
+      <TransactionModal close={closeModal} visible={modalVisible} />
+      <Button
+        title="Open Modal"
+        onPress={() => openModal(FAKE_TRANSACTION_POST)}
+      />
+    </Screen>
   );
 }
 

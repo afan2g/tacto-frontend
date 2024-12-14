@@ -13,10 +13,10 @@ import { UserCard, AppCardSeparator } from "../../components/cards";
 import DropDownPickerComponent from "../../components/forms/DropDownPickerComponent";
 import UserModal from "../../components/modals/UserModal";
 import routes from "../../navigation/routes";
-import useUserModal from "../../hooks/useUserModal";
+import useModal from "../../hooks/useModal";
 
 function PeopleFriendsScreen({ navigation }) {
-  const { modalVisible, selectedUser, openModal, closeModal } = useUserModal();
+  const { modalVisible, selectedUser, openModal, closeModal } = useModal();
 
   const handleItemChange = (item) => {
     console.log(item);
@@ -63,8 +63,8 @@ function PeopleFriendsScreen({ navigation }) {
       />
       <UserModal
         user={selectedUser}
-        modalVisible={modalVisible}
-        closeModal={closeModal}
+        visible={modalVisible}
+        close={closeModal}
       />
     </Pressable>
   );

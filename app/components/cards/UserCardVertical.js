@@ -4,7 +4,7 @@ import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 
-function UserCardVertical({ user, onPress, navigation, scale }) {
+function UserCardVertical({ user, onPress, navigation, scale, style }) {
   const scaleStyle = {
     profilePic: {
       height: 72 * (scale ?? 1),
@@ -23,6 +23,7 @@ function UserCardVertical({ user, onPress, navigation, scale }) {
       onPress={onPress}
       style={({ pressed }) => [
         styles.container,
+        style,
         pressed ? styles.pressed : styles.notPressed,
       ]}
     >

@@ -9,24 +9,24 @@ import {
 import { colors } from "../../config";
 import { OtherUserHeader } from "../cards";
 
-function UserModal({ user, modalVisible, closeModal }) {
+function UserModal({ user, visible, close }) {
   if (!user) return null; // Render nothing if no user is selected
   return (
     <Modal
       animationType="slide"
       transparent={true}
-      visible={modalVisible}
-      onRequestClose={closeModal}
+      visible={visible}
+      onRequestClose={close}
       style={{ backdropColor: colors.black }}
       statusBarTranslucent={true}
     >
-      <TouchableWithoutFeedback onPress={closeModal}>
+      <TouchableWithoutFeedback onPress={close}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={styles.headerContainer}>
               <OtherUserHeader
                 user={user}
-                handleClose={closeModal}
+                handleClose={close}
                 style={{ width: "100%", backgroundColor: colors.black }}
               />
             </View>
