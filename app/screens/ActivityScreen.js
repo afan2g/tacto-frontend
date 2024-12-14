@@ -3,16 +3,38 @@ import { View, StyleSheet, FlatList } from "react-native";
 
 import { AppText, Screen } from "../components/primitives";
 import { colors, fonts } from "../config";
+import routes from "../navigation/routes";
 import {
   AccountBalanceCard,
   ActivityTransactionCard,
 } from "../components/cards";
 import {
   FAKE_TRANSACTIONS_COMPLETED,
+  FAKE_TRANSACTIONS_FULL,
   FAKE_TRANSACTIONS_PENDING,
 } from "../data/fakeData";
+import useModal from "../hooks/useModal";
+import TransactionModal from "../components/modals/TransactionModal";
 
-function ActivityScreen(props) {
+function ActivityScreen({ navigation }) {
+  const { closeModal, openModal, modalVisible, selectedItem } = useModal();
+  const handlePress = (transaction) => {
+    console.log(
+      "Transaction Card pressed. Transaction:",
+      transaction,
+      "navigate to screen"
+    );
+    navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
+  };
+
+  const handleLongPress = (transaction) => {
+    console.log(
+      "Transaction Card long pressed. Transaction:",
+      transaction,
+      "open modal"
+    );
+    openModal(FAKE_TRANSACTIONS_FULL[0]);
+  };
   return (
     <Screen style={styles.screen}>
       <AccountBalanceCard balance={1002.33} style={styles.balanceCard} />
@@ -22,7 +44,13 @@ function ActivityScreen(props) {
             <View style={styles.pendingContainer}>
               <AppText style={styles.header}>Pending</AppText>
               {FAKE_TRANSACTIONS_PENDING.map((item) => (
-                <ActivityTransactionCard key={item.id} transaction={item} />
+                <ActivityTransactionCard
+                  key={item.id}
+                  transaction={item}
+                  onPress={() => handlePress(item)}
+                  onLongPress={() => handleLongPress(item)}
+                  navigation={navigation}
+                />
               ))}
             </View>
             <View style={styles.completedContainer}>
@@ -32,10 +60,20 @@ function ActivityScreen(props) {
         )}
         data={FAKE_TRANSACTIONS_COMPLETED}
         renderItem={({ item }) => (
-          <ActivityTransactionCard transaction={item} />
+          <ActivityTransactionCard
+            transaction={item}
+            onPress={() => handlePress(item)}
+            onLongPress={() => handleLongPress(item)}
+            navigation={navigation}
+          />
         )}
         keyExtractor={(item) => item.id.toString()}
         style={styles.flatList}
+      />
+      <TransactionModal
+        transaction={selectedItem}
+        visible={modalVisible}
+        close={closeModal}
       />
     </Screen>
   );

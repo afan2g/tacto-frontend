@@ -10,9 +10,15 @@ import { AppText, Header, Screen } from "../components/primitives";
 import { colors } from "../config";
 import useGreeting from "../hooks/useGreeting";
 import formatRelativeTime from "../utils/formatRelativeTime";
-import { FAKE_HOME_SCREEN_DATA } from "../data/fakeData";
+import {
+  FAKE_HOME_SCREEN_DATA,
+  FAKE_TRANSACTIONS_FULL,
+} from "../data/fakeData";
 import routes from "../navigation/routes";
+import useModal from "../hooks/useModal";
+import TransactionModal from "../components/modals/TransactionModal";
 function HomeScreen({ navigation }) {
+  const { selectedItem, modalVisible, openModal, closeModal } = useModal();
   const greeting = useGreeting();
 
   return (
@@ -30,10 +36,16 @@ function HomeScreen({ navigation }) {
           <TransactionCard
             transaction={{ ...item, time: formatRelativeTime(item.time) }}
             navigation={navigation}
+            onLongPress={() => openModal(FAKE_TRANSACTIONS_FULL[0])}
           />
         )}
         keyExtractor={(item) => item.txid.toString()}
         ItemSeparatorComponent={() => <AppCardSeparator />}
+      />
+      <TransactionModal
+        transaction={selectedItem}
+        visible={modalVisible}
+        close={closeModal}
       />
     </Screen>
   );

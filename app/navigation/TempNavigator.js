@@ -1,10 +1,10 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
-import { View, StyleSheet, Easing } from "react-native";
+import { StyleSheet } from "react-native";
 import routes from "./routes";
 import AppTabNavigator from "./AppTabNavigator";
 import UserProfileScreen from "../screens/UserProfileScreen";
-import TestScreen from "../testing/TestScreen";
+import TransactionDetailScreen from "../screens/TransactionDetailScreen";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -36,6 +36,10 @@ function TempNavigator(props) {
         }}
       >
         <Stack.Screen name={routes.USERPROFILE} component={UserProfileScreen} />
+        <Stack.Screen
+          name={routes.TRANSACTIONDETAIL}
+          component={TransactionDetailScreen}
+        />
       </Stack.Group>
     </Stack.Navigator>
   );

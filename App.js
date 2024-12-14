@@ -12,6 +12,7 @@ import {
   FAKE_HOME_SCREEN_DATA,
   FAKE_OTHER_USERS,
   FAKE_TRANSACTION_POST,
+  FAKE_TRANSACTIONS_FULL,
   FAKEUSERS,
 } from "./app/data/fakeData";
 import { colors } from "./app/config";
@@ -23,8 +24,7 @@ import AppTabNavigator from "./app/navigation/AppTabNavigator";
 import TempNavigator from "./app/navigation/TempNavigator";
 import routes from "./app/navigation/routes";
 import HomeScreen from "./app/screens/HomeScreen";
-import TestScreen from "./app/testing/TestScreen";
-import TestScreen2 from "./app/testing/TestScreen2";
+
 import HomeNavigator from "./app/navigation/HomeNavigator";
 import TransactionDetailScreen from "./app/screens/TransactionDetailScreen";
 import UserModal from "./app/components/modals/UserModal";
@@ -48,6 +48,7 @@ export default function App() {
     "Satoshi-MediumItalic": require("./app/assets/fonts/Satoshi-MediumItalic.otf"),
     "Satoshi-Regular": require("./app/assets/fonts/Satoshi-Regular.otf"),
   });
+  const { modalVisible, selectedItem, openModal, closeModal } = useModal();
 
   useEffect(() => {
     if (loaded || error) {
@@ -58,22 +59,25 @@ export default function App() {
   if (!loaded && !error) {
     return null;
   }
-  const { modalVisible, selectedItem, closeModal, openModal } = useModal();
   return (
-    // <NavigationContainer theme={navigationTheme}>
-    //   <SafeAreaProvider>
-    //     <GestureHandlerRootView style={{ flex: 1 }}>
-    //       <TempNavigator />
-    //     </GestureHandlerRootView>
-    //   </SafeAreaProvider>
-    // </NavigationContainer>
-    <Screen style={styles.container}>
-      <TransactionModal close={closeModal} visible={modalVisible} />
-      <Button
-        title="Open Modal"
-        onPress={() => openModal(FAKE_TRANSACTION_POST)}
-      />
-    </Screen>
+    <NavigationContainer theme={navigationTheme}>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <TempNavigator />
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </NavigationContainer>
+    //   <Screen style={styles.container}>
+    //     <TransactionModal
+    //       transaction={selectedItem}
+    //       visible={modalVisible}
+    //       close={closeModal}
+    //     />
+    //     <Button
+    //       title="Open Modal"
+    //       onPress={() => openModal(FAKE_TRANSACTIONS_FULL[0])}
+    //     />
+    //   </Screen>
   );
 }
 

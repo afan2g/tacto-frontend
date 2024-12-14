@@ -7,7 +7,7 @@ import { colors, fonts } from "../../config";
 import AvatarList from "./AvatarList";
 import routes from "../../navigation/routes";
 
-function TransactionCard({ transaction, style, navigation }) {
+function TransactionCard({ transaction, style, navigation, onLongPress }) {
   const { from, to, amount, memo, score, commentCount, time, txid } =
     transaction;
   const handlePress = () => {
@@ -17,9 +17,6 @@ function TransactionCard({ transaction, style, navigation }) {
   const handleUserPress = (user) => {
     console.log("Transaction Card user pressed", user);
     navigation.navigate(routes.USERPROFILE, { user, navigation });
-  };
-  const handleLongPress = () => {
-    console.log("TransactionCardTest long pressed");
   };
   const handleUpVotePress = () => {
     console.log("TransactionCardTest upvoted");
@@ -36,8 +33,8 @@ function TransactionCard({ transaction, style, navigation }) {
         pressed ? styles.pressed : styles.notPressed,
       ]}
       onPress={handlePress}
-      onLongPress={handleLongPress}
-      unstable_pressDelay={750}
+      onLongPress={onLongPress}
+      unstable_pressDelay={250}
     >
       <View style={styles.topContainer}>
         <View style={styles.actionContainer}>

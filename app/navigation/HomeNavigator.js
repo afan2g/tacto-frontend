@@ -26,18 +26,7 @@ function HomeNavigator({ navigation }) {
     >
       <Stack.Group>
         <Stack.Screen name={routes.HOME} component={HomeScreen} />
-        <Stack.Screen
-          name={routes.TRANSACTIONDETAIL}
-          component={TransactionDetailScreen}
-        />
       </Stack.Group>
-      {/* <Stack.Group
-        screenOptions={{
-          presentation: "modal",
-        }}
-      >
-        <Stack.Screen name={routes.USERPROFILE} component={UserProfileScreen} />
-      </Stack.Group> */}
     </Stack.Navigator>
   );
 }

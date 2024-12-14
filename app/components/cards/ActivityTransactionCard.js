@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import UserCard from "./UserCard";
 import { AppText, AppButton } from "../primitives";
 import formatRelativeTime from "../../utils/formatRelativeTime";
@@ -12,6 +12,8 @@ function ActivityTransactionCard({
   onCancel,
   onPay,
   onDecline,
+  onPress,
+  onLongPress,
 }) {
   const { timestamp, amount, status, otherUser, action } = transaction;
 
@@ -56,7 +58,15 @@ function ActivityTransactionCard({
         });
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.container,
+        pressed ? styles.pressed : styles.notPressed,
+      ]}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      unstable_pressDelay={240}
+    >
       <View style={styles.textContainer}>
         <UserCard user={otherUser} subtext={timestampDisplay} />
         <AppText style={[styles.amountText, displayConfig.style]}>
@@ -79,21 +89,28 @@ function ActivityTransactionCard({
           />
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 10, // Add some vertical spacing between transactions
-    paddingHorizontal: 10,
+    padding: 10,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.blackTint20,
+  },
+  pressed: {
+    backgroundColor: colors.blueShade40,
+  },
+  notPressed: {
+    backgroundColor: "transparent",
   },
   textContainer: {
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
   },
   amountText: {
     fontFamily: fonts.bold,

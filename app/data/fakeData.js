@@ -625,6 +625,7 @@ export const FAKE_TRANSACTION_POST = {
       score: 1,
       commentCount: 0,
       time: getRandomDate("hour"),
+      id: 1,
     },
   ],
 };

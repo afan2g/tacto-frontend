@@ -14,9 +14,9 @@ import { AppText } from "../primitives";
 import { ArrowBigUp, ArrowBigDown } from "lucide-react-native";
 
 function TransactionModal({ transaction, visible, close }) {
-  transaction = FAKE_TRANSACTIONS_FULL[0];
-
   if (!transaction) return null; // Render nothing if no user is selected
+  // transaction = FAKE_TRANSACTIONS_FULL[0];
+
   const {
     from,
     to,
@@ -30,11 +30,6 @@ function TransactionModal({ transaction, visible, close }) {
     type,
     identifier,
   } = transaction;
-
-  const handleClose = () => {
-    console.log("x Close");
-    close();
-  };
 
   return (
     <Modal
@@ -53,7 +48,7 @@ function TransactionModal({ transaction, visible, close }) {
                 size={32}
                 color={colors.lightGray}
                 style={styles.closeIcon}
-                onPress={handleClose}
+                onPress={close}
               />
               <View style={styles.headerContainer}>
                 <UserCardVertical user={from} scale={0.6} style={styles.user} />
