@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 
 import { AppText, Screen } from "../../components/primitives";
 import FindUserBar from "../../components/forms/FindUserBar";
@@ -34,6 +35,7 @@ function SelectUserScreen({ navigation }) {
   };
 
   const handleCardLongPress = (item) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     openModal(FAKE_OTHER_USERS[0]);
   };
 

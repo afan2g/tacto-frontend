@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet, FlatList } from "react-native";
+import * as Haptics from "expo-haptics";
 
 import {
   AppCardSeparator,
@@ -21,6 +22,10 @@ function HomeScreen({ navigation }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
   const greeting = useGreeting();
 
+  const handleLongPress = (item) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    openModal(FAKE_TRANSACTIONS_FULL[0]);
+  };
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -36,7 +41,7 @@ function HomeScreen({ navigation }) {
           <TransactionCard
             transaction={{ ...item, time: formatRelativeTime(item.time) }}
             navigation={navigation}
-            onLongPress={() => openModal(FAKE_TRANSACTIONS_FULL[0])}
+            onLongPress={handleLongPress}
           />
         )}
         keyExtractor={(item) => item.txid.toString()}

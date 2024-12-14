@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-
+import * as Haptics from "expo-haptics";
 export const useKeypadInput = (
   initialValue = "",
   options = {
@@ -11,6 +11,7 @@ export const useKeypadInput = (
   const [value, setValue] = useState(initialValue);
 
   const handleKeyPress = (key) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const decimalRegex = new RegExp(
       `^(\\d+\\.?\\d{0,${options.maxDecimalPlaces}}|\\.\\d{0,${options.maxDecimalPlaces}})$`
     );

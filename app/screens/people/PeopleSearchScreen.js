@@ -1,13 +1,17 @@
 import React from "react";
 import { StyleSheet, Pressable, Keyboard, FlatList } from "react-native";
+import * as Haptics from "expo-haptics";
 
 import { FindUserBar } from "../../components/forms";
 import { UserCard, AppCardSeparator } from "../../components/cards";
 import { FAKE_OTHER_USERS, FAKEUSERS } from "../../data/fakeData";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
+
 function PeopleSearchScreen({ navigation, ...props }) {
   const { modalVisible, selectedItem, openModal, closeModal } = useModal();
+  // const [dropDownOpen, setDropDownOpen] = useState(false);
+
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
     navigation.navigate("UserProfile", { user: item });
@@ -15,10 +19,17 @@ function PeopleSearchScreen({ navigation, ...props }) {
 
   const handleCardLongPress = (item) => {
     console.log("User long pressed:", item);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     openModal(FAKE_OTHER_USERS[0]);
   };
+
+  const handleOutsidePress = () => {
+    Keyboard.dismiss();
+    // setDropDownOpen(false);
+  };
+
   return (
-    <Pressable style={styles.screen} onPress={Keyboard.dismiss}>
+    <Pressable style={styles.screen} onPress={handleOutsidePress}>
       <FindUserBar action="send" style={styles.findUserBar} />
       <FlatList
         data={FAKE_OTHER_USERS}
@@ -28,6 +39,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
             style={styles.userCard}
             onPress={() => handleCardPress(item)}
             onLongPress={() => handleCardLongPress(item)} // Long press logic here
+            // disabled={dropDownOpen}
           />
         )}
         keyExtractor={(item) => item.username}

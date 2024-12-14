@@ -11,6 +11,10 @@ function FindUserBar({ style, action }) {
     setSearch(value);
   };
 
+  const handleSubmit = () => {
+    console.log("Submitted search:", search);
+  };
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.inputContainer}>
@@ -23,7 +27,7 @@ function FindUserBar({ style, action }) {
           numberOfLines={1}
           multiline={false}
           onChangeText={(value) => handleInputChange(value)}
-          onSubmitEditing={() => passwordRef.current?.focus()}
+          onSubmitEditing={handleSubmit}
           placeholder="Username, email, or phone #"
           placeholderTextColor={colors.softGray}
           returnKeyType="next"

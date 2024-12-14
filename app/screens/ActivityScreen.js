@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet, FlatList } from "react-native";
+import * as Haptics from "expo-haptics";
 
 import { AppText, Screen } from "../components/primitives";
 import { colors, fonts } from "../config";
@@ -19,20 +20,11 @@ import TransactionModal from "../components/modals/TransactionModal";
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const handlePress = (transaction) => {
-    console.log(
-      "Transaction Card pressed. Transaction:",
-      transaction,
-      "navigate to screen"
-    );
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
 
   const handleLongPress = (transaction) => {
-    console.log(
-      "Transaction Card long pressed. Transaction:",
-      transaction,
-      "open modal"
-    );
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     openModal(FAKE_TRANSACTIONS_FULL[0]);
   };
   return (

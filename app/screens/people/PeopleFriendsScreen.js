@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Pressable, Keyboard, FlatList } from "react-native";
 import { ChevronsUpDown, User } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 
 import { colors } from "../../config";
 import { FindUserBar } from "../../components/forms";
@@ -20,7 +21,8 @@ function PeopleFriendsScreen({ navigation }) {
   const [dropDownOpen, setDropDownOpen] = useState(false);
 
   const handleOutsidePress = () => {
-    Keyboard.dismiss;
+    console.log("outside press");
+    Keyboard.dismiss();
     setDropDownOpen(false);
   };
   const handleItemChange = (item) => {
@@ -42,6 +44,7 @@ function PeopleFriendsScreen({ navigation }) {
 
   const handleCardLongPress = (item) => {
     console.log("User long pressed:", item);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     openModal(FAKE_OTHER_USERS[0]);
   };
 
@@ -68,6 +71,7 @@ function PeopleFriendsScreen({ navigation }) {
         renderItem={({ item }) => (
           <UserCard
             user={item}
+            style={styles.userCard}
             onPress={() => handleCardPress(item)}
             onLongPress={() => handleCardLongPress(item)} // Long press logic here
             disabled={dropDownOpen}
