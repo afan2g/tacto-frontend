@@ -18,9 +18,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#364156",
-        "softwareKeyboardLayoutMode": "resize"
-      }
+        "backgroundColor": "#364156"
+      },
+      "package": "com.afan2.Tacto"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,6 +43,11 @@
           ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3e99ca79-2fa0-4db3-93a0-fd2b5b92bcf5"
+      }
+    }
   }
 }

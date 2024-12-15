@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Vibration } from "react-native";
 import * as Haptics from "expo-haptics";
 export const useKeypadInput = (
   initialValue = "",
@@ -11,7 +12,8 @@ export const useKeypadInput = (
   const [value, setValue] = useState(initialValue);
 
   const handleKeyPress = (key) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+    // Vibration.vibrate(1);
     const decimalRegex = new RegExp(
       `^(\\d+\\.?\\d{0,${options.maxDecimalPlaces}}|\\.\\d{0,${options.maxDecimalPlaces}})$`
     );

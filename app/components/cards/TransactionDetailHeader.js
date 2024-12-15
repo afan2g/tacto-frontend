@@ -10,15 +10,6 @@ import { fonts, colors } from "../../config";
 function TransactionDetailScreen({ navigation, route, transaction, ...props }) {
   const { from, to, amount, memo, score, comments, commentCount, txid, time } =
     transaction;
-  const [reply, setReply] = React.useState("");
-  const handleInputChange = (value) => {
-    setReply(value);
-  };
-
-  const handleSubmit = () => {
-    console.log("Reply submitted:", reply);
-    setReply("");
-  };
 
   return (
     <View style={styles.container}>
@@ -57,30 +48,6 @@ function TransactionDetailScreen({ navigation, route, transaction, ...props }) {
             </AppText>
           </View>
         </View>
-      </View>
-      <View style={{ width: "100%" }}>
-        <TextInput
-          autoCapitalize="sentences"
-          autoCorrect={true}
-          name="reply"
-          onChangeText={(value) => handleInputChange(value)}
-          onSubmitEditing={handleSubmit}
-          placeholder="Reply to this post..."
-          placeholderTextColor={colors.softGray}
-          returnKeyType="done"
-          selectionColor={colors.lightGray}
-          style={[
-            styles.input,
-            {
-              fontFamily: reply ? fonts.medium : fonts.italic,
-            },
-            // errors.username && styles.textError,
-          ]}
-          value={reply}
-        />
-        <Pressable style={styles.button} onPress={handleSubmit}>
-          <AppText style={styles.buttonText}>Reply</AppText>
-        </Pressable>
       </View>
     </View>
   );
@@ -147,33 +114,6 @@ const styles = StyleSheet.create({
     color: colors.black,
     fontFamily: fonts.medium,
     fontSize: 16,
-  },
-  input: {
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingLeft: 10,
-    color: colors.lightGray,
-    fontSize: 16,
-    lineHeight: 22,
-    marginTop: 15,
-    overflow: "hidden",
-    padding: 10,
-    width: "100%",
-    textAlignVertical: "bottom",
-  },
-  button: {
-    marginTop: 10,
-    backgroundColor: colors.yellow,
-    padding: 10,
-    borderRadius: 5,
-    width: "100%",
-  },
-  buttonText: {
-    color: colors.black,
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    textAlign: "center",
   },
 });
 

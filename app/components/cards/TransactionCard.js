@@ -6,8 +6,12 @@ import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 import AvatarList from "./AvatarList";
 import routes from "../../navigation/routes";
+import { useNavigation } from "@react-navigation/native"; // Import useNavigation
+import { FAKE_OTHER_USERS } from "../../data/fakeData";
 
-function TransactionCard({ transaction, style, navigation, onLongPress }) {
+function TransactionCard({ transaction, style, onLongPress, origin }) {
+  const navigation = useNavigation(); // Use useNavigation here
+
   const { from, to, amount, memo, score, commentCount, time, txid } =
     transaction;
   const handlePress = () => {
@@ -15,8 +19,16 @@ function TransactionCard({ transaction, style, navigation, onLongPress }) {
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
   const handleUserPress = (user) => {
-    console.log("Transaction Card user pressed", user);
-    navigation.navigate(routes.USERPROFILE, { user, navigation });
+    console.log(
+      "Transaction Card user pressed",
+      user,
+      "navigation",
+      navigation
+    );
+
+    navigation.navigate(routes.USERPROFILE, {
+      user: FAKE_OTHER_USERS[0],
+    });
   };
   const handleUpVotePress = () => {
     console.log("TransactionCardTest upvoted");

@@ -38,7 +38,11 @@ const ANIMATION_CONFIG = {
 const Tab = createMaterialTopTabNavigator();
 
 function Profile({ navigation, route, ...props }) {
-  const user = FAKE_OTHER_USERS[0];
+  // const user = FAKE_OTHER_USERS[0];
+  // if (route.params.user) {
+  //   user = route.params.user;
+  // }
+  const user = route.params.user ? route.params.user : FAKE_OTHER_USERS[0];
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -132,7 +136,6 @@ function Profile({ navigation, route, ...props }) {
         top: headerHeight,
         bottom: insets.bottom,
       },
-      navigation: navigation,
       snapToOffsets: [0, headerDiff],
     }),
     [contentContainerStyle, headerHeight, insets.bottom, headerDiff]
