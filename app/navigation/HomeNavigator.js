@@ -24,9 +24,7 @@ function HomeNavigator({ navigation }) {
     <Stack.Navigator
       screenOptions={{ headerShown: false, cardStyle: { opacity: 0 } }}
     >
-      <Stack.Group>
-        <Stack.Screen name={routes.HOME} component={HomeScreen} />
-      </Stack.Group>
+      <Stack.Screen name={routes.HOME} component={HomeScreen} />
     </Stack.Navigator>
   );
 }

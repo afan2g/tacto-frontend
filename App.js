@@ -32,6 +32,7 @@ import { Screen } from "./app/components/primitives";
 import PeopleFriendsScreen from "./app/screens/people/PeopleFriendsScreen";
 import TransactionModal from "./app/components/modals/TransactionModal";
 import useModal from "./app/hooks/useModal";
+import ActivityScreen from "./app/screens/ActivityScreen";
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -67,6 +68,7 @@ export default function App() {
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </NavigationContainer>
+
     //   <Screen style={styles.container}>
     //     <TransactionModal
     //       transaction={selectedItem}

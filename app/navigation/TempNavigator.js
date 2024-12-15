@@ -30,11 +30,7 @@ function TempNavigator(props) {
       <Stack.Group>
         <Stack.Screen name={routes.APPTABS} component={AppTabNavigator} />
       </Stack.Group>
-      <Stack.Group
-        screenOptions={{
-          presentation: "transparentModal",
-        }}
-      >
+      <Stack.Group screenOptions={{}}>
         <Stack.Screen name={routes.USERPROFILE} component={UserProfileScreen} />
         <Stack.Screen
           name={routes.TRANSACTIONDETAIL}

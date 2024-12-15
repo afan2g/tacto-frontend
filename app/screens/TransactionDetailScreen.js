@@ -16,7 +16,7 @@ import { AppText } from "../components/primitives";
 import TransactionDetailHeader from "../components/cards/TransactionDetailHeader";
 import TransactionDetailReply from "../components/cards/TransactionDetailReply";
 import { FAKE_TRANSACTION_POST } from "../data/fakeData";
-import { X } from "lucide-react-native";
+import { SendHorizonal, X } from "lucide-react-native";
 import { colors, fonts } from "../config";
 import { ScrollView } from "react-native-gesture-handler";
 
@@ -41,52 +41,56 @@ function TransactionDetailScreen({ transactionPost }) {
   console.log("rerender");
   return (
     <KeyboardAvoidingView
-      style={[styles.screen, { paddingTop: insets.top }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[
+        styles.screen,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
-      <Pressable onPress={Keyboard.dismiss} style={styles.pressableContainer}>
-        <View style={styles.headerContainer}>
-          <X
-            color={colors.lightGray}
-            size={30}
-            style={[styles.closeIcon]}
-            onPress={handleClose}
+      <View style={styles.headerContainer}>
+        <X
+          color={colors.lightGray}
+          size={30}
+          style={[styles.closeIcon]}
+          onPress={handleClose}
+        />
+        <TransactionDetailHeader transaction={post} />
+      </View>
+      <FlatList
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        data={replies}
+        keyExtractor={(reply) => reply.id.toString()}
+        renderItem={({ item }) => <TransactionDetailReply reply={item} />}
+      />
+      <View style={styles.replyContainer}>
+        <View style={[styles.inputContainer]}>
+          <TextInput
+            autoCapitalize="sentences"
+            autoCorrect={true}
+            name="reply"
+            onChangeText={(value) => handleInputChange(value)}
+            onSubmitEditing={handleSubmit}
+            placeholder="Reply to this post..."
+            placeholderTextColor={colors.softGray}
+            returnKeyType="done"
+            selectionColor={colors.lightGray}
+            scrollEnabled={true}
+            multiline={true}
+            numberOfLines={3}
+            textAlignVertical="top"
+            style={[
+              styles.input,
+              {
+                fontFamily: reply ? fonts.medium : fonts.italic,
+              },
+            ]}
+            value={reply}
           />
-          <TransactionDetailHeader transaction={post} />
+          <SendHorizonal color={colors.yellow} size={24} style={styles.send} />
         </View>
-        <FlatList
-          contentContainerStyle={styles.scrollViewContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          data={replies}
-          keyExtractor={(reply) => reply.id.toString()}
-          renderItem={({ item }) => <TransactionDetailReply reply={item} />}
-        />
-      </Pressable>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          autoCapitalize="sentences"
-          autoCorrect={true}
-          name="reply"
-          onChangeText={(value) => handleInputChange(value)}
-          onSubmitEditing={handleSubmit}
-          placeholder="Reply to this post..."
-          placeholderTextColor={colors.softGray}
-          returnKeyType="done"
-          selectionColor={colors.lightGray}
-          style={[
-            styles.input,
-            {
-              fontFamily: reply ? fonts.medium : fonts.italic,
-            },
-          ]}
-          value={reply}
-        />
-        <Pressable style={styles.button} onPress={handleSubmit}>
-          <AppText style={styles.buttonText}>Reply</AppText>
-        </Pressable>
       </View>
     </KeyboardAvoidingView>
   );
@@ -95,16 +99,17 @@ function TransactionDetailScreen({ transactionPost }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.blue,
-    paddingHorizontal: 10,
-  },
-  pressableContainer: {
-    flex: 1, // Make pressable container flex to fill space
   },
   headerContainer: {},
   scrollViewContent: {
-    paddingBottom: 20, // Add some padding at the bottom
     minHeight: "100%",
+  },
+  replyContainer: {
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+    backgroundColor: colors.blue,
+    borderTopWidth: 1,
+    borderTopColor: colors.lightGray,
   },
   closeIcon: {
     position: "absolute",
@@ -118,34 +123,27 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "100%",
-    padding: 0,
-    backgroundColor: "transparent", // Add background color if needed
+    paddingVertical: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: colors.lightGray,
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    backgroundColor: colors.blueShade30,
   },
   input: {
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
     paddingLeft: 10,
     color: colors.lightGray,
     fontSize: 16,
     lineHeight: 22,
-    // marginBottom: 10,
-    overflow: "hidden",
+    overflow: "scroll",
     // padding: 10,
-    width: "100%",
-    textAlignVertical: "bottom",
+    flex: 1,
   },
-  button: {
-    backgroundColor: colors.yellow,
-    padding: 10,
-    borderRadius: 5,
-    width: "100%",
-  },
-  buttonText: {
-    color: colors.black,
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    textAlign: "center",
+  send: {
+    marginLeft: 10,
   },
 });
 
