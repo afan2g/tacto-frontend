@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 5,
     flexGrow: 1,
   },
   placeholderValue: {
@@ -196,12 +196,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blue,
   },
   buttonContainer: {
-    padding: 20,
+    padding: 5,
     backgroundColor: colors.white,
   },
   bottomContainer: {
-    justifyContent: "center",
     width: "100%",
+    position: "absolute",
+    bottom: 0,
+    alignSelf: "center",
   },
 });
 

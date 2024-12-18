@@ -37,7 +37,8 @@
     "react-native-svg": "15.8.0",
     "react-native-tab-view": "^4.0.5",
     "react-native-web": "~0.19.13",
-    "yup": "^1.4.0"
+    "yup": "^1.4.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
