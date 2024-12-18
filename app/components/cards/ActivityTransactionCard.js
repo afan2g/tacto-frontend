@@ -96,9 +96,6 @@ function ActivityTransactionCard({
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.blackTint20,
   },
   pressed: {
     backgroundColor: colors.blueShade40,
@@ -133,6 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
+    paddingBottom: 10,
   },
   button: {
     width: "49%",

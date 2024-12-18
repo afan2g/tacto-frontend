@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Vibration } from "react-native";
-import * as Haptics from "expo-haptics";
+import RNHapticFeedback from "react-native-haptic-feedback";
 export const useKeypadInput = (
   initialValue = "",
   options = {
@@ -12,8 +11,9 @@ export const useKeypadInput = (
   const [value, setValue] = useState(initialValue);
 
   const handleKeyPress = (key) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
-    // Vibration.vibrate(1);
+    RNHapticFeedback.trigger("effectClick", {
+      ignoreAndroidSystemSettings: true,
+    });
     const decimalRegex = new RegExp(
       `^(\\d+\\.?\\d{0,${options.maxDecimalPlaces}}|\\.\\d{0,${options.maxDecimalPlaces}})$`
     );

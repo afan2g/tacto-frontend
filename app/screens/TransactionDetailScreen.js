@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Vibration } from "react-native";
 
 import { AppText } from "../components/primitives";
 import TransactionDetailHeader from "../components/cards/TransactionDetailHeader";
@@ -19,6 +20,7 @@ import { FAKE_TRANSACTION_POST } from "../data/fakeData";
 import { SendHorizonal, X } from "lucide-react-native";
 import { colors, fonts } from "../config";
 import { ScrollView } from "react-native-gesture-handler";
+import { AppCardSeparator } from "../components/cards";
 
 function TransactionDetailScreen({ transactionPost }) {
   const [reply, setReply] = React.useState("");
@@ -38,7 +40,11 @@ function TransactionDetailScreen({ transactionPost }) {
     console.log("Close Transaction Detail Screen");
     navigation.goBack();
   };
-  console.log("rerender");
+
+  const handleFocus = () => {
+    Vibration.vibrate(1);
+  };
+
   return (
     <KeyboardAvoidingView
       style={[
@@ -48,23 +54,26 @@ function TransactionDetailScreen({ transactionPost }) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
-      <View style={styles.headerContainer}>
-        <X
-          color={colors.lightGray}
-          size={30}
-          style={[styles.closeIcon]}
-          onPress={handleClose}
+      <View style={styles.contentContainer}>
+        <View style={styles.headerContainer}>
+          <X
+            color={colors.lightGray}
+            size={30}
+            style={[styles.closeIcon]}
+            onPress={handleClose}
+          />
+          <TransactionDetailHeader transaction={post} />
+        </View>
+        <FlatList
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          data={replies}
+          keyExtractor={(reply) => reply.id.toString()}
+          renderItem={({ item }) => <TransactionDetailReply reply={item} />}
+          ItemSeparatorComponent={AppCardSeparator}
         />
-        <TransactionDetailHeader transaction={post} />
       </View>
-      <FlatList
-        contentContainerStyle={styles.scrollViewContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        data={replies}
-        keyExtractor={(reply) => reply.id.toString()}
-        renderItem={({ item }) => <TransactionDetailReply reply={item} />}
-      />
       <View style={styles.replyContainer}>
         <View style={[styles.inputContainer]}>
           <TextInput
@@ -72,6 +81,7 @@ function TransactionDetailScreen({ transactionPost }) {
             autoCorrect={true}
             name="reply"
             onChangeText={(value) => handleInputChange(value)}
+            onFocus={handleFocus}
             onSubmitEditing={handleSubmit}
             placeholder="Reply to this post..."
             placeholderTextColor={colors.softGray}
@@ -99,6 +109,10 @@ function TransactionDetailScreen({ transactionPost }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 10,
   },
   headerContainer: {},
   scrollViewContent: {
@@ -132,6 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 15,
     backgroundColor: colors.blueShade30,
+    paddingVertical: 10,
   },
   input: {
     paddingLeft: 10,

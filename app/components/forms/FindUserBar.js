@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     paddingLeft: 10,
-
+    paddingVertical: 10,
     marginRight: 20, // Add some space between input and icons
   },
   input: {

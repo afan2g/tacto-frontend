@@ -10,11 +10,10 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react-native";
-import TransactNavigator from "./TransactNavigator";
 import PeopleTopTabNavigator from "../navigation/PeopleTopTabNavigator";
 import ActivityScreen from "../screens/ActivityScreen";
 import AccountNavigator from "./AccountNavigator";
-import UserProfileScreen from "../screens/UserProfileScreen";
+import TransactScreen from "../screens/transact/TransactScreen";
 const Tab = createBottomTabNavigator();
 const config = {
   animation: "spring", // or 'timing'
@@ -55,7 +54,7 @@ function AppTabNavigator(props) {
         />
         <Tab.Screen
           name={routes.TRANSACTHOME}
-          component={TransactNavigator}
+          component={TransactScreen}
           options={{
             tabBarIcon: ({ color, size }) => {
               return <ArrowDownUp color={color} size={size} />;
