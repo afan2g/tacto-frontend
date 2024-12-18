@@ -73,17 +73,9 @@ function Profile({ navigation, route, ...props }) {
   const activityScrollValue = useSharedValue(0);
   const statsScrollValue = useSharedValue(0);
 
-  const isScrolling = useSharedValue(false);
-
   const createScrollHandler = (scrollValue) =>
     useAnimatedScrollHandler((event) => {
       scrollValue.value = event.contentOffset.y;
-      // Detect if user is actively scrolling
-      if (event.velocity?.y !== 0) {
-        isScrolling.value = true;
-      } else {
-        isScrolling.value = false;
-      }
     });
 
   const activityScrollHandler = createScrollHandler(activityScrollValue);
@@ -177,14 +169,10 @@ function Profile({ navigation, route, ...props }) {
   const renderTabBar = useCallback(
     (props) => (
       <Animated.View style={tabBarStyle}>
-        <AppTabBar
-          onIndexChange={setIndex}
-          {...props}
-          swipeEnabled={!isScrolling.value}
-        />
+        <AppTabBar onIndexChange={setIndex} {...props} />
       </Animated.View>
     ),
-    [tabBarStyle, isScrolling]
+    [tabBarStyle]
   );
 
   const headerContainerStyle = useMemo(

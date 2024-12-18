@@ -4,35 +4,16 @@ import { StyleSheet, View, Easing, Button } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Profile from "./app/screens/UserProfileScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import ActivityList from "./app/testing/ActivityList";
-import {
-  FAKE_HOME_SCREEN_DATA,
-  FAKE_OTHER_USERS,
-  FAKE_TRANSACTION_POST,
-  FAKE_TRANSACTIONS_FULL,
-  FAKEUSERS,
-} from "./app/data/fakeData";
+import { StatusBar } from "expo-status-bar";
 import { colors } from "./app/config";
-import { Navigation } from "lucide-react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import UserProfileScreen from "./app/screens/UserProfileScreen";
 import navigationTheme from "./app/navigation/navigationTheme";
-import AppTabNavigator from "./app/navigation/AppTabNavigator";
-import TempNavigator from "./app/navigation/TempNavigator";
-import routes from "./app/navigation/routes";
-import HomeScreen from "./app/screens/HomeScreen";
 
-import HomeNavigator from "./app/navigation/HomeNavigator";
-import TransactionDetailScreen from "./app/screens/TransactionDetailScreen";
-import UserModal from "./app/components/modals/UserModal";
-import { Screen } from "./app/components/primitives";
-import PeopleFriendsScreen from "./app/screens/people/PeopleFriendsScreen";
-import TransactionModal from "./app/components/modals/TransactionModal";
+import TempNavigator from "./app/navigation/TempNavigator";
+
 import useModal from "./app/hooks/useModal";
-import ActivityScreen from "./app/screens/ActivityScreen";
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -64,6 +45,7 @@ export default function App() {
     <NavigationContainer theme={navigationTheme}>
       <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
+          <StatusBar style="auto" />
           <TempNavigator />
         </GestureHandlerRootView>
       </SafeAreaProvider>

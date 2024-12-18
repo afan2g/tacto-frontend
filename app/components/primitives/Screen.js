@@ -5,7 +5,7 @@ import colors from "../../config/colors";
 
 export default function Screen({ style, children }) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: Constants.statusBarHeight }]}>
       <View style={[styles.content, style]}>{children}</View>
     </View>
   );

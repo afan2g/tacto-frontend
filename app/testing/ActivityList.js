@@ -22,6 +22,7 @@ const ActivityList = React.forwardRef((props, ref) => {
       {...props}
       snapToEnd={false}
       showsVerticalScrollIndicator={false}
+      horizontal={false}
       ItemSeparatorComponent={() => <AppCardSeparator />}
     />
   );

@@ -4,10 +4,8 @@ import { View, StyleSheet, Image } from "react-native";
 import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 function CollapsedHeader({ user }) {
-  const ref = React.useRef(null);
-
   return (
-    <View style={styles.container} ref={ref}>
+    <View style={styles.container}>
       <Image
         source={{ uri: user.profilePicUrl }}
         style={styles.image}
