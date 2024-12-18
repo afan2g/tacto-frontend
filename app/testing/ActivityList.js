@@ -4,35 +4,35 @@ import Animated from "react-native-reanimated";
 import { AppCardSeparator, TransactionCard } from "../components/cards";
 import { colors } from "../config";
 import formatRelativeTime from "../utils/formatRelativeTime";
+import { FlashList } from "@shopify/flash-list";
+
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 const ActivityList = React.forwardRef((props, ref) => {
-  const { data, navigation } = props;
+  const { data, navigation, minHeight } = props;
   return (
-    <Animated.FlatList
-      ref={ref}
-      data={data}
-      style={[styles.container]}
-      renderItem={({ item }) => (
-        <TransactionCard
-          transaction={{ ...item, time: formatRelativeTime(item.time) }}
-          navigation={navigation}
-        />
-      )}
-      keyExtractor={(item) => item.txid.toString()}
-      {...props}
-      snapToEnd={false}
-      showsVerticalScrollIndicator={false}
-      horizontal={false}
-      ItemSeparatorComponent={() => <AppCardSeparator />}
-    />
+    <View style={[minHeight, { flex: 1 }]}>
+      <AnimatedFlashList
+        ref={ref}
+        data={data}
+        estimatedItemSize={110}
+        renderItem={({ item }) => (
+          <TransactionCard
+            transaction={{ ...item, time: formatRelativeTime(item.time) }}
+            navigation={navigation}
+          />
+        )}
+        keyExtractor={(item) => item.txid.toString()}
+        {...props}
+        snapToEnd={false}
+        showsVerticalScrollIndicator={false}
+        horizontal={false}
+        ItemSeparatorComponent={() => <AppCardSeparator />}
+      />
+    </View>
   );
 });
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.blue,
-  },
-});
+const styles = StyleSheet.create({});
 
 export default ActivityList;

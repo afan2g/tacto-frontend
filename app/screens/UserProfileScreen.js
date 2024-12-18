@@ -115,13 +115,14 @@ function Profile({ navigation, route, ...props }) {
     () => ({
       paddingTop: rendered ? headerHeight + TAB_BAR_HEIGHT : 0,
       paddingBottom: insets.bottom,
-      minHeight: layout.height + headerDiff,
+      // minHeight: layout.height + headerDiff,
     }),
-    [rendered, headerHeight, insets.bottom, layout.height, headerDiff]
+    [rendered, headerHeight, insets.bottom]
   );
 
   const sharedProps = useMemo(
     () => ({
+      minHeight: layout.height + headerDiff,
       contentContainerStyle,
       scrollEventThrottle: 1,
       scrollIndicatorInsets: {
@@ -130,7 +131,13 @@ function Profile({ navigation, route, ...props }) {
       },
       snapToOffsets: [0, headerDiff],
     }),
-    [contentContainerStyle, headerHeight, insets.bottom, headerDiff]
+    [
+      contentContainerStyle,
+      headerHeight,
+      insets.bottom,
+      headerDiff,
+      layout.height,
+    ]
   );
 
   const renderActivityList = useCallback(
