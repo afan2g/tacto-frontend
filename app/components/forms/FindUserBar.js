@@ -17,7 +17,7 @@ function FindUserBar({ style, action }) {
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.inputContainer}>
+      <View style={styles.searchBar}>
         <Search color={colors.lightGray} size={16} />
         <TextInput
           autoCapitalize="none"
@@ -33,12 +33,14 @@ function FindUserBar({ style, action }) {
           returnKeyType="next"
           selectionColor={colors.lightGray}
           style={[styles.input, styles.placeholder, search && styles.text]}
-          value={search}
+          maxLength={24}
         />
       </View>
-      <View style={styles.actionIconsContainer}>
-        <QrCode size={24} color={colors.lightGray} />
-        <AppNFCIcon action={action} size={36} />
+      <View style={styles.iconsContainer}>
+        <AppNFCIcon />
+        <View style={styles.qrIcon}>
+          <QrCode color={colors.yellow} size={32} />
+        </View>
       </View>
     </View>
   );
@@ -47,28 +49,29 @@ function FindUserBar({ style, action }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-between", // Changed from "center"
+    justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
+    padding: 5,
   },
-  inputContainer: {
+  searchBar: {
+    flex: 1,
+    paddingVertical: 5,
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
-    flex: 1, // This will make the container take up available space
-    borderColor: colors.fadedGray,
     borderWidth: 1,
+    borderColor: colors.lightGray,
     borderRadius: 5,
-    paddingLeft: 10,
+    paddingHorizontal: 15,
+    backgroundColor: colors.blueShade30,
     paddingVertical: 10,
-    marginRight: 20, // Add some space between input and icons
   },
   input: {
-    marginLeft: 10,
+    paddingLeft: 10,
+    color: colors.lightGray,
     fontSize: 16,
     lineHeight: 22,
     overflow: "hidden",
-    textAlignVertical: "bottom",
+    flex: 1,
   },
   placeholder: {
     fontFamily: fonts.italic,
@@ -77,10 +80,20 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: colors.lightGray,
   },
-  actionIconsContainer: {
+  iconsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10, // Space between icons
+    marginLeft: 10,
+  },
+  qrIcon: {
+    marginHorizontal: 5,
+    marginLeft: 10,
+    backgroundColor: colors.black,
+    borderRadius: 5,
+    height: 36,
+    width: 36,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

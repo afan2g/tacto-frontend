@@ -136,11 +136,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   inputContainer: {
-    width: "100%",
-    paddingVertical: 5,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    width: "100%",
+    paddingVertical: 5,
     borderWidth: 1,
     borderColor: colors.lightGray,
     borderRadius: 5,

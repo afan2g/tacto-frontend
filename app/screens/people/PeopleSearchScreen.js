@@ -1,5 +1,12 @@
-import React from "react";
-import { StyleSheet, Pressable, Keyboard, FlatList } from "react-native";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Pressable,
+  Keyboard,
+  FlatList,
+  View,
+  TextInput,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 
 import { FindUserBar } from "../../components/forms";
@@ -7,6 +14,8 @@ import { UserCard, AppCardSeparator } from "../../components/cards";
 import { FAKE_OTHER_USERS, FAKEUSERS } from "../../data/fakeData";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
+import { Search } from "lucide-react-native";
+import { colors, fonts } from "../../config";
 
 function PeopleSearchScreen({ navigation, ...props }) {
   const { modalVisible, selectedItem, openModal, closeModal } = useModal();
@@ -28,9 +37,19 @@ function PeopleSearchScreen({ navigation, ...props }) {
     // setDropDownOpen(false);
   };
 
+  const [search, setSearch] = useState("");
+
+  const handleInputChange = (value) => {
+    setSearch(value);
+  };
+
+  const handleSubmit = () => {
+    console.log("Submitted search:", search);
+  };
+
   return (
     <Pressable style={styles.screen} onPress={handleOutsidePress}>
-      <FindUserBar action="send" style={styles.findUserBar} />
+      <FindUserBar />
       <FlatList
         data={FAKE_OTHER_USERS}
         renderItem={({ item }) => (

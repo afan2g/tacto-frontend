@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import colors from "../../config/colors";
 import { Nfc } from "lucide-react-native";
-function AppNFCIcon({ action, size = 36 }) {
+function AppNFCIcon({ action = "send", size = 36 }) {
   return (
     <View
       style={[

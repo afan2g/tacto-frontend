@@ -275,6 +275,10 @@ function Profile({ navigation, route, ...props }) {
           tabBarIndicatorStyle: { backgroundColor: colors.yellow },
           tabBarActiveTintColor: colors.lightGray,
           tabBarInactiveTintColor: colors.grayOpacity50,
+          lazy: true,
+          lazyPlaceholder: () => (
+            <View style={{ backgroundColor: colors.blue }} />
+          ),
         }}
       >
         <Tab.Screen name="activity">{renderActivityList}</Tab.Screen>
