@@ -9,22 +9,22 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Platform,
+  Pressable,
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
+import { supabase } from "../../../lib/supabase";
 
 import {
   AppButton,
   AppText,
-  ErrorMessage,
   Header,
   Screen,
-} from "../../components";
+} from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
-import { signUpValidationSchemas } from "../../validation/validation";
 
 function SignUpVerify({ navigation }) {
   const { formData, updateFormData } = useFormData();
@@ -46,16 +46,54 @@ function SignUpVerify({ navigation }) {
     updateFormData({ verificationCode: value });
   };
 
-  const handleNext = async () => {
-    try {
-      await signUpValidationSchemas.verify.validate({
-        verificationCode: formData.verificationCode,
-      });
-      navigation.navigate(routes.SIGNUPFULLNAME);
-    } catch (validationError) {
-      setError(validationError.message);
+  const handleResendOTP = async () => {
+    let { error } = {};
+    if (formData.emailOrPhone.includes("@")) {
+      ({ error } = await supabase.auth.resend({
+        type: "signup",
+        email: formData.emailOrPhone,
+        options: {
+          emailRedirectTo: "https://usetacto.com",
+        },
+      }));
+    } else {
+      ({ error } = await supabase.auth.resend({
+        type: "signup",
+        phone: formData.emailOrPhone,
+      }));
+    }
+    if (error) {
+      setError(error.message);
+      console.log("error", error);
+    } else {
+      console.log("success");
     }
   };
+  const verifyOTP = async () => {
+    console.log(formData);
+    Keyboard.dismiss();
+    let { data, error } = {};
+    if (formData.emailOrPhone.includes("@")) {
+      ({ data, error } = await supabase.auth.verifyOtp({
+        email: formData.emailOrPhone,
+        token: formData.verificationCode,
+        type: "email",
+      }));
+    } else {
+      ({ data, error } = await supabase.auth.verifyOtp({
+        phone: formData.emailOrPhone,
+        token: formData.verificationCode,
+        type: "sms",
+      }));
+    }
+    if (error) {
+      setError(error.message);
+      console.log("error", error);
+    } else {
+      console.log("success", data);
+    }
+  };
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -81,32 +119,37 @@ function SignUpVerify({ navigation }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <TextInput
-                autoComplete="one-time-code"
-                autoCorrect={false}
-                autoFocus={true}
-                inputMode="numeric"
-                numberOfLines={1}
-                onChangeText={handleInputChange}
-                placeholder="Verification code"
-                placeholderTextColor={colors.softGray}
-                returnKeyType="done"
-                selectionColor={colors.lightGray}
-                selectionHandleColor={colors.lightGray}
-                style={[
-                  styles.text,
-                  {
-                    fontFamily: formData.verificationCode
-                      ? fonts.black
-                      : fonts.italic,
-                  },
-                ]}
-                value={formData.verificationCode}
-              />
+              <View style={styles.textInputContainer}>
+                <TextInput
+                  autoComplete="one-time-code"
+                  autoCorrect={false}
+                  autoFocus={true}
+                  inputMode="numeric"
+                  numberOfLines={1}
+                  onChangeText={handleInputChange}
+                  placeholder="Verification code"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  selectionColor={colors.lightGray}
+                  selectionHandleColor={colors.lightGray}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.verificationCode
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  value={formData.verificationCode}
+                />
+                <Pressable onPress={handleResendOTP} style={styles.resend}>
+                  <AppText style={{ color: colors.yellow }}>Resend</AppText>
+                </Pressable>
+              </View>
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
-                onPress={handleNext}
+                onPress={verifyOTP}
                 title="Next"
                 style={styles.next}
               />
@@ -164,17 +207,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: "100%",
   },
+  textInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.fadedGray,
+    borderRadius: 5,
+    marginTop: 10,
+  },
   text: {
     color: colors.lightGray,
     fontSize: 18,
     width: "100%",
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
     lineHeight: 22,
     overflow: "hidden",
     paddingLeft: 10,
-    textAlignVertical: "bottom",
+    textAlignVertical: "center",
+    height: 40,
+  },
+  resend: {
+    position: "absolute",
+    right: 10,
   },
   next: {
     marginTop: 10,

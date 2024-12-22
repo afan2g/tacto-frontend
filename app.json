@@ -42,7 +42,8 @@
             "./assets/fonts/Satoshi-Regular.otf"
           ]
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

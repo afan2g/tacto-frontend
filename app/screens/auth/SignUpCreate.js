@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   Platform,
 } from "react-native";
+import { supabase } from "../../../lib/supabase";
 
 import { Screen, Header, AppButton } from "../../components/primitives";
 import ErrorMessage from "../../components/forms/ErrorMessage";
@@ -17,7 +18,6 @@ import SSOOptions from "../../components/login/SSOOptions";
 import { colors, fonts } from "../../config";
 import { useFormData } from "../../contexts/FormContext";
 import routes from "../../navigation/routes";
-import { signUpValidationSchemas } from "../../validation/validation";
 
 function SignUpCreate({ navigation }) {
   const { formData, updateFormData } = useFormData();
@@ -34,22 +34,41 @@ function SignUpCreate({ navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
-  const handleInputChange = (value) => {
+  const handleIdentifierChange = (value) => {
     setError("");
     updateFormData({ emailOrPhone: value });
   };
+  const handlePasswordChange = (value) => {
+    setError("");
+    updateFormData({ password: value });
+  };
 
-  const handleNext = async () => {
-    try {
-      await signUpValidationSchemas.create.validate({
-        emailOrPhone: formData.emailOrPhone,
-      });
-      //check if email/phone is already registered; TC
+  const verifyIdentifier = async () => {
+    console.log(formData);
+    Keyboard.dismiss();
+    let { data, error } = {};
+    if (formData.emailOrPhone.includes("@")) {
+      ({ data, error } = await supabase.auth.signUp({
+        email: formData.emailOrPhone,
+        password: formData.password,
+        options: {
+          emailRedirectTo: "https://usetacto.com",
+        },
+      }));
+    } else {
+      ({ data, error } = await supabase.auth.signUp({
+        phone: formData.emailOrPhone,
+        password: formData.password,
+      }));
+    }
+    if (error) {
+      setError(error.message);
+    } else {
+      console.log("success", data);
       navigation.navigate(routes.SIGNUPVERIFY);
-    } catch (validationError) {
-      setError(validationError.message);
     }
   };
+
   return (
     <Screen style={styles.screen}>
       <Header style={styles.header}>Create an account</Header>
@@ -65,32 +84,57 @@ function SignUpCreate({ navigation }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <TextInput
-                autoComplete="email"
-                autoCorrect={false}
-                autoFocus={true}
-                inputMode="email"
-                numberOfLines={1}
-                onChangeText={handleInputChange}
-                placeholder="Email or phone #"
-                placeholderTextColor={colors.softGray}
-                returnKeyType="done"
-                selectionColor={colors.lightGray}
-                selectionHandleColor={colors.lightGray}
-                value={formData.emailOrPhone}
-                style={[
-                  styles.text,
-                  {
-                    fontFamily: formData.emailOrPhone
-                      ? fonts.black
-                      : fonts.italic,
-                  },
-                ]}
-              />
+              <View style={styles.textInputContainer}>
+                <TextInput
+                  autoComplete="email"
+                  autoCorrect={false}
+                  autoFocus={true}
+                  inputMode="email"
+                  numberOfLines={1}
+                  onChangeText={handleIdentifierChange}
+                  placeholder="Email or phone #"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  selectionColor={colors.lightGray}
+                  selectionHandleColor={colors.lightGray}
+                  value={formData.emailOrPhone}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.emailOrPhone
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                />
+              </View>
+              <View style={styles.textInputContainer}>
+                <TextInput
+                  autoComplete="new-password"
+                  autoCorrect={false}
+                  numberOfLines={1}
+                  onChangeText={handlePasswordChange}
+                  placeholder="Password"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  secureTextEntry
+                  selectionColor={colors.lightGray}
+                  selectionHandleColor={colors.lightGray}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.password
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  value={formData.password}
+                />
+              </View>
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
-                onPress={handleNext}
+                onPress={verifyIdentifier}
                 title="Next"
                 style={styles.next}
               />
@@ -130,17 +174,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: "100%",
   },
+  textInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.fadedGray,
+    borderRadius: 5,
+    marginTop: 10,
+  },
   text: {
     color: colors.lightGray,
     fontSize: 18,
     width: "100%",
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
     lineHeight: 22,
     overflow: "hidden",
     paddingLeft: 10,
-    textAlignVertical: "bottom",
+    textAlignVertical: "center",
+    height: 40,
   },
   next: {
     marginTop: 10,

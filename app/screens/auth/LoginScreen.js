@@ -11,6 +11,7 @@ import {
   Alert,
   BackHandler,
 } from "react-native";
+import { supabase } from "../../../lib/supabase";
 
 import { colors, fonts } from "../../config";
 import {
@@ -22,15 +23,14 @@ import {
 import routes from "../../navigation/routes";
 import SSOOptions from "../../components/login/SSOOptions";
 import ErrorMessage from "../../components/forms/ErrorMessage";
-import { loginValidationSchema } from "../../validation/validation";
 
 function LoginScreen({ navigation }) {
   const passwordRef = useRef(null);
   const [loginForm, setLoginForm] = useState({
-    username: "",
+    identifier: "",
     password: "",
   });
-  const [errors, setErrors] = useState({});
+  // const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,54 +49,40 @@ function LoginScreen({ navigation }) {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
+    // // Clear error when user starts typing
+    // if (errors[name]) {
+    //   setErrors((prev) => ({
+    //     ...prev,
+    //     [name]: undefined,
+    //   }));
+    // }
   };
 
-  const validateForm = async () => {
-    try {
-      await loginValidationSchema.validate(loginForm, { abortEarly: false });
-      return true;
-    } catch (validationError) {
-      const newErrors = {};
-      validationError.inner.forEach((error) => {
-        newErrors[error.path] = error.message;
-      });
-      setErrors(newErrors);
-      return false;
-    }
-  };
-
-  const handleSubmit = async () => {
+  const handleSignIn = async () => {
     if (isSubmitting) return;
 
-    try {
-      setIsSubmitting(true);
-      const isValid = await validateForm();
-
-      if (isValid) {
-        // Simulate API call
-        try {
-          // await loginUser(loginForm);
-          console.log("Login form data:", loginForm);
-          // Navigate to main app screen after successful login
-          navigation.navigate(routes.APP);
-        } catch (apiError) {
-          Alert.alert(
-            "Login Failed",
-            "Invalid username or password. Please try again.",
-            [{ text: "OK" }]
-          );
-        }
-      }
-    } finally {
-      setIsSubmitting(false);
+    setIsSubmitting(true);
+    let { data, error } = {};
+    if (loginForm.identifier.includes("@")) {
+      ({ data, error } = await supabase.auth.signInWithPassword({
+        email: loginForm.identifier,
+        password: loginForm.password,
+      }));
+    } else {
+      ({ data, error } = await supabase.auth.signInWithPassword({
+        phone: loginForm.identifier,
+        password: loginForm.password,
+      }));
     }
+
+    if (error) {
+      Alert.alert("Login Failed", error.message, [{ text: "OK" }]);
+    } else {
+      console.log("Login form data:", loginForm);
+      // Navigate to main app screen after successful login
+      navigation.navigate(routes.APP);
+    }
+    setIsSubmitting(false);
   };
 
   const handleForgotPassword = () => {
@@ -125,10 +111,12 @@ function LoginScreen({ navigation }) {
                   autoCapitalize="none"
                   autoCorrect={false}
                   autoComplete="username"
-                  name="username"
+                  name="identifier"
                   numberOfLines={1}
                   multiline={false}
-                  onChangeText={(value) => handleInputChange("username", value)}
+                  onChangeText={(value) =>
+                    handleInputChange("identifier", value)
+                  }
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   placeholder="Username, email, or phone #"
                   placeholderTextColor={colors.softGray}
@@ -137,15 +125,15 @@ function LoginScreen({ navigation }) {
                   style={[
                     styles.text,
                     {
-                      fontFamily: loginForm.username
+                      fontFamily: loginForm.identifier
                         ? fonts.black
                         : fonts.italic,
                     },
-                    errors.username && styles.textError,
+                    // errors.username && styles.textError,
                   ]}
-                  value={loginForm.username}
+                  value={loginForm.identifier}
                 />
-                {errors.username && <ErrorMessage error={errors.username} />}
+                {/* {errors.username && <ErrorMessage error={errors.username} />} */}
 
                 <TextInput
                   autoCapitalize="none"
@@ -168,12 +156,12 @@ function LoginScreen({ navigation }) {
                         ? fonts.black
                         : fonts.italic,
                     },
-                    errors.password && styles.textError,
+                    // errors.password && styles.textError,
                   ]}
                   textContentType="password"
                   value={loginForm.password}
                 />
-                {errors.password && <ErrorMessage error={errors.password} />}
+                {/* {errors.password && <ErrorMessage error={errors.password} />} */}
 
                 <AppText
                   style={styles.forgotPassword}
@@ -186,7 +174,7 @@ function LoginScreen({ navigation }) {
                   color="yellow"
                   title="Log in"
                   style={styles.button}
-                  onPress={handleSubmit}
+                  onPress={handleSignIn}
                   disabled={isSubmitting}
                 />
               </View>

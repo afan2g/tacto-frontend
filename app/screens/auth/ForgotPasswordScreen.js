@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { AppText, Header, Screen } from "../../components";
+import { AppText, Header, Screen } from "../../components/primitives";
 import { ChevronLeft } from "lucide-react-native";
 import { colors } from "../../config";
 

@@ -16,6 +16,7 @@ export default Object.freeze({
   PEOPLESPLIT: "PeopleSplit",
   SIGNUPCREATE: "SignupCreate",
   SIGNUPFULLNAME: "SignupFullName",
+  SIGNUPIDENTIFIER: "SignupIdentifier",
   SIGNUPPASSWORD: "SignupPassword",
   SIGNUPUSERNAME: "SignupUsername",
   SIGNUPVERIFY: "SignupVerify",

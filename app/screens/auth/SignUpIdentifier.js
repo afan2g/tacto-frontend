@@ -22,7 +22,7 @@ import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
 
 //needs navigation, fieldname, nextroute name
-function SignUpFullName({ navigation }) {
+function SignUpIdentifier({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
   useEffect(() => {
@@ -39,14 +39,14 @@ function SignUpFullName({ navigation }) {
 
   const handleInputChange = (value) => {
     setError("");
-    updateFormData({ fullName: value });
+    updateFormData({ emailOrPhone: value });
   };
 
-  const submitFullName = async () => {
+  const submitIdentifier = async () => {
     console.log(formData);
     Keyboard.dismiss();
     //parse, verify, and split full name
-    navigation.navigate(routes.SIGNUPIDENTIFIER);
+    navigation.navigate(routes.SIGNUPPASSWORD);
   };
   return (
     <Screen style={styles.screen}>
@@ -56,7 +56,7 @@ function SignUpFullName({ navigation }) {
           size={42}
           onPress={() => navigation.goBack()}
         />
-        <Header style={styles.header}>What's your name?</Header>
+        <Header style={styles.header}>Contact info</Header>
       </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -70,28 +70,31 @@ function SignUpFullName({ navigation }) {
           >
             <View style={styles.content}>
               <TextInput
-                autoComplete="name"
+                autoComplete="email"
                 autoCorrect={false}
                 autoFocus={true}
+                inputMode="email"
                 numberOfLines={1}
                 onChangeText={handleInputChange}
-                placeholder="Full name"
+                placeholder="Email or phone #"
                 placeholderTextColor={colors.softGray}
                 returnKeyType="done"
                 selectionColor={colors.lightGray}
                 selectionHandleColor={colors.lightGray}
+                value={formData.emailOrPhone}
                 style={[
                   styles.text,
                   {
-                    fontFamily: formData.fullName ? fonts.black : fonts.italic,
+                    fontFamily: formData.emailOrPhone
+                      ? fonts.black
+                      : fonts.italic,
                   },
                 ]}
-                value={formData.fullName}
               />
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
-                onPress={submitFullName}
+                onPress={submitIdentifier}
                 title="Next"
                 style={styles.next}
               />
@@ -155,4 +158,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignUpFullName;
+export default SignUpIdentifier;

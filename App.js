@@ -16,33 +16,38 @@ import navigationTheme from "./app/navigation/navigationTheme";
 import TempNavigator from "./app/navigation/TempNavigator";
 
 import useModal from "./app/hooks/useModal";
+import LoginScreen from "./app/screens/auth/LoginScreen";
+import SignUpNavigator from "./app/navigation/entry/SignUpNavigator";
 
 export default function App() {
-  // const [session, setSession] = useState(null);
+  const [session, setSession] = useState(null);
 
-  // useEffect(() => {
-  //   supabase.auth.getSession().then(({ data: { session } }) => {
-  //     setSession(session);
-  //   });
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-  //   supabase.auth.onAuthStateChange((_event, session) => {
-  //     setSession(session);
-  //   });
-  // }, []);
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
 
   return (
+    // <NavigationContainer theme={navigationTheme}>
+    //   <SafeAreaProvider>
+    //     <GestureHandlerRootView style={{ flex: 1 }}>
+    //       <StatusBar style="auto" />
+    //       <TempNavigator />
+    //     </GestureHandlerRootView>
+    //   </SafeAreaProvider>
+    // </NavigationContainer>
     <NavigationContainer theme={navigationTheme}>
-      <SafeAreaProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <StatusBar style="auto" />
-          <TempNavigator />
-        </GestureHandlerRootView>
-      </SafeAreaProvider>
+      <StatusBar style="auto" />
+
+      <View style={styles.container}>
+        <SignUpNavigator />
+      </View>
     </NavigationContainer>
-    // <View>
-    //   <Auth />
-    //   {session && session.user && <Text>{session.user.id}</Text>}
-    // </View>
   );
 }
 

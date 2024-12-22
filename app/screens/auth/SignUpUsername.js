@@ -19,7 +19,6 @@ import { AppButton, Header, Screen } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
-import { signUpValidationSchemas } from "../../validation/validation";
 
 function SignUpUsername({ navigation }) {
   const { formData, updateFormData } = useFormData();
@@ -41,25 +40,27 @@ function SignUpUsername({ navigation }) {
     updateFormData({ username: value });
   };
 
-  const handleNext = async () => {
-    try {
-      await signUpValidationSchemas.username.validate({
-        username: formData.username,
-      });
-      navigation.navigate(routes.SIGNUPPASSWORD);
-    } catch (validationError) {
-      setError(validationError.message);
-    }
+  // const handleNext = async () => {
+  //   try {
+  //     await signUpValidationSchemas.username.validate({
+  //       username: formData.username,
+  //     });
+  //     navigation.navigate(routes.SIGNUPPASSWORD);
+  //   } catch (validationError) {
+  //     setError(validationError.message);
+  //   }
+  // };
+
+  const handleUsernameSubmit = async () => {
+    console.log(formData);
+    Keyboard.dismiss();
+    //call edge function to check if username is available
+    navigation.navigate(routes.SIGNUPFULLNAME);
   };
 
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <ChevronLeft
-          color={colors.lightGray}
-          size={42}
-          onPress={() => navigation.goBack()}
-        />
         <Header style={styles.header}>Choose a username</Header>
       </View>
       <KeyboardAvoidingView
@@ -95,7 +96,7 @@ function SignUpUsername({ navigation }) {
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
-                onPress={handleNext}
+                onPress={handleUsernameSubmit}
                 title="Next"
                 style={styles.next}
               />
@@ -152,6 +153,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     overflow: "hidden",
     paddingLeft: 10,
+    height: 40,
   },
   next: {
     marginTop: 10,

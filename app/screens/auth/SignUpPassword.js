@@ -10,14 +10,17 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import { AppButton, Screen, Header } from "../../components";
+import { supabase } from "../../../lib/supabase";
+
+import { AppButton, Screen, Header } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
-import { signUpValidationSchemas } from "../../validation/validation";
 import { ChevronLeft } from "lucide-react-native";
+import parseFullName from "../../utils/parseFullName";
+
 function SignUpPassword({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
@@ -41,29 +44,54 @@ function SignUpPassword({ navigation }) {
 
   const handleSubmit = async () => {
     try {
-      setError("");
-      setIsSubmitting(true);
-
-      await signUpValidationSchemas.password.validate({
-        password: formData.password,
-      });
-
-      // Simulate API call
-      try {
-        // await createAccount(formData);
-        console.log(formData);
-        navigation.navigate(routes.APP);
-      } catch (apiError) {
-        Alert.alert("Error", "Failed to create account. Please try again.", [
-          { text: "OK" },
-        ]);
+      if (!formData.password) {
+        setError("Password is required");
+        return;
       }
-    } catch (validationError) {
-      setError(validationError.message);
+
+      if (formData.password.length < 6) {
+        setError("Password must be at least 6 characters");
+        return;
+      }
+
+      setIsSubmitting(true);
+      setError("");
+      Keyboard.dismiss();
+
+      const signUpData = {
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            first_name: parseFullName(formData.fullName).first_name,
+            last_name: parseFullName(formData.fullName).last_name,
+            username: formData.username,
+          },
+        },
+      };
+
+      if (formData.emailOrPhone.includes("@")) {
+        signUpData.email = formData.emailOrPhone;
+        signUpData.options.emailRedirectTo = "https://usetacto.com";
+      } else {
+        signUpData.phone = formData.emailOrPhone;
+      }
+
+      const { data, error } = await supabase.auth.signUp(signUpData);
+
+      if (error) throw error;
+
+      console.log("Success, sent code:", data);
+      navigation.navigate(routes.SIGNUPVERIFY);
+    } catch (err) {
+      console.error("Sign up error:", err);
+      setError(err.message || "An error occurred during sign up");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const isPasswordValid = formData.password && formData.password.length >= 6;
 
   return (
     <Screen style={styles.screen}>
@@ -105,13 +133,14 @@ function SignUpPassword({ navigation }) {
                   },
                 ]}
                 value={formData.password}
+                onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
               />
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
                 onPress={handleSubmit}
-                title="Create Account"
-                disabled={isSubmitting}
+                title={isSubmitting ? "Sending..." : "Get Verification Code"}
+                disabled={isSubmitting || !isPasswordValid}
                 style={styles.next}
               />
               <SSOOptions
@@ -167,6 +196,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     overflow: "hidden",
     paddingLeft: 10,
+    height: 40,
   },
   next: {
     marginTop: 10,
