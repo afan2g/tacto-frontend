@@ -47,21 +47,14 @@ function SignUpVerify({ navigation }) {
   };
 
   const handleResendOTP = async () => {
-    let { error } = {};
-    if (formData.emailOrPhone.includes("@")) {
-      ({ error } = await supabase.auth.resend({
-        type: "signup",
-        email: formData.emailOrPhone,
-        options: {
-          emailRedirectTo: "https://usetacto.com",
-        },
-      }));
-    } else {
-      ({ error } = await supabase.auth.resend({
-        type: "signup",
-        phone: formData.emailOrPhone,
-      }));
-    }
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: formData.email,
+      options: {
+        emailRedirectTo: "https://usetacto.com",
+      },
+    });
+
     if (error) {
       setError(error.message);
       console.log("error", error);
@@ -72,20 +65,13 @@ function SignUpVerify({ navigation }) {
   const verifyOTP = async () => {
     console.log(formData);
     Keyboard.dismiss();
-    let { data, error } = {};
-    if (formData.emailOrPhone.includes("@")) {
-      ({ data, error } = await supabase.auth.verifyOtp({
-        email: formData.emailOrPhone,
-        token: formData.verificationCode,
-        type: "email",
-      }));
-    } else {
-      ({ data, error } = await supabase.auth.verifyOtp({
-        phone: formData.emailOrPhone,
-        token: formData.verificationCode,
-        type: "sms",
-      }));
-    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: formData.email,
+      token: formData.verificationCode,
+      type: "email",
+    });
+
     if (error) {
       setError(error.message);
       console.log("error", error);
@@ -104,10 +90,7 @@ function SignUpVerify({ navigation }) {
         />
         <Header style={styles.header}>Verify your account</Header>
       </View>
-      <AppText style={styles.grayText}>
-        Enter the 6-digit verification code sent to{" "}
-        <AppText style={styles.yellowText}>{formData.emailOrPhone}</AppText>
-      </AppText>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -118,6 +101,10 @@ function SignUpVerify({ navigation }) {
             keyboardShouldPersistTaps="handled"
             bounces={false}
           >
+            <AppText style={styles.grayText}>
+              Enter the 6-digit verification code sent to{" "}
+              <AppText style={styles.yellowText}>{formData.email}</AppText>
+            </AppText>
             <View style={styles.content}>
               <View style={styles.textInputContainer}>
                 <TextInput
@@ -172,7 +159,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   grayText: {
-    paddingTop: 20,
     paddingHorizontal: 20,
     color: colors.softGray,
     fontSize: 30,

@@ -59,8 +59,10 @@ function SignUpPassword({ navigation }) {
       Keyboard.dismiss();
 
       const signUpData = {
+        email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: "https://usetacto.com",
           data: {
             full_name: formData.fullName,
             first_name: parseFullName(formData.fullName).first_name,
@@ -69,13 +71,6 @@ function SignUpPassword({ navigation }) {
           },
         },
       };
-
-      if (formData.emailOrPhone.includes("@")) {
-        signUpData.email = formData.emailOrPhone;
-        signUpData.options.emailRedirectTo = "https://usetacto.com";
-      } else {
-        signUpData.phone = formData.emailOrPhone;
-      }
 
       const { data, error } = await supabase.auth.signUp(signUpData);
 

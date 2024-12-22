@@ -39,7 +39,7 @@ function SignUpIdentifier({ navigation }) {
 
   const handleInputChange = (value) => {
     setError("");
-    updateFormData({ emailOrPhone: value });
+    updateFormData({ email: value });
   };
 
   const submitIdentifier = async () => {
@@ -76,18 +76,16 @@ function SignUpIdentifier({ navigation }) {
                 inputMode="email"
                 numberOfLines={1}
                 onChangeText={handleInputChange}
-                placeholder="Email or phone #"
+                placeholder="Email"
                 placeholderTextColor={colors.softGray}
                 returnKeyType="done"
                 selectionColor={colors.lightGray}
                 selectionHandleColor={colors.lightGray}
-                value={formData.emailOrPhone}
+                value={formData.email}
                 style={[
                   styles.text,
                   {
-                    fontFamily: formData.emailOrPhone
-                      ? fonts.black
-                      : fonts.italic,
+                    fontFamily: formData.email ? fonts.black : fonts.italic,
                   },
                 ]}
               />
