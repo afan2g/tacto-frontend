@@ -103,7 +103,7 @@ function LoginScreen({ navigation }) {
                 <TextInput
                   autoCapitalize="none"
                   autoCorrect={false}
-                  autoComplete="username"
+                  autoComplete="email"
                   name="identifier"
                   numberOfLines={1}
                   multiline={false}
