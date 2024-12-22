@@ -30,7 +30,7 @@ function LoginScreen({ navigation }) {
     identifier: "",
     password: "",
   });
-  // const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,31 +49,24 @@ function LoginScreen({ navigation }) {
       ...prev,
       [name]: value,
     }));
-    // // Clear error when user starts typing
-    // if (errors[name]) {
-    //   setErrors((prev) => ({
-    //     ...prev,
-    //     [name]: undefined,
-    //   }));
-    // }
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
   };
 
   const handleSignIn = async () => {
     if (isSubmitting) return;
 
     setIsSubmitting(true);
-    let { data, error } = {};
-    if (loginForm.identifier.includes("@")) {
-      ({ data, error } = await supabase.auth.signInWithPassword({
-        email: loginForm.identifier,
-        password: loginForm.password,
-      }));
-    } else {
-      ({ data, error } = await supabase.auth.signInWithPassword({
-        phone: loginForm.identifier,
-        password: loginForm.password,
-      }));
-    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginForm.identifier,
+      password: loginForm.password,
+    });
 
     if (error) {
       Alert.alert("Login Failed", error.message, [{ text: "OK" }]);
@@ -129,11 +122,11 @@ function LoginScreen({ navigation }) {
                         ? fonts.black
                         : fonts.italic,
                     },
-                    // errors.username && styles.textError,
+                    errors.username && styles.textError,
                   ]}
                   value={loginForm.identifier}
                 />
-                {/* {errors.username && <ErrorMessage error={errors.username} />} */}
+                {errors.username && <ErrorMessage error={errors.username} />}
 
                 <TextInput
                   autoCapitalize="none"
@@ -156,12 +149,12 @@ function LoginScreen({ navigation }) {
                         ? fonts.black
                         : fonts.italic,
                     },
-                    // errors.password && styles.textError,
+                    errors.password && styles.textError,
                   ]}
                   textContentType="password"
                   value={loginForm.password}
                 />
-                {/* {errors.password && <ErrorMessage error={errors.password} />} */}
+                {errors.password && <ErrorMessage error={errors.password} />}
 
                 <AppText
                   style={styles.forgotPassword}

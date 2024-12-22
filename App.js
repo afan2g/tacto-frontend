@@ -18,6 +18,7 @@ import TempNavigator from "./app/navigation/TempNavigator";
 import useModal from "./app/hooks/useModal";
 import LoginScreen from "./app/screens/auth/LoginScreen";
 import SignUpNavigator from "./app/navigation/entry/SignUpNavigator";
+import AuthNavigator from "./app/navigation/entry/AuthNavigator";
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -45,8 +46,17 @@ export default function App() {
       <StatusBar style="auto" />
 
       <View style={styles.container}>
-        <SignUpNavigator />
+        <AuthNavigator />
       </View>
+      {session && session.user && (
+        <View>
+          <Text>{session.user.id}</Text>
+          <Button
+            title="Sign Out"
+            onPress={async () => await supabase.auth.signOut()}
+          />
+        </View>
+      )}
     </NavigationContainer>
   );
 }
