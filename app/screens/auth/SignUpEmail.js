@@ -10,21 +10,20 @@ import {
   Platform,
   TouchableWithoutFeedback,
 } from "react-native";
-import { supabase } from "../../../lib/supabase";
+import { clientValidation } from "../../validation/clientValidation"; // Add this import
 
-import parseFullName from "../../utils/parseFullName";
 import { Screen, Header, AppButton } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
-import { ChevronLeft } from "lucide-react-native";
 
-//needs navigation, fieldname, nextroute name
-function SignUpIdentifier({ navigation }) {
+function SignUpEmail({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
+  const [isValid, setIsValid] = useState(false);
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -40,13 +39,34 @@ function SignUpIdentifier({ navigation }) {
   const handleInputChange = (value) => {
     setError("");
     updateFormData({ email: value });
+
+    // Client-side validation
+    const validationResult = clientValidation.email(value);
+    if (!validationResult.success) {
+      setError(validationResult.error || "Invalid email");
+      setIsValid(false);
+    } else {
+      setIsValid(true);
+    }
   };
 
   const submitIdentifier = async () => {
-    console.log(formData);
-    Keyboard.dismiss();
-    navigation.navigate(routes.SIGNUPPASSWORD);
+    try {
+      // Final validation check before proceeding
+      const validationResult = clientValidation.email(formData.email);
+      if (!validationResult.success) {
+        setError(validationResult.error || "Invalid email");
+        return;
+      }
+
+      Keyboard.dismiss();
+      navigation.navigate(routes.SIGNUPPASSWORD);
+    } catch (err) {
+      console.error("Email validation error:", err);
+      setError("An error occurred. Please try again.");
+    }
   };
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -82,6 +102,7 @@ function SignUpIdentifier({ navigation }) {
                     fontFamily: formData.email ? fonts.black : fonts.italic,
                   },
                 ]}
+                onSubmitEditing={isValid ? submitIdentifier : undefined}
               />
               <ErrorMessage error={error} />
               <AppButton
@@ -89,6 +110,7 @@ function SignUpIdentifier({ navigation }) {
                 onPress={submitIdentifier}
                 title="Next"
                 style={styles.next}
+                disabled={!isValid || Boolean(error)}
               />
               <SSOOptions
                 grayText="Have an account? "
@@ -150,4 +172,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignUpIdentifier;
+export default SignUpEmail;

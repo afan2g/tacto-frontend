@@ -10,7 +10,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
 } from "react-native";
-import { supabase } from "../../../lib/supabase";
+import { clientValidation } from "../../validation/clientValidation"; // Add this import
 
 import parseFullName from "../../utils/parseFullName";
 import { Screen, Header, AppButton } from "../../components/primitives";
@@ -21,10 +21,11 @@ import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
 
-//needs navigation, fieldname, nextroute name
 function SignUpFullName({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
+  const [isValid, setIsValid] = useState(false);
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -40,14 +41,42 @@ function SignUpFullName({ navigation }) {
   const handleInputChange = (value) => {
     setError("");
     updateFormData({ fullName: value });
+
+    // Client-side validation
+    const validationResult = clientValidation.fullName(value);
+    if (!validationResult.success) {
+      setError(validationResult.error || "Invalid name");
+      setIsValid(false);
+    } else {
+      setIsValid(true);
+    }
   };
 
   const submitFullName = async () => {
-    console.log(formData);
-    Keyboard.dismiss();
-    //parse, verify, and split full name
-    navigation.navigate(routes.SIGNUPIDENTIFIER);
+    try {
+      // Final validation check
+      const validationResult = clientValidation.fullName(formData.fullName);
+      if (!validationResult.success) {
+        setError(validationResult.error || "Invalid name");
+        return;
+      }
+
+      Keyboard.dismiss();
+
+      // Parse full name before proceeding
+      const parsedName = parseFullName(formData.fullName);
+      updateFormData({
+        firstName: parsedName.firstName,
+        lastName: parsedName.lastName,
+      });
+
+      navigation.navigate(routes.SIGNUPIDENTIFIER);
+    } catch (err) {
+      console.error("Full name validation error:", err);
+      setError("An error occurred. Please try again.");
+    }
   };
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -87,6 +116,7 @@ function SignUpFullName({ navigation }) {
                   },
                 ]}
                 value={formData.fullName}
+                onSubmitEditing={isValid ? submitFullName : undefined}
               />
               <ErrorMessage error={error} />
               <AppButton
@@ -94,6 +124,7 @@ function SignUpFullName({ navigation }) {
                 onPress={submitFullName}
                 title="Next"
                 style={styles.next}
+                disabled={!isValid || Boolean(error)}
               />
               <SSOOptions
                 grayText="Have an account? "

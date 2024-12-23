@@ -11,16 +11,15 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import { ChevronLeft } from "lucide-react-native";
 import debounce from "lodash.debounce";
-
+import { ChevronLeft } from "lucide-react-native";
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
 import { AppButton, Header, Screen } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
-import { validateUsernameClient } from "../../validation/validateUsernameClient";
+import { clientValidation } from "../../validation/clientValidation";
 
 function SignUpUsername({ navigation }) {
   const { formData, updateFormData } = useFormData();
@@ -57,9 +56,9 @@ function SignUpUsername({ navigation }) {
     updateFormData({ username: value });
 
     // Client-side validation
-    const clientError = validateUsernameClient(value);
-    if (clientError) {
-      setError(clientError);
+    const validationResult = clientValidation.username(value);
+    if (!validationResult.success) {
+      setError(validationResult.error || "Invalid username.");
       return;
     }
 
@@ -74,9 +73,23 @@ function SignUpUsername({ navigation }) {
     Keyboard.dismiss();
 
     try {
-      if (error) {
-        // Prevent submission if there are validation errors
-        setIsLoading(false);
+      // Final client-side validation check
+      const validationResult = clientValidation.username(formData.username);
+      if (!validationResult.success) {
+        setError(validationResult.error || "Invalid username");
+        return;
+      }
+
+      // Do a final server validation check before proceeding
+      const { data, error: serverError } = await supabase.rpc(
+        "validate_username",
+        {
+          username_input: formData.username,
+        }
+      );
+
+      if (serverError || !data.valid) {
+        setError(data?.error || "Username is not available.");
         return;
       }
 
@@ -93,6 +106,11 @@ function SignUpUsername({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
+        <ChevronLeft
+          color={colors.lightGray}
+          size={42}
+          onPress={() => navigation.goBack()}
+        />
         <Header style={styles.header}>Choose a username</Header>
       </View>
       <KeyboardAvoidingView

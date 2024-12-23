@@ -11,6 +11,7 @@ import {
   Platform,
 } from "react-native";
 import { supabase } from "../../../lib/supabase";
+import { clientValidation } from "../../validation/clientValidation"; // Add this import
 
 import { AppButton, Screen, Header } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
@@ -19,7 +20,6 @@ import { colors, fonts } from "../../config";
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
 import { ChevronLeft } from "lucide-react-native";
-import parseFullName from "../../utils/parseFullName";
 
 function SignUpPassword({ navigation }) {
   const { formData, updateFormData } = useFormData();
@@ -40,17 +40,20 @@ function SignUpPassword({ navigation }) {
   const handleInputChange = (value) => {
     setError("");
     updateFormData({ password: value });
+
+    // Client-side validation
+    const validationResult = clientValidation.password(value);
+    if (!validationResult.success) {
+      setError(validationResult.error || "Invalid password");
+    }
   };
 
   const handleSubmit = async () => {
     try {
-      if (!formData.password) {
-        setError("Password is required");
-        return;
-      }
-
-      if (formData.password.length < 6) {
-        setError("Password must be at least 6 characters");
+      // Final client-side validation check
+      const validationResult = clientValidation.password(formData.password);
+      if (!validationResult.success) {
+        setError(validationResult.error || "Invalid password");
         return;
       }
 
@@ -66,9 +69,11 @@ function SignUpPassword({ navigation }) {
         },
       };
 
-      const { data, error } = await supabase.auth.signUp(signUpData);
+      const { data, error: signUpError } = await supabase.auth.signUp(
+        signUpData
+      );
 
-      if (error) throw error;
+      if (signUpError) throw signUpError;
 
       console.log("Success, sent code:", data);
       navigation.navigate(routes.SIGNUPVERIFY);
@@ -80,7 +85,9 @@ function SignUpPassword({ navigation }) {
     }
   };
 
-  const isPasswordValid = formData.password && formData.password.length >= 6;
+  // Use the validation result to determine if password is valid
+  const isPasswordValid =
+    formData.password && clientValidation.password(formData.password).success;
 
   return (
     <Screen style={styles.screen}>
