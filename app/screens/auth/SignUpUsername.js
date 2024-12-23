@@ -20,7 +20,7 @@ import { AppButton, Header, Screen } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
-import { validateUsername } from "../../validation/validateUsername";
+import { validateUsernameClient } from "../../validation/validateUsernameClient";
 
 function SignUpUsername({ navigation }) {
   const { formData, updateFormData } = useFormData();
