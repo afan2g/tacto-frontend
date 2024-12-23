@@ -1,41 +1,75 @@
 // App.js
-import "react-native-url-polyfill/auto";
-import React, { useEffect, useRef, useCallback, useState } from "react";
-import { supabase } from "./lib/supabase";
-import Auth from "./app/testing/Auth";
-import { StyleSheet, View, Easing, Button, Text } from "react-native";
-import { Session } from "@supabase/supabase-js";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { colors } from "./app/config";
+import { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
+import { supabase } from "./lib/supabase";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StatusBar } from "expo-status-bar";
+
+import RootNavigator from "./app/navigation/RootNavigator";
+import AuthNavigator from "./app/navigation/entry/AuthNavigator";
 import navigationTheme from "./app/navigation/navigationTheme";
 
-import TempNavigator from "./app/navigation/TempNavigator";
-import AuthNavigator from "./app/navigation/entry/AuthNavigator";
-
-export default function App() {
+// Custom hook for authentication state
+const useAuth = () => {
   const [session, setSession] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check active session
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+        if (error) throw error;
+        setSession(session);
+      } catch (error) {
+        console.error("Error checking session:", error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setIsLoading(false);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    // Cleanup subscription
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
+
+  return { session, isLoading };
+};
+
+export default function App() {
+  const { session, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer theme={navigationTheme}>
       <SafeAreaProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <GestureHandlerRootView style={styles.flex}>
           <StatusBar style="auto" />
           <View style={styles.container}>
-            {session && session.user ? <TempNavigator /> : <AuthNavigator />}
+            {session?.user ? <RootNavigator /> : <AuthNavigator />}
           </View>
         </GestureHandlerRootView>
       </SafeAreaProvider>
@@ -44,12 +78,17 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: "white",
   },
-  button: {
-    width: 100,
-    height: 50,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
   },
 });

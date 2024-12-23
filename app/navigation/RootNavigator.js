@@ -22,7 +22,7 @@ const config = {
   },
 };
 
-function TempNavigator(props) {
+function RootNavigator(props) {
   return (
     <TransactionProvider>
       <Stack.Navigator
@@ -61,4 +61,4 @@ const styles = StyleSheet.create({
   container: {},
 });
 
-export default TempNavigator;
+export default RootNavigator;
