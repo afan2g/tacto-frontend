@@ -45,18 +45,12 @@ function SignUpIdentifier({ navigation }) {
   const submitIdentifier = async () => {
     console.log(formData);
     Keyboard.dismiss();
-    //parse, verify, and split full name
     navigation.navigate(routes.SIGNUPPASSWORD);
   };
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <ChevronLeft
-          color={colors.lightGray}
-          size={42}
-          onPress={() => navigation.goBack()}
-        />
-        <Header style={styles.header}>Contact info</Header>
+        <Header style={styles.header}>Create an account</Header>
       </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}

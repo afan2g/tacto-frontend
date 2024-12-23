@@ -14,10 +14,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import navigationTheme from "./app/navigation/navigationTheme";
 
 import TempNavigator from "./app/navigation/TempNavigator";
-
-import useModal from "./app/hooks/useModal";
-import LoginScreen from "./app/screens/auth/LoginScreen";
-import SignUpNavigator from "./app/navigation/entry/SignUpNavigator";
 import AuthNavigator from "./app/navigation/entry/AuthNavigator";
 
 export default function App() {
@@ -34,29 +30,15 @@ export default function App() {
   }, []);
 
   return (
-    // <NavigationContainer theme={navigationTheme}>
-    //   <SafeAreaProvider>
-    //     <GestureHandlerRootView style={{ flex: 1 }}>
-    //       <StatusBar style="auto" />
-    //       <TempNavigator />
-    //     </GestureHandlerRootView>
-    //   </SafeAreaProvider>
-    // </NavigationContainer>
     <NavigationContainer theme={navigationTheme}>
-      <StatusBar style="auto" />
-
-      <View style={styles.container}>
-        <AuthNavigator />
-      </View>
-      {session && session.user && (
-        <View>
-          <Text>{session.user.id}</Text>
-          <Button
-            title="Sign Out"
-            onPress={async () => await supabase.auth.signOut()}
-          />
-        </View>
-      )}
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <StatusBar style="auto" />
+          <View style={styles.container}>
+            {session && session.user ? <TempNavigator /> : <AuthNavigator />}
+          </View>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
     </NavigationContainer>
   );
 }

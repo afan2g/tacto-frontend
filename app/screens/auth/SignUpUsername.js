@@ -12,6 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
+import debounce from "lodash.debounce";
 
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
@@ -19,43 +20,74 @@ import { AppButton, Header, Screen } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
+import { validateUsername } from "../../validation/validateUsername";
 
 function SignUpUsername({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        navigation.goBack();
-        return true;
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Debounced server-side validation
+  const debouncedValidateUsername = debounce(async (username) => {
+    try {
+      const { data, error } = await supabase.rpc("validate_username", {
+        username_input: username,
+      });
+
+      if (error) {
+        console.error("Supabase validation error:", error);
+        setError("An error occurred. Please try again.");
+        return;
       }
-    );
 
-    return () => backHandler.remove();
-  }, [navigation]);
+      if (!data.valid) {
+        setError(data.error || "Invalid username.");
+      } else {
+        setError(""); // No error
+      }
+    } catch (err) {
+      console.error("Error during server validation:", err);
+      setError("An error occurred. Please try again.");
+    }
+  }, 300); // 300ms debounce delay
 
+  // Handle input change with real-time validation
   const handleInputChange = (value) => {
-    setError("");
+    setError(""); // Clear any existing errors
     updateFormData({ username: value });
+
+    // Client-side validation
+    const clientError = validateUsernameClient(value);
+    if (clientError) {
+      setError(clientError);
+      return;
+    }
+
+    // Trigger debounced server-side validation
+    debouncedValidateUsername(value);
   };
 
-  // const handleNext = async () => {
-  //   try {
-  //     await signUpValidationSchemas.username.validate({
-  //       username: formData.username,
-  //     });
-  //     navigation.navigate(routes.SIGNUPPASSWORD);
-  //   } catch (validationError) {
-  //     setError(validationError.message);
-  //   }
-  // };
-
+  // Final submission
   const handleUsernameSubmit = async () => {
-    console.log(formData);
+    setError("");
+    setIsLoading(true);
     Keyboard.dismiss();
-    //call edge function to check if username is available
-    navigation.navigate(routes.SIGNUPFULLNAME);
+
+    try {
+      if (error) {
+        // Prevent submission if there are validation errors
+        setIsLoading(false);
+        return;
+      }
+
+      // Success - proceed to next step
+      navigation.navigate(routes.SIGNUPFULLNAME);
+    } catch (err) {
+      console.error("Error during username submission:", err);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -84,7 +116,6 @@ function SignUpUsername({ navigation }) {
                 placeholderTextColor={colors.softGray}
                 returnKeyType="done"
                 selectionColor={colors.lightGray}
-                selectionHandleColor={colors.lightGray}
                 style={[
                   styles.text,
                   {
@@ -97,8 +128,9 @@ function SignUpUsername({ navigation }) {
               <AppButton
                 color="yellow"
                 onPress={handleUsernameSubmit}
-                title="Next"
+                title={isLoading ? "Loading..." : "Next"}
                 style={styles.next}
+                disabled={isLoading || Boolean(error)} // Disable if errors exist
               />
               <SSOOptions
                 grayText="Have an account? "

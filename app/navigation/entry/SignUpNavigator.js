@@ -24,14 +24,14 @@ function SignUpNavigator() {
           animationDuration: 0,
         }}
       >
-        <Stack.Screen name={routes.SIGNUPUSERNAME} component={SignUpUsername} />
-        <Stack.Screen name={routes.SIGNUPFULLNAME} component={SignUpFullName} />
         <Stack.Screen
           name={routes.SIGNUPIDENTIFIER}
           component={SignUpIdentifier}
         />
         <Stack.Screen name={routes.SIGNUPPASSWORD} component={SignUpPassword} />
         <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
+        <Stack.Screen name={routes.SIGNUPUSERNAME} component={SignUpUsername} />
+        <Stack.Screen name={routes.SIGNUPFULLNAME} component={SignUpFullName} />
       </Stack.Navigator>
     </FormProvider>
   );

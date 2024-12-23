@@ -63,12 +63,6 @@ function SignUpPassword({ navigation }) {
         password: formData.password,
         options: {
           emailRedirectTo: "https://usetacto.com",
-          data: {
-            full_name: formData.fullName,
-            first_name: parseFullName(formData.fullName).first_name,
-            last_name: parseFullName(formData.fullName).last_name,
-            username: formData.username,
-          },
         },
       };
 

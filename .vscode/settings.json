@@ -3,7 +3,7 @@
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "deno.enablePaths": [
-    "supabase/functions"
+    "./supabase/functions"
   ],
   "deno.lint": true,
   "deno.unstable": [
@@ -22,5 +22,7 @@
     "net"
   ],
   "java.compile.nullAnalysis.mode": "automatic",
-  "search.useIgnoreFiles": false
+  "search.useIgnoreFiles": false,
+  "deno.enable": true,
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable"
 }
