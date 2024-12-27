@@ -14,8 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.afan2.Tacto",
-      "useAppleSignIn": true
+      "bundleIdentifier": "com.afan2.Tacto"
     },
     "android": {
       "adaptiveIcon": {

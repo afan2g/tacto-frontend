@@ -37,3 +37,6 @@ variables.js
 # typescript
 *.tsbuildinfo
 
+#CNG
+/android
+/ios

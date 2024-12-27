@@ -1,59 +1,47 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Platform } from "react-native";
 import {
-  GoogleSignIn,
+  GoogleSignin,
   GoogleSigninButton,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 
+import { supabase } from "../../../lib/supabase";
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
 import { OrSeparator } from "../../components/login";
 import routes from "../../navigation/routes";
 function LandingScreen({ navigation }) {
   const [isLoading, setIsLoading] = React.useState(false);
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    console.log("google");
-    if (Platform.OS === "android") {
-      // Android
-      console.log("android");
-      GoogleSignIn.configure({
-        webClientId: "autoDetect",
-      });
-      try {
-        await GoogleSignIn.hasPlayServices();
-        const userInfo = await GoogleSignIn.signIn();
-        console.log("userInfo", userInfo);
-      } catch (error) {
-        if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-          // user cancelled the login flow
-          console.log("cancelled");
-        } else if (error.code === statusCodes.IN_PROGRESS) {
-          console.log("in progress");
-          // operation (e.g. sign in) is in progress already
-        } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-          console.log("play services not available or outdated");
-          // play services not available or outdated
-        } else {
-          console.log("error", error);
-          // some other error happened
-        }
-      }
-    } else {
-      // iOS
-      console.log("ios");
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-      });
-      console.log("data", data);
-      console.log("error", error);
 
-      if (error) {
-        console.log("error", error);
+  const handleGoogleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      if (userInfo.data.idToken) {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: userInfo.data.idToken,
+        });
+        console.log(error, data);
+      } else {
+        throw new Error("no ID token present!");
+      }
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+        console.log("cancelled");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+        console.log("in progress");
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+        console.log("play services not available");
+      } else {
+        // some other error happened
+        console.log("some other error happened", error);
       }
     }
-    setIsLoading(false);
   };
   return (
     <Screen style={styles.screen}>

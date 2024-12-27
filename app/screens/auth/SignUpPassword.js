@@ -69,9 +69,7 @@ function SignUpPassword({ navigation }) {
         },
       };
 
-      const { data, error: signUpError } = await supabase.auth.signUp(
-        signUpData
-      );
+      const { data, signUpError } = await supabase.auth.signUp(signUpData);
 
       if (signUpError) throw signUpError;
 

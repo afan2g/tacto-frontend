@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-
+import { Platform } from "react-native";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 const useAuth = () => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  GoogleSignin.configure({
+    webClientId:
+      "785186330408-e70b787gaulcvn8m1qdfqvulem1su9q2.apps.googleusercontent.com",
+    offlineAccess: true,
+  });
   useEffect(() => {
     // Check active session
     const checkSession = async () => {
