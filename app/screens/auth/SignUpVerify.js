@@ -59,6 +59,7 @@ function SignUpVerify({ navigation }) {
       setError(error.message);
       console.log("error", error);
     } else {
+      setError("");
       console.log("success");
     }
   };

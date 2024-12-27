@@ -1,10 +1,12 @@
 import React from "react";
-import { View, StyleSheet, SectionList, Pressable } from "react-native";
+import { View, StyleSheet, SectionList, Pressable, Text } from "react-native";
 import { ChevronRight, Settings } from "lucide-react-native";
 
 import { AppText, Header, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
 import { FAKEPROFILE } from "../../data/fakeData";
+import { supabase } from "../../../lib/supabase";
+
 import {
   AccountBalanceCard,
   AppCardSeparator,
@@ -50,6 +52,12 @@ function AccountScreen({ navigation }) {
   const handleUserCardPress = () => {
     console.log("User card pressed!");
   };
+
+  const handleLogout = async () => {
+    console.log("Logout pressed!");
+    const { error } = await supabase.auth.signOut();
+  };
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.accountContainer}>
@@ -82,6 +90,9 @@ function AccountScreen({ navigation }) {
         contentContainerStyle={styles.sectionList}
         ItemSeparatorComponent={() => <AppCardSeparator />}
       />
+      <Pressable style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Logout</Text>
+      </Pressable>
     </Screen>
   );
 }
@@ -121,6 +132,15 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingTop: 10,
     paddingBottom: 20,
+  },
+  logoutButton: {
+    padding: 20,
+    alignItems: "center",
+  },
+  logoutText: {
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    color: colors.red,
   },
 });
 

@@ -8,9 +8,9 @@ import {
   SignUpPassword,
   SignUpVerify,
   SignUpUsername,
+  SignUpEmail,
 } from "../../screens/auth";
 import { FormProvider } from "../../contexts/FormContext";
-import SignUpIdentifier from "../../screens/auth/SignUpIdentifier";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,10 +24,7 @@ function SignUpNavigator() {
           animationDuration: 0,
         }}
       >
-        <Stack.Screen
-          name={routes.SIGNUPIDENTIFIER}
-          component={SignUpIdentifier}
-        />
+        <Stack.Screen name={routes.SIGNUPIDENTIFIER} component={SignUpEmail} />
         <Stack.Screen name={routes.SIGNUPPASSWORD} component={SignUpPassword} />
         <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
         <Stack.Screen name={routes.SIGNUPUSERNAME} component={SignUpUsername} />
