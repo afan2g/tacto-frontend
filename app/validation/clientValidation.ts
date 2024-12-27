@@ -50,12 +50,13 @@ const validatePassword = (password: string): ValidationResult => {
     .min(8, { message: "password must be at least 8 characters" })
     .max(100, { message: "password must be at most 100 characters" })
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d@$!%*?&]{8,}$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d@$!%*?&_\-~^#()+=:;,.<>?{}|\\[\]`'"!]{8,}$/,
       {
         message:
           "password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
       }
     );
+
   const result = schema.safeParse(password);
   return {
     success: result.success,

@@ -52,29 +52,24 @@ function SignUpFullName({ navigation }) {
     }
   };
 
-  const submitFullName = async () => {
-    try {
-      // Final validation check
-      const validationResult = clientValidation.fullName(formData.fullName);
-      if (!validationResult.success) {
-        setError(validationResult.error || "Invalid name");
-        return;
-      }
-
-      Keyboard.dismiss();
-
-      // Parse full name before proceeding
-      const parsedName = parseFullName(formData.fullName);
-      updateFormData({
-        firstName: parsedName.firstName,
-        lastName: parsedName.lastName,
-      });
-
-      navigation.navigate(routes.SIGNUPIDENTIFIER);
-    } catch (err) {
-      console.error("Full name validation error:", err);
-      setError("An error occurred. Please try again.");
+  const submitFullName = () => {
+    Keyboard.dismiss();
+    const validationResult = clientValidation.fullName(formData.fullName);
+    if (!validationResult.success) {
+      setError(validationResult.error || "Invalid name");
+      return;
     }
+    const parsedName = parseFullName(formData.fullName);
+    console.log("Parsed first name:", parsedName.first_name);
+    console.log("Parsed last name:", parsedName.last_name);
+    const updatedFormData = {
+      ...formData,
+      firstName: parsedName.first_name,
+      lastName: parsedName.last_name,
+    };
+    updateFormData(updatedFormData);
+    console.log("Form data with parsed names:", updatedFormData);
+    navigation.navigate(routes.SIGNUPIDENTIFIER);
   };
 
   return (

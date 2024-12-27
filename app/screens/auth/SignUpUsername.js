@@ -11,6 +11,8 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+
+import { supabase } from "../../../lib/supabase";
 import debounce from "lodash.debounce";
 import { ChevronLeft } from "lucide-react-native";
 import { ErrorMessage } from "../../components/forms";
@@ -26,39 +28,46 @@ function SignUpUsername({ navigation }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Debounced server-side validation
-  const debouncedValidateUsername = debounce(async (username) => {
+  // Cancel validation if the component unmounts
+  useEffect(() => {
+    return () => {
+      debouncedValidateUsername.cancel();
+    };
+  }, []);
+
+  // Helper function for validation
+  const validateUsername = async (username) => {
     try {
       const { data, error } = await supabase.rpc("validate_username", {
         username_input: username,
       });
 
       if (error) {
-        console.error("Supabase validation error:", error);
-        setError("An error occurred. Please try again.");
-        return;
+        throw new Error("Supabase validation error");
       }
 
-      if (!data.valid) {
-        setError(data.error || "Invalid username.");
-      } else {
-        setError(""); // No error
-      }
+      return { success: data.valid, error: data.error || null };
     } catch (err) {
       console.error("Error during server validation:", err);
-      setError("An error occurred. Please try again.");
+      return { success: false, error: "An error occurred. Please try again." };
     }
-  }, 300); // 300ms debounce delay
+  };
 
-  // Handle input change with real-time validation
+  // Debounced server-side validation
+  const debouncedValidateUsername = debounce(async (username) => {
+    const result = await validateUsername(username);
+    setError(result.success ? "" : result.error);
+  }, 300);
+
+  // Handle input change
   const handleInputChange = (value) => {
-    setError(""); // Clear any existing errors
+    setError(""); // Clear existing errors
     updateFormData({ username: value });
 
     // Client-side validation
     const validationResult = clientValidation.username(value);
     if (!validationResult.success) {
-      setError(validationResult.error || "Invalid username.");
+      setError(validationResult.error);
       return;
     }
 
@@ -72,35 +81,7 @@ function SignUpUsername({ navigation }) {
     setIsLoading(true);
     Keyboard.dismiss();
 
-    try {
-      // Final client-side validation check
-      const validationResult = clientValidation.username(formData.username);
-      if (!validationResult.success) {
-        setError(validationResult.error || "Invalid username");
-        return;
-      }
-
-      // Do a final server validation check before proceeding
-      const { data, error: serverError } = await supabase.rpc(
-        "validate_username",
-        {
-          username_input: formData.username,
-        }
-      );
-
-      if (serverError || !data.valid) {
-        setError(data?.error || "Username is not available.");
-        return;
-      }
-
-      // Success - proceed to next step
-      navigation.navigate(routes.SIGNUPFULLNAME);
-    } catch (err) {
-      console.error("Error during username submission:", err);
-      setError("An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    navigation.navigate(routes.SIGNUPFULLNAME);
   };
 
   return (
@@ -134,6 +115,7 @@ function SignUpUsername({ navigation }) {
                 placeholderTextColor={colors.softGray}
                 returnKeyType="done"
                 selectionColor={colors.lightGray}
+                accessibilityLabel="Username input"
                 style={[
                   styles.text,
                   {
@@ -148,7 +130,7 @@ function SignUpUsername({ navigation }) {
                 onPress={handleUsernameSubmit}
                 title={isLoading ? "Loading..." : "Next"}
                 style={styles.next}
-                disabled={isLoading || Boolean(error)} // Disable if errors exist
+                disabled={!!error} // Only disable if validation errors exist
               />
               <SSOOptions
                 grayText="Have an account? "

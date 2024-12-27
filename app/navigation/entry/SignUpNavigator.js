@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import routes from "../routes";
 import {
-  SignUpCreate,
+  SignUpComplete,
   SignUpFullName,
   SignUpPassword,
   SignUpVerify,
@@ -24,11 +24,12 @@ function SignUpNavigator() {
           animationDuration: 0,
         }}
       >
+        <Stack.Screen name={routes.SIGNUPUSERNAME} component={SignUpUsername} />
+        <Stack.Screen name={routes.SIGNUPFULLNAME} component={SignUpFullName} />
         <Stack.Screen name={routes.SIGNUPIDENTIFIER} component={SignUpEmail} />
         <Stack.Screen name={routes.SIGNUPPASSWORD} component={SignUpPassword} />
         <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
-        <Stack.Screen name={routes.SIGNUPUSERNAME} component={SignUpUsername} />
-        <Stack.Screen name={routes.SIGNUPFULLNAME} component={SignUpFullName} />
+        <Stack.Screen name={routes.SIGNUPCOMPLETE} component={SignUpComplete} />
       </Stack.Navigator>
     </FormProvider>
   );

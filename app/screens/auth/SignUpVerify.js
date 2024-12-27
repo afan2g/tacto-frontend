@@ -78,6 +78,7 @@ function SignUpVerify({ navigation }) {
       console.log("error", error);
     } else {
       console.log("success", data);
+      navigation.navigate(routes.SIGNUPCOMPLETE);
     }
   };
 

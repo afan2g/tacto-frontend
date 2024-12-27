@@ -66,9 +66,15 @@ function SignUpPassword({ navigation }) {
         password: formData.password,
         options: {
           emailRedirectTo: "https://usetacto.com",
+          data: {
+            full_name: formData.fullName,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            username: formData.username,
+          },
         },
       };
-
+      console.log("Sign up data:", signUpData);
       const { data, signUpError } = await supabase.auth.signUp(signUpData);
 
       if (signUpError) throw signUpError;
