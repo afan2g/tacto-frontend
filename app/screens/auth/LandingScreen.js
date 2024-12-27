@@ -76,17 +76,11 @@ function LandingScreen({ navigation }) {
           title="Log in"
         />
         <OrSeparator />
-        {/* <AppButton
+        <AppButton
           color="lightGray"
           onPress={handleGoogleSignIn}
           style={styles.button}
           title="Continue With Google"
-        /> */}
-        <GoogleSigninButton
-          style={styles.button}
-          size={GoogleSigninButton.Size.Wide}
-          color={GoogleSigninButton.Color.Dark}
-          onPress={handleGoogleSignIn}
           disabled={isLoading}
         />
         <AppButton
