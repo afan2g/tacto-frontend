@@ -18,31 +18,44 @@ function LandingScreen({ navigation }) {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      if (userInfo.data.idToken) {
-        const { data, error } = await supabase.auth.signInWithIdToken({
-          provider: "google",
-          token: userInfo.data.idToken,
-        });
-        console.log(error, data);
-      } else {
-        throw new Error("no ID token present!");
+      if (!userInfo.data.idToken) throw new Error("No ID token!");
+
+      // Step 1: Sign in with Google
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: userInfo.data.idToken,
+      });
+
+      if (error) throw error;
+
+      // Step 2: Now update user_metadata (or the profiles table directly)
+      const { user } = data;
+      if (user) {
+        const metaData = {
+          first_name: userInfo.data.user.givenName,
+          last_name: userInfo.data.user.familyName,
+        };
+        // If you want to store in user_metadata:
+        await supabase.auth.updateUser({ data: metaData });
+
+        // Or if you want to store directly in "profiles" after the trigger
+        // (We assume the trigger inserted a row with empty strings for first/last name.)
+        await supabase
+          .from("profiles")
+          .update({
+            first_name: userInfo.data.user.givenName,
+            last_name: userInfo.data.user.familyName,
+          })
+          .eq("id", user.id);
       }
+
+      console.log("Successfully signed in with Google");
     } catch (error) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // user cancelled the login flow
-        console.log("cancelled");
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (e.g. sign in) is in progress already
-        console.log("in progress");
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
-        console.log("play services not available");
-      } else {
-        // some other error happened
-        console.log("some other error happened", error);
-      }
+      // handle error
+      console.log("Google sign-in error:", error);
     }
   };
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
