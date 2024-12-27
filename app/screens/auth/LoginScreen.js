@@ -72,8 +72,6 @@ function LoginScreen({ navigation }) {
       Alert.alert("Login Failed", error.message, [{ text: "OK" }]);
     } else {
       console.log("Login form data:", loginForm);
-      // Navigate to main app screen after successful login
-      // navigation.navigate(routes.APP);
     }
     setIsSubmitting(false);
   };

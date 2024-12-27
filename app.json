@@ -13,7 +13,9 @@
       "backgroundColor": "#364156"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.afan2.Tacto",
+      "useAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -43,7 +45,14 @@
           ]
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.785186330408-8nuhe77j47id1rkifod19qdqh1fe7bq3"
+        }
+      ],
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {
