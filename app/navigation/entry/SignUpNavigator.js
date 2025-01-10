@@ -11,6 +11,7 @@ import {
   SignUpEmail,
 } from "../../screens/auth";
 import { FormProvider } from "../../contexts/FormContext";
+import SignUpGenerateWallet from "../../screens/auth/SignUpGenerateWallet";
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +30,10 @@ function SignUpNavigator() {
         <Stack.Screen name={routes.SIGNUPIDENTIFIER} component={SignUpEmail} />
         <Stack.Screen name={routes.SIGNUPPASSWORD} component={SignUpPassword} />
         <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
+        <Stack.Screen
+          name={routes.SIGNUPGENERATEWALLET}
+          component={SignUpGenerateWallet}
+        />
         <Stack.Screen name={routes.SIGNUPCOMPLETE} component={SignUpComplete} />
       </Stack.Navigator>
     </FormProvider>

@@ -78,7 +78,7 @@ function SignUpVerify({ navigation }) {
       console.log("error", error);
     } else {
       console.log("success", data);
-      navigation.navigate(routes.SIGNUPCOMPLETE);
+      navigation.navigate(routes.SIGNUPGENERATEWALLET);
     }
   };
 
@@ -139,7 +139,7 @@ function SignUpVerify({ navigation }) {
               <AppButton
                 color="yellow"
                 onPress={verifyOTP}
-                title="Next"
+                title="Verify"
                 style={styles.next}
               />
               <SSOOptions

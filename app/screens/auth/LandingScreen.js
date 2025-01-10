@@ -34,6 +34,7 @@ function LandingScreen({ navigation }) {
         const metaData = {
           first_name: userInfo.data.user.givenName,
           last_name: userInfo.data.user.familyName,
+          //Add avatar URL if available
         };
         // If you want to store in user_metadata:
         await supabase.auth.updateUser({ data: metaData });

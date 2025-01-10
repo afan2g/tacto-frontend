@@ -20,6 +20,7 @@ export default Object.freeze({
   SIGNUPPASSWORD: "SignupPassword",
   SIGNUPUSERNAME: "SignupUsername",
   SIGNUPVERIFY: "SignupVerify",
+  SIGNUPGENERATEWALLET: "SignupGenerateWallet",
   SIGNUPCOMPLETE: "SignupComplete",
   TRANSACTCONFIRM: "ConfirmTransaction",
   TRANSACTHOME: "Transaction",
