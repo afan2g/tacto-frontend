@@ -20,35 +20,13 @@ function LandingScreen({ navigation }) {
       const userInfo = await GoogleSignin.signIn();
       if (!userInfo.data.idToken) throw new Error("No ID token!");
 
+      console.log("Google sign in data", userInfo.data);
       // Step 1: Sign in with Google
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: "google",
         token: userInfo.data.idToken,
       });
-
       if (error) throw error;
-
-      // Step 2: Now update user_metadata (or the profiles table directly)
-      const { user } = data;
-      if (user) {
-        const metaData = {
-          first_name: userInfo.data.user.givenName,
-          last_name: userInfo.data.user.familyName,
-          //Add avatar URL if available
-        };
-        // If you want to store in user_metadata:
-        await supabase.auth.updateUser({ data: metaData });
-
-        // Or if you want to store directly in "profiles" after the trigger
-        // (We assume the trigger inserted a row with empty strings for first/last name.)
-        await supabase
-          .from("profiles")
-          .update({
-            first_name: userInfo.data.user.givenName,
-            last_name: userInfo.data.user.familyName,
-          })
-          .eq("id", user.id);
-      }
 
       console.log("Successfully signed in with Google");
     } catch (error) {
