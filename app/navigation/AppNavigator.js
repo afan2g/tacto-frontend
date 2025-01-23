@@ -1,22 +1,38 @@
+// AppNavigator.js
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import routes from "./routes";
+import RootNavigator from "./RootNavigator";
 import AuthNavigator from "./entry/AuthNavigator";
-import AppTabNavigator from "./AppTabNavigator";
+import routes from "./routes";
 
 const Stack = createNativeStackNavigator();
-function AppNavigator(props) {
+
+function AppNavigator({ session }) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name={routes.AUTH} component={AuthNavigator} />
-      <Stack.Screen name={routes.APP} component={AppTabNavigator} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        presentation: "modal",
+      }}
+    >
+      {session?.user ? (
+        // Authenticated stack
+        <Stack.Group>
+          <Stack.Screen name={routes.ROOT} component={RootNavigator} />
+          {/* Add any global modal screens here */}
+          {/* <Stack.Screen name="GlobalSettings" component={GlobalSettingsScreen} /> */}
+          {/* <Stack.Screen name="AppModal" component={AppModalScreen} /> */}
+        </Stack.Group>
+      ) : (
+        // Non-authenticated stack
+        <Stack.Group>
+          <Stack.Screen name={routes.AUTH} component={AuthNavigator} />
+          {/* Add any auth-specific modal screens here */}
+          {/* <Stack.Screen name="TermsModal" component={TermsModalScreen} /> */}
+        </Stack.Group>
+      )}
     </Stack.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {},
-});
 
 export default AppNavigator;

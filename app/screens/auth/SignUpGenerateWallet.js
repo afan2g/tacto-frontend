@@ -7,10 +7,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { supabase } from "../../../lib/supabase";
 import { AppText, Header, Screen } from "../../components/primitives";
 import MnemonicTable from "../../components/MnemonicTable";
-
+import routes from "../../navigation/routes";
 const WALLET_STORAGE_KEY = "ENCRYPTED_WALLET";
 
-function SignUpGenerateWallet(props) {
+function SignUpGenerateWallet({ navigation }) {
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
 
@@ -41,53 +41,58 @@ function SignUpGenerateWallet(props) {
 
   const handleSaveWallet = async () => {
     try {
-      // 1. Get user session
-      // const {
-      //   data: { session },
-      //   error: authError,
-      // } = await supabase.auth.getSession();
-      // if (authError || !session?.user) {
-      //   throw new Error("Authentication required");
-      // }
+      const {
+        data: { session },
+        error: authError,
+      } = await supabase.auth.getSession();
+      if (authError || !session?.user) {
+        throw new Error("Authentication required");
+      }
 
-      // 2. Save encrypted wallet to secure storage
+      // Save encrypted wallet to secure storage
       await SecureStore.setItemAsync(
         WALLET_STORAGE_KEY,
         JSON.stringify({
-          phrase: wallet.mnemonic.phrase, // Store just the phrase
-          path: wallet.path || "m/44'/60'/0'/0/0", // Include default path if not present
+          phrase: wallet.mnemonic.phrase,
+          path: wallet.path || "m/44'/60'/0'/0/0",
         }),
         {
           requireAuthentication: true,
         }
       );
 
-      // 3. Prepare public info
-      // const publicInfo = {
-      //   user_id: session.user.id,
-      //   path: wallet.path,
-      //   address: ethers.utils.getAddress(wallet.address), // ensure checksum
-      //   public_key: wallet.publicKey,
-      //   index: 0, // first wallet
-      //   is_active: true,
-      // };
+      // Save public wallet info
+      const publicInfo = {
+        id: session.user.id,
+        path: wallet.path || "m/44'/60'/0'/0/0",
+        address: ethers.getAddress(wallet.address),
+        public_key: wallet.publicKey,
+        index: 0,
+      };
 
-      // 4. Save public info to database
-      // const { error: storeError } = await supabase
-      //   .from("wallets")
-      //   .insert(publicInfo)
-      //   .select()
-      //   .single();
+      const { error: walletError } = await supabase
+        .from("wallets")
+        .insert(publicInfo)
+        .select()
+        .single();
 
-      // if (storeError) {
-      //   throw storeError;
-      // }
+      if (walletError) throw walletError;
 
-      // 5. Clear sensitive data
+      // Update profile to mark wallet as created
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ wallet_created: true })
+        .eq("id", session.user.id);
+
+      if (profileError) throw profileError;
+
       clearMemory();
 
-      // 6. Navigate or callback
-      // navigation.navigate(routes.SIGNUPCOMPLETE);
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) throw refreshError;
+
+      // Navigate to completion screen
+      navigation.navigate(routes.SIGNUPCOMPLETE);
     } catch (error) {
       setError(error.message);
       console.error("Failed to save wallet:", error);

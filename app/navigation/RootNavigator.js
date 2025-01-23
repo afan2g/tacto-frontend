@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { StyleSheet } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import routes from "./routes";
 import AppTabNavigator from "./AppTabNavigator";
 import UserProfileScreen from "../screens/UserProfileScreen";
@@ -8,6 +9,7 @@ import TransactionDetailScreen from "../screens/TransactionDetailScreen";
 import SelectUserScreen from "../screens/transact/SelectUserScreen";
 import ConfirmTransactionScreen from "../screens/transact/ConfirmTransactionScreen";
 import TransactionProvider from "../contexts/TransactionContext";
+
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -22,43 +24,50 @@ const config = {
   },
 };
 
-function RootNavigator(props) {
+function RootNavigator() {
   return (
-    <TransactionProvider>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-          animation: "fade_from_bottom",
-        }}
-      >
-        <Stack.Group>
-          <Stack.Screen name={routes.APPTABS} component={AppTabNavigator} />
-          <Stack.Screen
-            name={routes.TRANSACTSELECTUSER}
-            component={SelectUserScreen}
-          />
-          <Stack.Screen
-            name={routes.TRANSACTCONFIRM}
-            component={ConfirmTransactionScreen}
-          />
-        </Stack.Group>
-        <Stack.Group screenOptions={{}}>
-          <Stack.Screen
-            name={routes.USERPROFILE}
-            component={UserProfileScreen}
-          />
-          <Stack.Screen
-            name={routes.TRANSACTIONDETAIL}
-            component={TransactionDetailScreen}
-          />
-        </Stack.Group>
-      </Stack.Navigator>
-    </TransactionProvider>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={["right", "left"]}>
+        <TransactionProvider>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+              animation: "fade_from_bottom",
+            }}
+          >
+            <Stack.Group>
+              <Stack.Screen name={routes.APPTABS} component={AppTabNavigator} />
+              <Stack.Screen
+                name={routes.TRANSACTSELECTUSER}
+                component={SelectUserScreen}
+              />
+              <Stack.Screen
+                name={routes.TRANSACTCONFIRM}
+                component={ConfirmTransactionScreen}
+              />
+            </Stack.Group>
+            <Stack.Group screenOptions={{}}>
+              <Stack.Screen
+                name={routes.USERPROFILE}
+                component={UserProfileScreen}
+              />
+              <Stack.Screen
+                name={routes.TRANSACTIONDETAIL}
+                component={TransactionDetailScreen}
+              />
+            </Stack.Group>
+          </Stack.Navigator>
+        </TransactionProvider>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
 });
 
 export default RootNavigator;

@@ -6,7 +6,7 @@ export default Object.freeze({
   ACCOUNTSUPPORT: "AccountSupport",
   ACTIVITY: "ActivityLog",
   APP: "App",
-  AUTH: "LandingAuth",
+  AUTH: "Auth",
   FORGOTPASSWORD: "ForgotPassword",
   HOME: "Home",
   LANDING: "Landing",
@@ -28,4 +28,5 @@ export default Object.freeze({
   TRANSACTSELECTUSER: "TransactionSelectUser",
   USERPROFILE: "UserProfile",
   APPTABS: "AppTabs",
+  ROOT: "Root",
 });

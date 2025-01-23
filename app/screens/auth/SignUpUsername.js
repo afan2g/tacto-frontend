@@ -1,5 +1,4 @@
-// SignUpUsername.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -27,61 +26,87 @@ function SignUpUsername({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isValid, setIsValid] = useState(false);
 
-  // Cancel validation if the component unmounts
-  useEffect(() => {
-    return () => {
-      debouncedValidateUsername.cancel();
-    };
-  }, []);
-
-  // Helper function for validation
-  const validateUsername = async (username) => {
+  // Server-side validation
+  const validateUsernameServer = async (username) => {
     try {
-      const { data, error } = await supabase.rpc("validate_username", {
-        username_input: username,
-      });
+      const { data, error: rpcError } = await supabase.rpc(
+        "validate_username",
+        {
+          username_input: username,
+        }
+      );
 
-      if (error) {
-        throw new Error("Supabase validation error");
-      }
+      if (rpcError) throw rpcError;
 
-      return { success: data.valid, error: data.error || null };
+      return {
+        success: data.valid === true,
+        error: data.error || null,
+      };
     } catch (err) {
-      console.error("Error during server validation:", err);
-      return { success: false, error: "An error occurred. Please try again." };
+      console.error("Server validation error:", err);
+      return {
+        success: false,
+        error: err.message || "Failed to validate username",
+      };
     }
   };
 
-  // Debounced server-side validation
-  const debouncedValidateUsername = debounce(async (username) => {
-    const result = await validateUsername(username);
-    setError(result.success ? "" : result.error);
-  }, 300);
+  // Client-side validation with debounce
+  const debouncedClientValidation = useCallback(
+    debounce((value) => {
+      const validationResult = clientValidation.username(value);
+      setIsValid(validationResult.success);
+      setError(validationResult.success ? "" : validationResult.error);
+    }, 300),
+    []
+  );
 
-  // Handle input change
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      debouncedClientValidation.cancel();
+    };
+  }, [debouncedClientValidation]);
+
+  // Handle input change - only client validation
   const handleInputChange = (value) => {
-    setError(""); // Clear existing errors
-    updateFormData({ username: value });
+    const trimmedValue = value.trim().toLowerCase();
+    updateFormData({ username: trimmedValue });
 
-    // Client-side validation
-    const validationResult = clientValidation.username(value);
-    if (!validationResult.success) {
-      setError(validationResult.error);
+    if (!trimmedValue) {
+      setError("");
+      setIsValid(false);
       return;
     }
 
-    // Trigger debounced server-side validation
-    debouncedValidateUsername(value);
+    debouncedClientValidation(trimmedValue);
   };
 
-  // Final submission
+  // Final submission with server validation
   const handleUsernameSubmit = async () => {
-    setError("");
-    setIsLoading(true);
-    Keyboard.dismiss();
+    if (!formData.username || !isValid) {
+      return;
+    }
 
-    navigation.navigate(routes.SIGNUPFULLNAME);
+    setIsLoading(true);
+    try {
+      const serverValidation = await validateUsernameServer(formData.username);
+
+      if (!serverValidation.success) {
+        setError(serverValidation.error);
+        setIsValid(false);
+        return;
+      }
+
+      navigation.navigate(routes.SIGNUPFULLNAME);
+    } catch (err) {
+      setError("Failed to validate username. Please try again.");
+      setIsValid(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -123,14 +148,17 @@ function SignUpUsername({ navigation }) {
                   },
                 ]}
                 value={formData.username}
+                onSubmitEditing={
+                  isValid && !isLoading ? handleUsernameSubmit : undefined
+                }
               />
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
                 onPress={handleUsernameSubmit}
-                title={isLoading ? "Loading..." : "Next"}
+                title={isLoading ? "Checking..." : "Next"}
                 style={styles.next}
-                disabled={!!error} // Only disable if validation errors exist
+                disabled={isLoading || !isValid || !!error}
               />
               <SSOOptions
                 grayText="Have an account? "

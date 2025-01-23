@@ -11,7 +11,7 @@ import {
   Platform,
 } from "react-native";
 import { supabase } from "../../../lib/supabase";
-import { clientValidation } from "../../validation/clientValidation"; // Add this import
+import { clientValidation } from "../../validation/clientValidation";
 
 import { AppButton, Screen, Header } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
@@ -61,25 +61,33 @@ function SignUpPassword({ navigation }) {
       setError("");
       Keyboard.dismiss();
 
+      // Structure the signup data
       const signUpData = {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: "https://usetacto.com",
           data: {
-            full_name: formData.fullName,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            username: formData.username,
+            full_name: formData.fullName?.trim() || "",
+            first_name: formData.firstName?.trim() || "",
+            last_name: formData.lastName?.trim() || "",
+            username: formData.username?.trim() || "",
           },
+          emailRedirectTo: "https://usetacto.com",
         },
       };
-      console.log("Sign up data:", signUpData);
-      const { data, signUpError } = await supabase.auth.signUp(signUpData);
+
+      console.log(
+        "Attempting signup with data:",
+        JSON.stringify(signUpData, null, 2)
+      );
+
+      const { data, error: signUpError } = await supabase.auth.signUp(
+        signUpData
+      );
 
       if (signUpError) throw signUpError;
 
-      console.log("Success, sent code:", data);
+      console.log("Signup success:", data);
       navigation.navigate(routes.SIGNUPVERIFY);
     } catch (err) {
       console.error("Sign up error:", err);
