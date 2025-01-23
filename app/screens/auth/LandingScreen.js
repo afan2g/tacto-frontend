@@ -1,37 +1,36 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Platform } from "react-native";
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
+import { View, StyleSheet } from "react-native";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 import { supabase } from "../../../lib/supabase";
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
 import { OrSeparator } from "../../components/login";
 import routes from "../../navigation/routes";
+
 function LandingScreen({ navigation }) {
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       if (!userInfo.data.idToken) throw new Error("No ID token!");
 
-      console.log("Google sign in data", userInfo.data);
-      // Step 1: Sign in with Google
-      const { data, error } = await supabase.auth.signInWithIdToken({
+      const { error } = await supabase.auth.signInWithIdToken({
         provider: "google",
         token: userInfo.data.idToken,
       });
+
       if (error) throw error;
 
       console.log("Successfully signed in with Google");
     } catch (error) {
-      // handle error
-      console.log("Google sign-in error:", error);
+      console.error("Google sign-in error:", error);
+    } finally {
+      setIsLoading(false);
+      await GoogleSignin.signOut(); // Clean up Google sign in state
     }
   };
 
@@ -59,7 +58,7 @@ function LandingScreen({ navigation }) {
           color="lightGray"
           onPress={handleGoogleSignIn}
           style={styles.button}
-          title="Continue With Google"
+          title={isLoading ? "Loading..." : "Continue With Google"}
           disabled={isLoading}
         />
         <AppButton

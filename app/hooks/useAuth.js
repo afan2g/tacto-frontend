@@ -6,6 +6,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 const useAuth = () => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsWallet, setNeedsWallet] = useState(false);
 
   GoogleSignin.configure({
     webClientId:
@@ -49,6 +50,11 @@ const useAuth = () => {
 
         console.log("Profile checks:", { hasFullName, hasWallet });
 
+        if (!hasWallet) {
+          setNeedsWallet(true);
+          return false;
+        }
+
         return hasFullName && hasWallet;
       } catch (error) {
         console.error("Error checking profile:", error.message);
@@ -77,19 +83,29 @@ const useAuth = () => {
             if (isProfileComplete) {
               console.log("Setting session - Profile complete");
               setSession(session);
+              setNeedsWallet(false);
             } else {
-              console.log("Profile incomplete, signing out");
-              await supabase.auth.signOut();
+              console.log("Profile incomplete or needs wallet");
+              if (!isProfileComplete && !needsWallet) {
+                console.log("Signing out - incomplete profile");
+                await supabase.auth.signOut();
+              }
               setSession(null);
             }
           }
         } else {
           console.log("No session found");
-          if (mounted) setSession(null);
+          if (mounted) {
+            setSession(null);
+            setNeedsWallet(false);
+          }
         }
       } catch (error) {
         console.error("Error checking session:", error.message);
-        if (mounted) setSession(null);
+        if (mounted) {
+          setSession(null);
+          setNeedsWallet(false);
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -108,16 +124,20 @@ const useAuth = () => {
         if (mounted) {
           if (isProfileComplete) {
             setSession(session);
+            setNeedsWallet(false);
             console.log("Profile complete after sign in");
           } else {
             console.log("Profile incomplete after sign in");
-            setSession(null);
+            if (!needsWallet) {
+              setSession(null);
+            }
           }
         }
-      } else if (event === "SIGNED_OUT" || event === "INITIAL_SESSION") {
+      } else if (event === "SIGNED_OUT") {
         if (mounted) {
           setSession(null);
-          console.log(`Session cleared after ${event}`);
+          setNeedsWallet(false);
+          console.log("Signed out");
         }
       }
 
@@ -128,9 +148,9 @@ const useAuth = () => {
       mounted = false;
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [needsWallet]);
 
-  return { session, isLoading };
+  return { session, isLoading, needsWallet };
 };
 
 export default useAuth;
