@@ -60,20 +60,23 @@ function LoginScreen({ navigation }) {
 
   const handleSignIn = async () => {
     if (isSubmitting) return;
-
     setIsSubmitting(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginForm.identifier,
-      password: loginForm.password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginForm.identifier,
+        password: loginForm.password,
+      });
 
-    if (error) {
-      Alert.alert("Login Failed", error.message, [{ text: "OK" }]);
-    } else {
-      console.log("Login form data:", loginForm);
+      if (error) throw error;
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Session update will handle navigation
+    } catch (error) {
+      Alert.alert("Login Failed", error.message);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const handleForgotPassword = () => {

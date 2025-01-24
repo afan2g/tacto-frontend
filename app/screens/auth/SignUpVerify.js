@@ -64,24 +64,22 @@ function SignUpVerify({ navigation }) {
     }
   };
   const verifyOTP = async () => {
-    console.log(formData);
-    Keyboard.dismiss();
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: formData.email,
+        token: formData.verificationCode,
+        type: "email",
+      });
 
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: formData.email,
-      token: formData.verificationCode,
-      type: "email",
-    });
+      if (error) throw error;
 
-    if (error) {
-      setError(error.message);
-      console.log("error", error);
-    } else {
-      console.log("success", data);
+      // Add delay to allow session update
+      await new Promise((resolve) => setTimeout(resolve, 500));
       navigation.navigate(routes.SIGNUPGENERATEWALLET);
+    } catch (error) {
+      setError(error.message);
     }
   };
-
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>

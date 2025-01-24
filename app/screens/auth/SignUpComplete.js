@@ -4,57 +4,52 @@ import { Screen } from "../../components/primitives";
 import { colors } from "../../config";
 import { supabase } from "../../../lib/supabase";
 import { AppButton } from "../../components/primitives";
-import { CommonActions } from "@react-navigation/native";
+import { CommonActions, StackActions } from "@react-navigation/native";
 import routes from "../../navigation/routes";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
+  // SignUpComplete.js
   const handleButton = async () => {
     setIsLoading(true);
     try {
-      // First refresh the session
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) {
-        console.error("Error refreshing session:", refreshError.message);
-        return;
-      }
+      // Refresh session
+      await supabase.auth.refreshSession();
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Delay for session update
 
-      // Then get the current session to verify
+      // Get updated session
       const {
         data: { session },
         error: sessionError,
       } = await supabase.auth.getSession();
-      if (sessionError) {
-        console.error("Error getting session:", sessionError.message);
-        return;
+      if (sessionError) throw sessionError;
+
+      if (!session?.user) {
+        throw new Error("No valid session after refresh");
       }
 
-      if (session?.user) {
-        console.log("Valid session obtained:", session.user.id);
-        // Reset the entire navigation state
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [
-              {
-                name: routes.ROOT,
-                state: {
-                  routes: [
-                    {
-                      name: routes.APPTABS,
-                    },
-                  ],
-                },
-              },
-            ],
-          })
-        );
-      } else {
-        console.error("No valid session after refresh");
-      }
+      // Update profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ wallet_created: true })
+        .eq("id", session.user.id);
+      if (profileError) throw profileError;
+
+      // Trigger another session refresh
+      await supabase.auth.refreshSession();
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Delay to ensure `useAuth.js` updates
+
+      console.log("Navigating to ROOT stack");
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: routes.ROOT }],
+        })
+      );
     } catch (error) {
       console.error("Error in handleButton:", error);
+      Alert.alert("Error", "Failed to complete setup. Please try again.");
     } finally {
       setIsLoading(false);
     }

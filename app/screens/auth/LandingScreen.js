@@ -43,7 +43,7 @@ function LandingScreen({ navigation }) {
       <View style={styles.buttonContainer}>
         <AppButton
           color="yellow"
-          onPress={() => navigation.navigate(routes.SIGNUPCREATE)}
+          onPress={() => navigation.navigate(routes.SIGNUPUSERNAME)}
           style={styles.button}
           title="Sign up"
         />

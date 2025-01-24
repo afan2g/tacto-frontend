@@ -1,3 +1,4 @@
+//(No Changes to signuppassword.js)
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -26,6 +27,8 @@ function SignUpPassword({ navigation }) {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -39,6 +42,8 @@ function SignUpPassword({ navigation }) {
 
   const handleInputChange = (value) => {
     setError("");
+    setShowLoginPrompt(false);
+
     updateFormData({ password: value });
 
     // Client-side validation
@@ -50,6 +55,8 @@ function SignUpPassword({ navigation }) {
 
   const handleSubmit = async () => {
     try {
+      setShowLoginPrompt(false);
+
       // Final client-side validation check
       const validationResult = clientValidation.password(formData.password);
       if (!validationResult.success) {
@@ -144,6 +151,23 @@ function SignUpPassword({ navigation }) {
                 onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
               />
               <ErrorMessage error={error} />
+              {showLoginPrompt && (
+                <View style={styles.loginPrompt}>
+                  <AppText style={styles.loginPromptText}>
+                    Want to sign in instead?
+                  </AppText>
+                  <AppButton
+                    color="yellow"
+                    onPress={() => {
+                      navigation.navigate(routes.LOGIN, {
+                        email: formData.email,
+                      });
+                    }}
+                    title="Go to Login"
+                    style={styles.loginButton}
+                  />
+                </View>
+              )}
               <AppButton
                 color="yellow"
                 onPress={handleSubmit}
@@ -208,6 +232,17 @@ const styles = StyleSheet.create({
   },
   next: {
     marginTop: 10,
+  },
+  loginPrompt: {
+    marginTop: 10,
+    alignItems: "center",
+  },
+  loginPromptText: {
+    color: colors.lightGray,
+    marginBottom: 5,
+  },
+  loginButton: {
+    marginTop: 5,
   },
 });
 

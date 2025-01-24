@@ -31,7 +31,6 @@ function SignUpEmail({ navigation }) {
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -47,7 +46,6 @@ function SignUpEmail({ navigation }) {
 
   const handleInputChange = (value) => {
     setError("");
-    setShowLoginPrompt(false);
     updateFormData({ email: value });
 
     // Client-side validation only
@@ -60,42 +58,12 @@ function SignUpEmail({ navigation }) {
     }
   };
 
-  const checkExistingEmail = async (email) => {
-    try {
-      // We use signUp with a random password to check if the email exists
-      // This is more secure than having a dedicated endpoint
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: Math.random().toString(36) + "Abc123!!", // Random secure password
-      });
-
-      // If the response indicates the user already exists
-      if (
-        error?.message?.includes("User already registered") ||
-        error?.message?.toLowerCase().includes("email already")
-      ) {
-        return { exists: true };
-      }
-
-      // If we got here, the email is new (cancel the signup attempt)
-      if (data?.user?.id) {
-        await supabase.auth.admin.deleteUser(data.user.id);
-      }
-
-      return { exists: false };
-    } catch (err) {
-      console.error("Error checking email:", err);
-      throw new Error("Unable to verify email availability");
-    }
-  };
-
   const submitIdentifier = async () => {
     if (!isValid) return;
 
     try {
       setIsLoading(true);
       setError("");
-      setShowLoginPrompt(false);
 
       // Final client-side validation
       const validationResult = clientValidation.email(formData.email);
@@ -105,15 +73,6 @@ function SignUpEmail({ navigation }) {
       }
 
       Keyboard.dismiss();
-
-      // Check if email exists
-      const { exists } = await checkExistingEmail(formData.email);
-
-      if (exists) {
-        setShowLoginPrompt(true);
-        setError("This email is already registered");
-        return;
-      }
 
       // If we get here, the email is valid and new
       navigation.navigate(routes.SIGNUPPASSWORD);
@@ -168,23 +127,7 @@ function SignUpEmail({ navigation }) {
                 onSubmitEditing={isValid ? submitIdentifier : undefined}
               />
               <ErrorMessage error={error} />
-              {showLoginPrompt && (
-                <View style={styles.loginPrompt}>
-                  <AppText style={styles.loginPromptText}>
-                    Want to sign in instead?
-                  </AppText>
-                  <AppButton
-                    color="yellow"
-                    onPress={() => {
-                      navigation.navigate(routes.LOGIN, {
-                        email: formData.email,
-                      });
-                    }}
-                    title="Go to Login"
-                    style={styles.loginButton}
-                  />
-                </View>
-              )}
+
               <AppButton
                 color="yellow"
                 onPress={submitIdentifier}
@@ -249,17 +192,6 @@ const styles = StyleSheet.create({
   },
   next: {
     marginTop: 10,
-  },
-  loginPrompt: {
-    marginTop: 10,
-    alignItems: "center",
-  },
-  loginPromptText: {
-    color: colors.lightGray,
-    marginBottom: 5,
-  },
-  loginButton: {
-    marginTop: 5,
   },
 });
 

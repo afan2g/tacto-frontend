@@ -8,3 +8,4 @@ export { default as LandingScreen } from "./LandingScreen";
 export { default as LoginScreen } from "./LoginScreen";
 export { default as SignUpEmail } from "./SignUpEmail";
 export { default as SignUpComplete } from "./SignUpComplete";
+export { default as SignUpGenerateWallet } from "./SignUpGenerateWallet";
