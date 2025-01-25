@@ -13,7 +13,7 @@ const useAuth = () => {
       try {
         const {
           data: { session },
-        } = await supabase.auth.getSession();
+        } = await supabase.auth.getUser();
         if (!session?.user) {
           setSession(null);
           return;

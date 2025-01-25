@@ -82,8 +82,9 @@ function SignUpGenerateWallet({ navigation }) {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ wallet_created: true })
-        .eq("id", session.user.id);
-
+        .eq("id", session.user.id)
+        .select()
+        .single();
       if (profileError) throw profileError;
 
       clearMemory();

@@ -11,7 +11,7 @@ export const useKeypadInput = (
   const [value, setValue] = useState(initialValue);
 
   const handleKeyPress = (key) => {
-    RNHapticFeedback.trigger("effectClick", {
+    RNHapticFeedback.trigger("effectHeavyClick", {
       ignoreAndroidSystemSettings: true,
     });
     const decimalRegex = new RegExp(

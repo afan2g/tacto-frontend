@@ -1,46 +1,78 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
+import Svg, { Circle } from "react-native-svg";
+import { CommonActions, StackActions } from "@react-navigation/native";
+
 import { Screen } from "../../components/primitives";
 import { colors } from "../../config";
 import { supabase } from "../../../lib/supabase";
 import { AppButton } from "../../components/primitives";
-import { CommonActions, StackActions } from "@react-navigation/native";
 import routes from "../../navigation/routes";
+import getRandomContrastingColor from "../../utils/getRandomContrastingColor";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
+
+  const generateAvatar = (firstName, lastName) => {
+    return (
+      <Svg height="100" width="100">
+        <Circle cx="50" cy="50" r="40" fill={colors.blackTint20} />
+        <Svg.Text
+          fill={getRandomContrastingColor(colors.blackTint20)}
+          fontSize="20"
+          fontWeight="bold"
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          alignmentBaseline="middle"
+        >
+          {firstName[0]}
+          {lastName[0]}
+        </Svg.Text>
+      </Svg>
+    );
+  };
+
+  async function handleAvatar(session) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("avatar_url, full_name")
+      .eq("id", session.user.id)
+      .single();
+
+    // If Google avatar doesn't exist, generate one
+    if (!profile.avatar_url) {
+      const [firstName, lastName] = profile.full_name.split(" ");
+      const svg = generateAvatar(firstName, lastName);
+
+      const { data, error } = await supabase.storage
+        .from("avatars")
+        .upload(`${session.user.id}.svg`, svg, {
+          contentType: "image/svg+xml",
+        });
+
+      if (!error) {
+        await supabase
+          .from("profiles")
+          .update({ avatar_url: data.path })
+          .eq("id", session.user.id);
+      }
+    }
+  }
 
   // SignUpComplete.js
   const handleButton = async () => {
     setIsLoading(true);
     try {
-      // Refresh session
-      await supabase.auth.refreshSession();
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Delay for session update
-
-      // Get updated session
       const {
         data: { session },
-        error: sessionError,
       } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-
-      if (!session?.user) {
-        throw new Error("No valid session after refresh");
-      }
-
-      // Update profile
-      const { error: profileError } = await supabase
+      await handleAvatar(session);
+      await supabase
         .from("profiles")
         .update({ wallet_created: true })
         .eq("id", session.user.id);
-      if (profileError) throw profileError;
 
-      // Trigger another session refresh
-      await supabase.auth.refreshSession();
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Delay to ensure `useAuth.js` updates
-
-      console.log("Navigating to ROOT stack");
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
@@ -48,8 +80,7 @@ function SignUpComplete({ navigation }) {
         })
       );
     } catch (error) {
-      console.error("Error in handleButton:", error);
-      Alert.alert("Error", "Failed to complete setup. Please try again.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

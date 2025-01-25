@@ -1,17 +1,19 @@
 import React from "react";
 import { View, StyleSheet, SectionList, Pressable, Text } from "react-native";
 import { ChevronRight, Settings } from "lucide-react-native";
+import * as SecureStore from "expo-secure-store";
+import { ethers } from "ethers";
 
 import { AppText, Header, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
 import { FAKEPROFILE } from "../../data/fakeData";
 import { supabase } from "../../../lib/supabase";
-
 import {
   AccountBalanceCard,
   AppCardSeparator,
   UserCard,
 } from "../../components/cards";
+import { useData } from "../../contexts/DataContext";
 
 const SECTIONS = [
   {
@@ -49,6 +51,7 @@ const SECTIONS = [
 ];
 
 function AccountScreen({ navigation }) {
+  const { profile, wallet } = useData();
   const handleUserCardPress = () => {
     console.log("User card pressed!");
   };
@@ -56,6 +59,26 @@ function AccountScreen({ navigation }) {
   const handleLogout = async () => {
     console.log("Logout pressed!");
     const { error } = await supabase.auth.signOut();
+  };
+
+  const handleViewStorage = () => {
+    console.log("Refresh pressed!");
+    console.log("storage profile: ", profile);
+    console.log("storage wallet: ", wallet);
+  };
+
+  const handleViewSecureStorage = async () => {
+    console.log("Secure storage pressed!");
+    const secureData = JSON.parse(
+      await SecureStore.getItemAsync("ENCRYPTED_WALLET")
+    );
+    console.log("Secure data: ", secureData);
+    const secureWallet = ethers.HDNodeWallet.fromPhrase(
+      secureData.phrase,
+      undefined,
+      secureData.path
+    );
+    console.log("Secure wallet: ", secureWallet);
   };
 
   return (
@@ -67,6 +90,15 @@ function AccountScreen({ navigation }) {
           onPress={handleUserCardPress}
         />
         <AccountBalanceCard balance={FAKEPROFILE.balance} />
+        <Pressable style={styles.refreshButton} onPress={handleViewStorage}>
+          <AppText style={styles.refreshText}>View Storage</AppText>
+        </Pressable>
+        <Pressable
+          style={styles.refreshButton}
+          onPress={handleViewSecureStorage}
+        >
+          <AppText style={styles.refreshText}>View Secure Storage</AppText>
+        </Pressable>
       </View>
       <SectionList
         sections={SECTIONS}
@@ -104,6 +136,15 @@ const styles = StyleSheet.create({
   accountContainer: {},
   userCard: {
     marginHorizontal: 10,
+  },
+  refreshButton: {
+    padding: 20,
+    alignItems: "center",
+  },
+  refreshText: {
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    color: colors.lightGray,
   },
   item: {
     padding: 20,
