@@ -6,7 +6,6 @@ GoogleSignin.configure({
   webClientId:
     "785186330408-e70b787gaulcvn8m1qdfqvulem1su9q2.apps.googleusercontent.com",
 });
-
 import { NavigationContainer } from "@react-navigation/native";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";

@@ -9,26 +9,29 @@ import { supabase } from "../../../lib/supabase";
 import { AppButton } from "../../components/primitives";
 import routes from "../../navigation/routes";
 import getRandomContrastingColor from "../../utils/getRandomContrastingColor";
+import { set } from "zod";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const [svg, setSvg] = useState(null);
   const generateAvatar = (firstName, lastName) => {
     return (
-      <Svg height="100" width="100">
-        <Circle cx="50" cy="50" r="40" fill={colors.blackTint20} />
-        <Svg.Text
-          fill={getRandomContrastingColor(colors.blackTint20)}
-          fontSize="20"
+      <Svg height="80" width="80">
+        <Circle cx="50%" cy="50%" r="40" fill={colors.blackShade10} />
+        <SvgText
+          fill={getRandomContrastingColor(colors.blackShade10)}
+          fontSize="36" // Increased font size
           fontWeight="bold"
           x="50%"
           y="50%"
-          textAnchor="middle"
-          alignmentBaseline="middle"
+          textAnchor="end"
+          dominantBaseline="middle" // Helps with vertical centering
+          dy="0.35em" // Helps with vertical centering
         >
           {firstName[0]}
           {lastName[0]}
-        </Svg.Text>
+        </SvgText>
       </Svg>
     );
   };
@@ -43,8 +46,7 @@ function SignUpComplete({ navigation }) {
     // If Google avatar doesn't exist, generate one
     if (!profile.avatar_url) {
       const [firstName, lastName] = profile.full_name.split(" ");
-      const svg = generateAvatar(firstName, lastName);
-
+      setSvg(generateAvatar(firstName, lastName));
       const { data, error } = await supabase.storage
         .from("avatars")
         .upload(`${session.user.id}.svg`, svg, {
