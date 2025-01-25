@@ -18,6 +18,7 @@ import useAuth from "./app/hooks/useAuth";
 import { FormProvider } from "./app/contexts/FormContext";
 import { AuthProvider } from "./app/contexts/AuthContext";
 import { DataProvider } from "./app/contexts/DataContext";
+import { colors } from "./app/config";
 export default function App() {
   const { session, isLoading, needsWallet } = useAuth();
   if (isLoading) {
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: colors.blue,
   },
   loadingContainer: {
     flex: 1,

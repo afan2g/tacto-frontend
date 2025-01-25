@@ -27,7 +27,8 @@ function AppNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        presentation: "modal",
+        presentation: "card",
+        animation: "slide_from_right",
       }}
     >
       {!session ? (
