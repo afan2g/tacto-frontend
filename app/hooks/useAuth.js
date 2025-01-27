@@ -21,13 +21,13 @@ const useAuth = () => {
 
         const { data: profile } = await supabase
           .from("profiles")
-          .select("wallet_created")
+          .select("onboarding_complete")
           .eq("id", session.user.id)
           .single();
 
         if (mounted) {
           setSession(session);
-          setNeedsWallet(!profile?.wallet_created);
+          setNeedsWallet(!profile?.onboarding_complete);
         }
       } catch (error) {
         console.error(error);
@@ -50,13 +50,13 @@ const useAuth = () => {
         if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session?.user) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("wallet_created")
+            .select("onboarding_complete")
             .eq("id", session.user.id)
             .single();
 
           if (mounted) {
             setSession(session);
-            setNeedsWallet(!profile?.wallet_created);
+            setNeedsWallet(!profile?.onboarding_complete);
           }
         } else if (event === "SIGNED_OUT") {
           if (mounted) {

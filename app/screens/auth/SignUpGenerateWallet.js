@@ -14,6 +14,51 @@ function SignUpGenerateWallet({ navigation }) {
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
 
+  const clearMemory = useCallback(() => {
+    setWallet(null);
+    if (global.gc) {
+      global.gc();
+    }
+  }, []);
+
+  // Add check for existing wallet on component mount
+  useEffect(() => {
+    checkExistingWallet();
+  }, []);
+
+  const checkExistingWallet = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      // Check if wallet exists in database
+      const { data: existingWallet, error: walletError } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (walletError && walletError.code !== "PGRST116") {
+        // PGRST116 is "not found" error
+        throw walletError;
+      }
+
+      if (existingWallet) {
+        // If wallet exists, navigate directly to completion
+        navigation.replace(routes.SIGNUPCOMPLETE);
+        return;
+      }
+
+      // If no wallet exists, generate a new one
+      generateWallet();
+    } catch (error) {
+      console.error("Error checking existing wallet:", error);
+      setError("Failed to check existing wallet");
+    }
+  };
+
   const generateWallet = useCallback(() => {
     try {
       const randomBytes = ethers.randomBytes(32);
@@ -28,25 +73,26 @@ function SignUpGenerateWallet({ navigation }) {
     }
   }, []);
 
-  useEffect(() => {
-    generateWallet();
-  }, [generateWallet]);
-
-  const clearMemory = useCallback(() => {
-    setWallet(null);
-    if (global.gc) {
-      global.gc();
-    }
-  }, []);
-
   const handleSaveWallet = async () => {
     try {
       const {
         data: { session },
-        error: authError,
       } = await supabase.auth.getSession();
-      if (authError || !session?.user) {
+      if (!session?.user) {
         throw new Error("Authentication required");
+      }
+
+      // Check again if wallet exists right before saving
+      const { data: existingWallet, error: checkError } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (existingWallet) {
+        // If wallet exists, just navigate to completion
+        navigation.navigate(routes.SIGNUPCOMPLETE);
+        return;
       }
 
       // Save encrypted wallet to secure storage
@@ -78,21 +124,7 @@ function SignUpGenerateWallet({ navigation }) {
 
       if (walletError) throw walletError;
 
-      // Update profile to mark wallet as created
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ wallet_created: true })
-        .eq("id", session.user.id)
-        .select()
-        .single();
-      if (profileError) throw profileError;
-
       clearMemory();
-
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) throw refreshError;
-
-      // Navigate to completion screen
       navigation.navigate(routes.SIGNUPCOMPLETE);
     } catch (error) {
       setError(error.message);
