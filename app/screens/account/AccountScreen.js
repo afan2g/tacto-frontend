@@ -1,5 +1,12 @@
 import React from "react";
-import { View, StyleSheet, SectionList, Pressable, Text } from "react-native";
+import {
+  ActivityIndicator,
+  View,
+  StyleSheet,
+  SectionList,
+  Pressable,
+  Text,
+} from "react-native";
 import { ChevronRight, Settings } from "lucide-react-native";
 import * as SecureStore from "expo-secure-store";
 import { ethers } from "ethers";
@@ -14,7 +21,7 @@ import {
   UserCard,
 } from "../../components/cards";
 import { useData } from "../../contexts/DataContext";
-
+import { storage } from "../../../lib/storage";
 const SECTIONS = [
   {
     title: "Settings",
@@ -84,11 +91,17 @@ function AccountScreen({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.accountContainer}>
-        <UserCard
-          user={FAKEPROFILE}
-          style={styles.userCard}
-          onPress={handleUserCardPress}
-        />
+        {profile ? (
+          <UserCard
+            user={profile}
+            style={styles.userCard}
+            onPress={handleUserCardPress}
+          />
+        ) : (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.yellow} />
+          </View>
+        )}
         <AccountBalanceCard balance={FAKEPROFILE.balance} />
         <Pressable style={styles.refreshButton} onPress={handleViewStorage}>
           <AppText style={styles.refreshText}>View Storage</AppText>
@@ -136,6 +149,11 @@ const styles = StyleSheet.create({
   accountContainer: {},
   userCard: {
     marginHorizontal: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   refreshButton: {
     padding: 20,

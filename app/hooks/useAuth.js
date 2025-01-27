@@ -42,12 +42,15 @@ const useAuth = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth event:", event);
+      console.log("Auth event:", event, session);
 
       setTimeout(async () => {
         if (!mounted) return;
 
-        if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session?.user) {
+        if (
+          ["SIGNED_IN", "TOKEN_REFRESHED", "INITIAL_SESSION"].includes(event) &&
+          session?.user
+        ) {
           const { data: profile } = await supabase
             .from("profiles")
             .select("onboarding_complete")

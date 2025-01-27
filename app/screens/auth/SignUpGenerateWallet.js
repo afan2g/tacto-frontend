@@ -13,6 +13,7 @@ const WALLET_STORAGE_KEY = "ENCRYPTED_WALLET";
 function SignUpGenerateWallet({ navigation }) {
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
+  const [isStoring, setIsStoring] = useState(false);
 
   const clearMemory = useCallback(() => {
     setWallet(null);
@@ -28,37 +29,47 @@ function SignUpGenerateWallet({ navigation }) {
 
   const checkExistingWallet = async () => {
     try {
+      console.log("Starting wallet check");
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      console.log("Session in wallet check:", session?.user?.id);
+
       if (!session?.user) return;
 
-      // Check if wallet exists in database
+      // Check profile first
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      console.log("Profile check in wallet:", { profile, profileError });
+
+      // Check wallet
       const { data: existingWallet, error: walletError } = await supabase
         .from("wallets")
         .select("*")
         .eq("id", session.user.id)
         .single();
 
+      console.log("Wallet check:", { existingWallet, walletError });
+
       if (walletError && walletError.code !== "PGRST116") {
-        // PGRST116 is "not found" error
         throw walletError;
       }
 
       if (existingWallet) {
-        // If wallet exists, navigate directly to completion
         navigation.replace(routes.SIGNUPCOMPLETE);
         return;
       }
 
-      // If no wallet exists, generate a new one
       generateWallet();
     } catch (error) {
       console.error("Error checking existing wallet:", error);
       setError("Failed to check existing wallet");
     }
   };
-
   const generateWallet = useCallback(() => {
     try {
       const randomBytes = ethers.randomBytes(32);
@@ -74,6 +85,7 @@ function SignUpGenerateWallet({ navigation }) {
   }, []);
 
   const handleSaveWallet = async () => {
+    setIsStoring(true);
     try {
       const {
         data: { session },
@@ -106,6 +118,7 @@ function SignUpGenerateWallet({ navigation }) {
           requireAuthentication: true,
         }
       );
+      console.log("Wallet saved to secure storage");
 
       // Save public wallet info
       const publicInfo = {
@@ -129,6 +142,8 @@ function SignUpGenerateWallet({ navigation }) {
     } catch (error) {
       setError(error.message);
       console.error("Failed to save wallet:", error);
+    } finally {
+      setIsStoring(false);
     }
   };
 
@@ -180,6 +195,7 @@ function SignUpGenerateWallet({ navigation }) {
 
       <View style={styles.buttonContainer}>
         <Button
+          disabled={isStoring}
           title="Generate New Wallet"
           onPress={generateWallet}
           style={styles.button}
@@ -187,7 +203,7 @@ function SignUpGenerateWallet({ navigation }) {
         <Button
           title="Save and Continue"
           onPress={handleSaveWallet}
-          disabled={!wallet}
+          disabled={!wallet || isStoring}
         />
         <Button title="Retrieve Wallet" onPress={handleRetrieveWallet} />
       </View>

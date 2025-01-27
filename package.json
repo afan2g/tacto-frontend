@@ -23,6 +23,7 @@
     "@supabase/functions-js": "^2.4.4",
     "@supabase/supabase-js": "^2.47.10",
     "aes-js": "^3.1.2",
+    "base64-arraybuffer": "^1.0.2",
     "ethers": "^6.13.4",
     "expo": "^52.0.23",
     "expo-apple-authentication": "~7.1.2",

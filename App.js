@@ -28,7 +28,6 @@ export default function App() {
       </View>
     );
   }
-
   return (
     <AuthProvider>
       <NavigationContainer theme={navigationTheme}>

@@ -29,6 +29,8 @@ import SSOOptions from "../../components/login/SSOOptions";
 function SignUpVerify({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -64,7 +66,9 @@ function SignUpVerify({ navigation }) {
     }
   };
   const verifyOTP = async () => {
+    setLoading(true);
     try {
+      // Step 1: Verify OTP
       const { data, error } = await supabase.auth.verifyOtp({
         email: formData.email,
         token: formData.verificationCode,
@@ -73,11 +77,25 @@ function SignUpVerify({ navigation }) {
 
       if (error) throw error;
 
-      // Add delay to allow session update
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Step 2: Get session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user?.id) throw new Error("Session not found");
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+      console.log("Profile check in verify:", { profile, profileError });
+      if (profileError) throw profileError;
+
       navigation.navigate(routes.SIGNUPGENERATEWALLET);
     } catch (error) {
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
   return (

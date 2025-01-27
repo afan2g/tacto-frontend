@@ -1,26 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text, Image } from "react-native";
 import Svg, { Circle, Text as SvgText } from "react-native-svg";
+
 import { Screen, AppButton } from "../../components/primitives";
-import { colors, fonts } from "../../config";
+import { colors } from "../../config";
 import { supabase } from "../../../lib/supabase";
 import getRandomContrastingColor from "../../utils/getRandomContrastingColor";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [avatar, setAvatar] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [avatarColors, setAvatarColors] = useState({
+    background: colors.blackShade10,
+    text: getRandomContrastingColor(colors.blackShade10),
+  });
 
-  const generateAvatar = (firstName, lastName) => (
+  // Generate SVG component for display
+  const generateAvatarComponent = (
+    firstName,
+    lastName,
+    backgroundColor,
+    textColor
+  ) => (
     <Svg height="80" width="80">
-      <Circle cx="40" cy="40" r="40" fill={colors.blackShade10} />
+      <Circle cx="40" cy="40" r="40" fill={backgroundColor} />
       <SvgText
-        fill={getRandomContrastingColor(colors.blackShade10)}
+        fill={textColor}
         fontSize="36"
         fontWeight="bold"
         x="40"
         y="40"
-        textAnchor="end"
-        alignmentBaseline="after-edge"
+        textAnchor="middle"
+        alignmentBaseline="central"
       >
         {firstName[0]}
         {lastName[0]}
@@ -28,84 +40,79 @@ function SignUpComplete({ navigation }) {
     </Svg>
   );
 
+  // Generate SVG string for storage
+  const generateAvatarString = (
+    firstName,
+    lastName,
+    backgroundColor,
+    textColor
+  ) =>
+    `
+    <svg height="80" width="80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="40" fill="${backgroundColor}" />
+      <text
+        fill="${textColor}"
+        font-size="36"
+        font-weight="bold"
+        x="40"
+        y="40"
+        text-anchor="middle"
+        alignment-baseline="central"
+        dominant-baseline="middle"
+      >${firstName[0]}${lastName[0]}</text>
+    </svg>
+  `.trim();
+
   useEffect(() => {
-    handleAvatar();
+    const checkAvatar = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("avatar_url, full_name")
+          .eq("id", session.user.id)
+          .single();
+
+        if (!profileData) return;
+        setProfile(profileData);
+
+        if (profileData.avatar_url) {
+          setAvatar({ type: "url", content: profileData.avatar_url });
+        } else {
+          generateNewAvatar(profileData.full_name);
+        }
+      } catch (error) {
+        console.error("Avatar check error:", error);
+      }
+    };
+
+    checkAvatar();
   }, []);
 
-  useEffect(() => {
-    if (avatar) {
-      if (avatar.type === "url") {
-        console.log("avatar is url", avatar.content);
-      } else if (avatar.type === "svg") {
-        console.log("avatar is svg");
-      }
+  const generateNewAvatar = (fullName) => {
+    const [firstName, lastName] = fullName.split(" ");
+    const backgroundColor = colors.blackShade10;
+    const textColor = getRandomContrastingColor(backgroundColor);
+
+    setAvatarColors({ background: backgroundColor, text: textColor });
+    const avatarComponent = generateAvatarComponent(
+      firstName,
+      lastName,
+      backgroundColor,
+      textColor
+    );
+    setAvatar(avatarComponent);
+  };
+
+  const handleRefreshAvatar = () => {
+    if (profile && !profile.avatar_url) {
+      generateNewAvatar(profile.full_name);
     }
-  }, [avatar]);
-
-  async function handleAvatar() {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.user) return;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("avatar_url, full_name")
-        .eq("id", session.user.id)
-        .single();
-
-      if (!profile) return;
-
-      if (profile.avatar_url) {
-        // Check if the avatar_url is an external URL (e.g., Google profile picture)
-        if (profile.avatar_url.startsWith("http")) {
-          setAvatar({ type: "url", content: profile.avatar_url });
-        } else {
-          // It's a Supabase storage path
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("avatars").getPublicUrl(profile.avatar_url);
-
-          setAvatar({ type: "url", content: publicUrl });
-        }
-      } else {
-        // Generate avatar from initials
-        const [firstName, lastName] = profile.full_name.split(" ");
-        const generatedAvatar = generateAvatar(firstName, lastName);
-        setAvatar({ type: "svg", content: generatedAvatar });
-
-        // Save generated avatar
-        const svgString = `<svg height="80" width="80">
-          <circle cx="40" cy="40" r="40" fill="${colors.blackShade10}" />
-          <text
-            fill="${getRandomContrastingColor(colors.blackShade10)}"
-            font-size="36"
-            font-weight="bold"
-            x="40"
-            y="40"
-            text-anchor="middle"
-            alignment-baseline="central"
-          >${firstName[0]}${lastName[0]}</text>
-        </svg>`;
-
-        const { data, error } = await supabase.storage
-          .from("avatars")
-          .upload(`${session.user.id}.svg`, svgString, {
-            contentType: "image/svg+xml",
-          });
-
-        if (!error) {
-          await supabase
-            .from("profiles")
-            .update({ avatar_url: data.path })
-            .eq("id", session.user.id);
-        }
-      }
-    } catch (error) {
-      console.error("Avatar handling error:", error);
-    }
-  }
+  };
 
   const handleButton = async () => {
     setIsLoading(true);
@@ -113,7 +120,38 @@ function SignUpComplete({ navigation }) {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) throw new Error("No session found");
+
+      // Upload avatar if it's generated (not a URL)
+      if (profile && !profile.avatar_url) {
+        const [firstName, lastName] = profile.full_name.split(" ");
+        const svgString = generateAvatarString(
+          firstName,
+          lastName,
+          avatarColors.background,
+          avatarColors.text
+        );
+
+        const { data, error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(`${session.user.id}/avatar.svg`, svgString, {
+            contentType: "image/svg+xml",
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error("Error uploading avatar:", uploadError);
+        } else {
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("avatars").getPublicUrl(data.path);
+
+          await supabase
+            .from("profiles")
+            .update({ avatar_url: publicUrl })
+            .eq("id", session.user.id);
+        }
+      }
 
       const { error: profileError } = await supabase
         .from("profiles")
@@ -122,12 +160,9 @@ function SignUpComplete({ navigation }) {
 
       if (profileError) throw profileError;
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
       const { error: refreshError } = await supabase.auth.refreshSession();
-
-      if (refreshError) throw refreshError;
     } catch (error) {
-      console.error("Completion error:", error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -135,34 +170,35 @@ function SignUpComplete({ navigation }) {
 
   return (
     <Screen style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.avatarContainer}>
-          {avatar?.type === "url" ? (
+      <View style={styles.avatarContainer}>
+        {avatar &&
+          (typeof avatar === "object" && avatar.type === "url" ? (
             <Image source={{ uri: avatar.content }} style={styles.avatar} />
-          ) : avatar?.type === "svg" ? (
-            avatar.content
           ) : (
-            <View style={styles.avatarPlaceholder} />
-          )}
-        </View>
-        <Text style={styles.text}>Sign Up Complete</Text>
-        <AppButton
-          color="yellow"
-          onPress={handleButton}
-          title={isLoading ? "Loading..." : "Go to App"}
-          disabled={isLoading}
-        />
+            avatar
+          ))}
       </View>
+      {profile && !profile.avatar_url && (
+        <AppButton
+          color="lightGray"
+          onPress={handleRefreshAvatar}
+          title="Refresh Avatar"
+          style={styles.refreshButton}
+        />
+      )}
+      <Text style={styles.text}>Sign Up Complete</Text>
+      <AppButton
+        color="yellow"
+        onPress={handleButton}
+        title={isLoading ? "Loading..." : "Go to App"}
+        disabled={isLoading}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -174,17 +210,13 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
   },
-  avatarPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.fadedGray,
-  },
   text: {
-    fontSize: 24,
+    fontSize: 20,
     color: colors.lightGray,
     marginBottom: 20,
-    fontFamily: fonts.medium,
+  },
+  refreshButton: {
+    marginBottom: 20,
   },
 });
 
