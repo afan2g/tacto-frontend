@@ -69,7 +69,7 @@ function AccountScreen({ navigation }) {
   };
 
   const handleViewStorage = () => {
-    console.log("Refresh pressed!");
+    console.log("Storage pressed!");
     console.log("storage profile: ", profile);
     console.log("storage wallet: ", wallet);
   };

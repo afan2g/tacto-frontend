@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Image, Pressable } from "react-native";
+import { SvgXml } from "react-native-svg";
 import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
@@ -30,6 +31,50 @@ function UserCard({
     },
   };
 
+  const renderAvatar = () => {
+    const isSvg = user.profilePicUrl?.toLowerCase().endsWith(".svg");
+
+    if (!user.profilePicUrl) {
+      // Render a placeholder or default avatar
+      return (
+        <View
+          style={[
+            scaleStyle.profilePic,
+            styles.profilePic,
+            styles.placeholderAvatar,
+          ]}
+        >
+          <AppText style={styles.placeholderText}>
+            {user.fullName
+              ?.split(" ")
+              .map((name) => name[0])
+              .join("")}
+          </AppText>
+        </View>
+      );
+    }
+
+    if (isSvg) {
+      return (
+        <View style={[scaleStyle.profilePic, styles.svgContainer]}>
+          <SvgXml
+            xml={user.profilePicUrl}
+            width={54 * (scale ?? 1)}
+            height={54 * (scale ?? 1)}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <Image
+        source={{ uri: user.profilePicUrl }}
+        resizeMode="cover"
+        style={[scaleStyle.profilePic, styles.profilePic]}
+      />
+    );
+  };
+
   return (
     <Pressable
       onPress={onPress}
@@ -39,11 +84,7 @@ function UserCard({
       unstable_pressDelay={200}
     >
       <View style={[styles.container, style]}>
-        <Image
-          source={{ uri: user.profilePicUrl }}
-          resizeMode="contain"
-          style={[scaleStyle.profilePic, styles.profilePic]}
-        />
+        {renderAvatar()}
         <View style={styles.userNameContainer}>
           <AppText style={[scaleStyle.fullName, styles.fullName]}>
             {user.fullName}
@@ -72,7 +113,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     justifyContent: "flex-start",
   },
-  profilePic: {},
+  profilePic: {
+    overflow: "hidden",
+  },
+  svgContainer: {
+    overflow: "hidden",
+    borderRadius: 30,
+  },
   userNameContainer: {
     alignItems: "flex-start",
     paddingHorizontal: 10,
@@ -84,6 +131,16 @@ const styles = StyleSheet.create({
   username: {
     fontFamily: fonts.light,
     color: colors.lightGray,
+  },
+  placeholderAvatar: {
+    backgroundColor: colors.blackShade10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: {
+    color: colors.lightGray,
+    fontSize: 20,
+    fontFamily: fonts.medium,
   },
 });
 
