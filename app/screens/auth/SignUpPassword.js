@@ -26,8 +26,8 @@ function SignUpPassword({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const isPhoneVerification = formData.phone != null;
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -69,19 +69,32 @@ function SignUpPassword({ navigation }) {
       Keyboard.dismiss();
 
       // Structure the signup data
-      const signUpData = {
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName?.trim() || "",
-            first_name: formData.firstName?.trim() || "",
-            last_name: formData.lastName?.trim() || "",
-            username: formData.username?.trim() || "",
-          },
-          emailRedirectTo: "https://usetacto.com",
-        },
-      };
+      const signUpData = isPhoneVerification
+        ? {
+            phone: `+1${formData.phone}`,
+            password: formData.password,
+            options: {
+              data: {
+                full_name: formData.fullName?.trim() || "",
+                first_name: formData.firstName?.trim() || "",
+                last_name: formData.lastName?.trim() || "",
+                username: formData.username?.trim() || "",
+              },
+            },
+          }
+        : {
+            email: formData.email,
+            password: formData.password,
+            options: {
+              data: {
+                full_name: formData.fullName?.trim() || "",
+                first_name: formData.firstName?.trim() || "",
+                last_name: formData.lastName?.trim() || "",
+                username: formData.username?.trim() || "",
+              },
+              emailRedirectTo: "https://usetacto.com",
+            },
+          };
 
       console.log(
         "Attempting signup with data:",

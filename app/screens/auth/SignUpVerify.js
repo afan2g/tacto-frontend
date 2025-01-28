@@ -30,6 +30,7 @@ function SignUpVerify({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const isPhoneVerification = formData.phone != null;
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -49,35 +50,62 @@ function SignUpVerify({ navigation }) {
   };
 
   const handleResendOTP = async () => {
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: formData.email,
-      options: {
-        emailRedirectTo: "https://usetacto.com",
-      },
-    });
+    try {
+      let result;
 
-    if (error) {
+      if (isPhoneVerification) {
+        // Resend phone OTP
+        result = await supabase.auth.resend({
+          type: "sms",
+          phone: formData.phone,
+        });
+      } else {
+        // Resend email OTP
+        result = await supabase.auth.resend({
+          type: "signup",
+          email: formData.email,
+          options: {
+            emailRedirectTo: "https://usetacto.com",
+          },
+        });
+      }
+
+      if (result.error) {
+        setError(result.error.message);
+        console.log("error", result.error);
+      } else {
+        setError("");
+        console.log("success");
+      }
+    } catch (error) {
       setError(error.message);
-      console.log("error", error);
-    } else {
-      setError("");
-      console.log("success");
     }
   };
+
   const verifyOTP = async () => {
     setLoading(true);
     try {
-      // Step 1: Verify OTP
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: formData.email,
-        token: formData.verificationCode,
-        type: "email",
-      });
+      let verifyResult;
 
-      if (error) throw error;
+      if (isPhoneVerification) {
+        // Verify phone OTP
+        verifyResult = await supabase.auth.verifyOtp({
+          phone: `+1${formData.phone}`,
+          token: formData.verificationCode,
+          type: "sms",
+        });
+      } else {
+        // Verify email OTP
+        verifyResult = await supabase.auth.verifyOtp({
+          email: formData.email,
+          token: formData.verificationCode,
+          type: "email",
+        });
+      }
 
-      // Step 2: Get session
+      if (verifyResult.error) throw verifyResult.error;
+
+      // Get session
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -88,6 +116,7 @@ function SignUpVerify({ navigation }) {
         .select("*")
         .eq("id", session.user.id)
         .single();
+
       console.log("Profile check in verify:", { profile, profileError });
       if (profileError) throw profileError;
 
@@ -98,6 +127,16 @@ function SignUpVerify({ navigation }) {
       setLoading(false);
     }
   };
+
+  const formatContactInfo = () => {
+    if (isPhoneVerification) {
+      // Format phone number for display
+      const phone = formData.phone;
+      return `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
+    }
+    return formData.email;
+  };
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -120,8 +159,9 @@ function SignUpVerify({ navigation }) {
             bounces={false}
           >
             <AppText style={styles.grayText}>
-              Enter the 6-digit verification code sent to{" "}
-              <AppText style={styles.yellowText}>{formData.email}</AppText>
+              Enter the {isPhoneVerification ? "6-digit" : "verification"} code
+              sent to{" "}
+              <AppText style={styles.yellowText}>{formatContactInfo()}</AppText>
             </AppText>
             <View style={styles.content}>
               <View style={styles.textInputContainer}>
@@ -137,6 +177,7 @@ function SignUpVerify({ navigation }) {
                   returnKeyType="done"
                   selectionColor={colors.lightGray}
                   selectionHandleColor={colors.lightGray}
+                  maxLength={6}
                   style={[
                     styles.text,
                     {
@@ -155,8 +196,9 @@ function SignUpVerify({ navigation }) {
               <AppButton
                 color="yellow"
                 onPress={verifyOTP}
-                title="Verify"
+                title={loading ? "Verifying..." : "Verify"}
                 style={styles.next}
+                disabled={loading}
               />
               <SSOOptions
                 grayText="Have an account? "

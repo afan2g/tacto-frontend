@@ -16,6 +16,7 @@ import {
 } from "../screens/auth";
 import LoginNavigator from "./entry/LoginNavigator";
 import { useAuthContext } from "../contexts/AuthContext";
+import SignUpScreen from "../screens/auth/SignUpScreen";
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
@@ -47,7 +48,7 @@ function AppNavigator() {
           />
           <Stack.Screen
             name={routes.SIGNUPIDENTIFIER}
-            component={SignUpEmail}
+            component={SignUpScreen}
           />
           <Stack.Screen
             name={routes.SIGNUPPASSWORD}
