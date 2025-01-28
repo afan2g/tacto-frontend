@@ -43,32 +43,50 @@ const useAuth = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth event:", event, session);
+      if (!mounted) {
+        return;
+      }
+      if (event === "SIGNED_OUT") {
+        setSession(null);
+        setNeedsWallet(false);
+        setIsLoading(false);
+      } else if (event === "PASSWORD_RECOVERY") {
+        console.log("Password recovery event:", event);
+      } else if (event === "USER_UPDATED") {
+        console.log("User updated event:", event);
+      } else if (
+        ["SIGNED_IN", "TOKEN_REFRESHED", "INITIAL_SESSION"].includes(event) &&
+        session?.user
+      ) {
+        setTimeout(async () => {
+          if (!mounted) return;
 
-      setTimeout(async () => {
-        if (!mounted) return;
+          if (
+            ["SIGNED_IN", "TOKEN_REFRESHED", "INITIAL_SESSION"].includes(
+              event
+            ) &&
+            session?.user
+          ) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("onboarding_complete")
+              .eq("id", session.user.id)
+              .single();
 
-        if (
-          ["SIGNED_IN", "TOKEN_REFRESHED", "INITIAL_SESSION"].includes(event) &&
-          session?.user
-        ) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("onboarding_complete")
-            .eq("id", session.user.id)
-            .single();
-
-          if (mounted) {
-            setSession(session);
-            setNeedsWallet(!profile?.onboarding_complete);
+            if (mounted) {
+              setSession(session);
+              setNeedsWallet(!profile?.onboarding_complete);
+            }
+          } else if (event === "SIGNED_OUT") {
+            if (mounted) {
+              setSession(null);
+              setNeedsWallet(false);
+            }
           }
-        } else if (event === "SIGNED_OUT") {
-          if (mounted) {
-            setSession(null);
-            setNeedsWallet(false);
-          }
-        }
-        if (mounted) setIsLoading(false);
-      }, 0);
+        }, 0);
+      }
+
+      if (mounted) setIsLoading(false);
     });
 
     return () => {

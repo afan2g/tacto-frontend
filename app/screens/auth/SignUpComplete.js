@@ -121,6 +121,10 @@ function SignUpComplete({ navigation }) {
         data: { session },
       } = await supabase.auth.getSession();
 
+      if (!session?.user?.id) {
+        throw new Error("No authenticated user");
+      }
+
       // Upload avatar if it's generated (not a URL)
       if (profile && !profile.avatar_url) {
         const [firstName, lastName] = profile.full_name.split(" ");
@@ -131,38 +135,55 @@ function SignUpComplete({ navigation }) {
           avatarColors.text
         );
 
-        const { data, error: uploadError } = await supabase.storage
+        // Construct the file path - IMPORTANT: Keep this format exactly
+        const filePath = `${session.user.id}/avatar.svg`;
+
+        // Upload the file
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from("avatars")
-          .upload(`${session.user.id}/avatar.svg`, svgString, {
+          .upload(filePath, svgString, {
             contentType: "image/svg+xml",
             cacheControl: "3600",
             upsert: true,
           });
 
         if (uploadError) {
-          console.error("Error uploading avatar:", uploadError);
-        } else {
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("avatars").getPublicUrl(data.path);
+          console.error("Upload error details:", uploadError);
+          throw uploadError;
+        }
 
-          await supabase
-            .from("profiles")
-            .update({ avatar_url: publicUrl })
-            .eq("id", session.user.id);
+        // Get public URL only after successful upload
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+        // Update profile with new avatar URL
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ avatar_url: publicUrl })
+          .eq("id", session.user.id);
+
+        if (updateError) {
+          console.error("Profile update error:", updateError);
+          throw updateError;
         }
       }
 
+      // Update onboarding status
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ onboarding_complete: true })
         .eq("id", session.user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Onboarding status update error:", profileError);
+        throw profileError;
+      }
 
-      const { error: refreshError } = await supabase.auth.refreshSession();
+      await supabase.auth.refreshSession();
     } catch (error) {
-      console.error(error);
+      console.error("Error in handleButton:", error);
+      // You might want to show an error to the user here
     } finally {
       setIsLoading(false);
     }
