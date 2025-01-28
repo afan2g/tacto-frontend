@@ -23,7 +23,7 @@ function SignUpComplete({ navigation }) {
     backgroundColor,
     textColor
   ) => (
-    <Svg height="80" width="80">
+    <Svg height="80" width="80" xmlns="http://www.w3.org/2000/svg">
       <Circle cx="40" cy="40" r="40" fill={backgroundColor} />
       <SvgText
         fill={textColor}
@@ -34,8 +34,7 @@ function SignUpComplete({ navigation }) {
         textAnchor="middle"
         alignmentBaseline="central"
       >
-        {firstName[0]}
-        {lastName[0]}
+        {`${firstName[0]}${lastName[0]}`}
       </SvgText>
     </Svg>
   );

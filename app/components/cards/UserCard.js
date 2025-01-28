@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Image, Pressable } from "react-native";
-import { SvgXml } from "react-native-svg";
+import Svg, { SvgUri } from "react-native-svg";
 import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
@@ -13,29 +13,37 @@ function UserCard({
   navigation,
   style,
   disabled,
-  scale,
+  scale = 1,
 }) {
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const displayText = subtext === null ? null : subtext ?? user.username;
+  const size = 54 * scale;
 
   const scaleStyle = {
     profilePic: {
-      height: 54 * (scale ?? 1),
-      width: 54 * (scale ?? 1),
-      borderRadius: 30 * (scale ?? 1),
+      height: size,
+      width: size,
+      borderRadius: size / 2,
     },
     fullName: {
-      fontSize: 20 * (scale ?? 1),
+      fontSize: 20 * scale,
     },
     username: {
-      fontSize: 15 * (scale ?? 1),
+      fontSize: 15 * scale,
     },
   };
 
-  const renderAvatar = () => {
-    const isSvg = user.profilePicUrl?.toLowerCase().endsWith(".svg");
+  useEffect(() => {
+    if (user.profilePicUrl) {
+      setAvatarUrl(user.profilePicUrl);
+    }
+  }, [user.profilePicUrl]);
 
-    if (!user.profilePicUrl) {
-      // Render a placeholder or default avatar
+  const renderAvatar = () => {
+    const url = user.profilePicUrl;
+    const isSvg = url?.toLowerCase().endsWith(".svg");
+
+    if (!url) {
       return (
         <View
           style={[
@@ -45,10 +53,14 @@ function UserCard({
           ]}
         >
           <AppText style={styles.placeholderText}>
-            {user.fullName
+            {user.full_name
               ?.split(" ")
-              .map((name) => name[0])
-              .join("")}
+              .map((name) => name?.[0] || "")
+              .join("") ||
+              user.fullName
+                ?.split(" ")
+                .map((name) => name?.[0] || "")
+                .join("")}
           </AppText>
         </View>
       );
@@ -57,22 +69,18 @@ function UserCard({
     if (isSvg) {
       return (
         <View style={[scaleStyle.profilePic, styles.svgContainer]}>
-          <SvgXml
-            xml={user.profilePicUrl}
-            width={54 * (scale ?? 1)}
-            height={54 * (scale ?? 1)}
-          />
+          <SvgUri uri={url} width={size} height={size} viewBox="0 0 80 80" />
         </View>
       );
+    } else {
+      return (
+        <Image
+          source={{ uri: url }}
+          resizeMode="cover"
+          style={[scaleStyle.profilePic, styles.profilePic]}
+        />
+      );
     }
-
-    return (
-      <Image
-        source={{ uri: user.profilePicUrl }}
-        resizeMode="cover"
-        style={[scaleStyle.profilePic, styles.profilePic]}
-      />
-    );
   };
 
   return (
@@ -87,7 +95,7 @@ function UserCard({
         {renderAvatar()}
         <View style={styles.userNameContainer}>
           <AppText style={[scaleStyle.fullName, styles.fullName]}>
-            {user.fullName}
+            {user.full_name || user.fullName}
           </AppText>
           {displayText && (
             <AppText style={[scaleStyle.username, styles.username]}>
@@ -118,7 +126,9 @@ const styles = StyleSheet.create({
   },
   svgContainer: {
     overflow: "hidden",
-    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
   },
   userNameContainer: {
     alignItems: "flex-start",

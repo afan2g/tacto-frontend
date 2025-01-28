@@ -38,5 +38,5 @@ variables.js
 *.tsbuildinfo
 
 #CNG
-/android
-/ios
+android/
+ios/
