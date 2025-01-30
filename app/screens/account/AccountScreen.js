@@ -10,7 +10,7 @@ import {
 import { ChevronRight, Settings } from "lucide-react-native";
 import * as SecureStore from "expo-secure-store";
 import { ethers } from "ethers";
-
+import { getLocales } from "expo-localization";
 import { AppText, Header, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
 import { FAKEPROFILE } from "../../data/fakeData";
@@ -61,6 +61,8 @@ function AccountScreen({ navigation }) {
   const { profile, wallet } = useData();
   const handleUserCardPress = () => {
     console.log("User card pressed!");
+    const locale = getLocales();
+    console.log("locale: ", locale);
   };
 
   const handleLogout = async () => {

@@ -10,9 +10,11 @@ import {
   Platform,
   TouchableWithoutFeedback,
 } from "react-native";
+import { getLocales } from "expo-localization";
+import PhoneInput from "react-native-international-phone-number";
+
 import { clientValidation } from "../../validation/clientValidation";
 import { supabase } from "../../../lib/supabase";
-
 import {
   Screen,
   Header,
@@ -32,6 +34,13 @@ function SignUpScreen({ navigation }) {
   const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputType, setInputType] = useState(null); // 'email' or 'phone'
+  const [selectedCountry, setSelectedCountry] = useState("US");
+
+  useEffect(() => {
+    const locales = getLocales();
+    console.log("Locale:", locales[0].regionCode);
+    setSelectedCountry(locales[0].regionCode);
+  }, []);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -140,6 +149,10 @@ function SignUpScreen({ navigation }) {
     }
   };
 
+  const handleSelectedCountry = (country) => {
+    setSelectedCountry(country);
+  };
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -161,31 +174,47 @@ function SignUpScreen({ navigation }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <TextInput
-                autoComplete={inputType === "phone" ? "tel" : "email"}
-                autoCorrect={false}
-                autoFocus={true}
-                inputMode={inputType === "phone" ? "tel" : "email"}
-                numberOfLines={1}
-                onChangeText={handleInputChange}
-                placeholder="Email or phone number"
-                placeholderTextColor={colors.softGray}
-                returnKeyType="done"
-                selectionColor={colors.lightGray}
-                selectionHandleColor={colors.lightGray}
+              {/* {inputType === "email" ? (
+                <TextInput
+                  autoComplete={"email"}
+                  autoCorrect={false}
+                  autoFocus={true}
+                  inputMode={"email"}
+                  numberOfLines={1}
+                  onChangeText={handleInputChange}
+                  placeholder="Email or phone number"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  selectionColor={colors.lightGray}
+                  selectionHandleColor={colors.lightGray}
+                  value={formData.identifier}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.identifier
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  onSubmitEditing={isValid ? submitIdentifier : undefined}
+                />
+              ) : (
+                <PhoneInput
+                  value={formData.identifier}
+                  onChangePhoneNumber={handleInputChange}
+                  defaultCountry={selectedCountry}
+                  onChangeSelectedCountry={handleSelectedCountry}
+                />
+              )} */}
+              <PhoneInput
                 value={formData.identifier}
-                style={[
-                  styles.text,
-                  {
-                    fontFamily: formData.identifier
-                      ? fonts.black
-                      : fonts.italic,
-                  },
-                ]}
-                onSubmitEditing={isValid ? submitIdentifier : undefined}
+                defaultValue="+12345678"
+                onChangePhoneNumber={handleInputChange}
+                defaultCountry={selectedCountry || "US"}
+                selectedCountry={selectedCountry}
+                onChangeSelectedCountry={handleSelectedCountry}
               />
               <ErrorMessage error={error} />
-
               <AppButton
                 color="yellow"
                 onPress={submitIdentifier}
