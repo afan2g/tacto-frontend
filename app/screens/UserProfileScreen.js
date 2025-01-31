@@ -23,9 +23,9 @@ import { FAKE_HOME_SCREEN_DATA, FAKE_OTHER_USERS } from "../data/fakeData";
 import { colors, fonts } from "../config";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ActivityList from "../testing/ActivityList";
+import ActivityList from "../components/ActivityList";
 import { OtherUserHeader } from "../components/cards";
-import AppTabBar from "../testing/AppTabBar";
+import AppTabBar from "../components/AppTabBar";
 import { X } from "lucide-react-native";
 import CollapsedHeader from "../components/cards/CollapsedHeader";
 

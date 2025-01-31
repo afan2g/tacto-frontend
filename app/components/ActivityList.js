@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import Animated from "react-native-reanimated";
-import { AppCardSeparator, TransactionCard } from "../components/cards";
+import { AppCardSeparator, TransactionCard } from "./cards";
 import { colors } from "../config";
 import formatRelativeTime from "../utils/formatRelativeTime";
 import { FlashList } from "@shopify/flash-list";
