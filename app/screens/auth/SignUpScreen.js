@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -11,7 +11,6 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { getLocales } from "expo-localization";
-import PhoneInput from "react-native-international-phone-number";
 
 import { clientValidation } from "../../validation/clientValidation";
 import { supabase } from "../../../lib/supabase";
@@ -27,14 +26,21 @@ import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
-
+import PhoneNumberInput from "../../components/forms/PhoneNumberInput";
 function SignUpScreen({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputType, setInputType] = useState(null); // 'email' or 'phone'
-  const [selectedCountry, setSelectedCountry] = useState("US");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [countryData, setCountryData] = useState({
+    code: "US",
+    dial_code: "+1",
+    flag: "🇺🇸",
+    name: "United States",
+  });
 
   useEffect(() => {
     const locales = getLocales();
@@ -55,6 +61,8 @@ function SignUpScreen({ navigation }) {
   }, [navigation]);
 
   const formatPhoneNumber = (text) => {
+    if (!text) return ""; // Return empty string for empty/null values
+
     // Remove all non-numeric characters
     const cleaned = text.replace(/\D/g, "");
 
@@ -73,8 +81,9 @@ function SignUpScreen({ navigation }) {
   };
 
   const validatePhone = (phone) => {
-    const cleaned = phone.replace(/\D/g, "");
-    return cleaned.length === 10;
+    console.log("Phone:", phone);
+    if (!phone) return false; // Return false for empty/null values
+    return true;
   };
 
   const handleInputChange = (value) => {
@@ -149,10 +158,29 @@ function SignUpScreen({ navigation }) {
     }
   };
 
-  const handleSelectedCountry = (country) => {
-    setSelectedCountry(country);
-  };
+  const handlePhoneNumberChange = useCallback(
+    (value) => {
+      setPhoneNumber(value || ""); // Ensure value is never undefined
+      // Only update form data if we have both country code and phone number
+      if (value && countryData.dial_code) {
+        const formattedNumber = `${countryData.dial_code}${value}`;
+        updateFormData({ identifier: formattedNumber });
+      }
+    },
+    [countryData.dial_code, updateFormData]
+  );
 
+  const handleCountryChange = useCallback(
+    (country) => {
+      setCountryData(country);
+      // Only update form data if we have both country code and phone number
+      if (phoneNumber && country.dial_code) {
+        const formattedNumber = `${country.dial_code}${phoneNumber}`;
+        updateFormData({ identifier: formattedNumber });
+      }
+    },
+    [phoneNumber, updateFormData]
+  );
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -174,45 +202,11 @@ function SignUpScreen({ navigation }) {
             bounces={false}
           >
             <View style={styles.content}>
-              {/* {inputType === "email" ? (
-                <TextInput
-                  autoComplete={"email"}
-                  autoCorrect={false}
-                  autoFocus={true}
-                  inputMode={"email"}
-                  numberOfLines={1}
-                  onChangeText={handleInputChange}
-                  placeholder="Email or phone number"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="done"
-                  selectionColor={colors.lightGray}
-                  selectionHandleColor={colors.lightGray}
-                  value={formData.identifier}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: formData.identifier
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                  ]}
-                  onSubmitEditing={isValid ? submitIdentifier : undefined}
-                />
-              ) : (
-                <PhoneInput
-                  value={formData.identifier}
-                  onChangePhoneNumber={handleInputChange}
-                  defaultCountry={selectedCountry}
-                  onChangeSelectedCountry={handleSelectedCountry}
-                />
-              )} */}
-              <PhoneInput
-                value={formData.identifier}
-                defaultValue="+12345678"
-                onChangePhoneNumber={handleInputChange}
-                defaultCountry={selectedCountry || "US"}
-                selectedCountry={selectedCountry}
-                onChangeSelectedCountry={handleSelectedCountry}
+              <PhoneNumberInput
+                value={phoneNumber}
+                onChangeNumber={handlePhoneNumberChange}
+                onChangeCountry={handleCountryChange}
+                initialCountry={countryData}
               />
               <ErrorMessage error={error} />
               <AppButton
@@ -283,3 +277,29 @@ const styles = StyleSheet.create({
 });
 
 export default SignUpScreen;
+
+/* {inputType === "email" ? (
+                <TextInput
+                  autoComplete={"email"}
+                  autoCorrect={false}
+                  autoFocus={true}
+                  inputMode={"email"}
+                  numberOfLines={1}
+                  onChangeText={handleInputChange}
+                  placeholder="Email or phone number"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  selectionColor={colors.lightGray}
+                  selectionHandleColor={colors.lightGray}
+                  value={formData.identifier}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.identifier
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  onSubmitEditing={isValid ? submitIdentifier : undefined}
+                />
+              ) : */

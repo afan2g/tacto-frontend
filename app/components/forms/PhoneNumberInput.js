@@ -8,35 +8,53 @@ import { colors } from "../../config";
 import CountryPickerModal from "../modals/CountryPickerModal";
 import { ChevronDown } from "lucide-react-native";
 
-export default function PhoneNumberInput() {
+export default function PhoneNumberInput({
+  value,
+  onChangeNumber,
+  onChangeCountry,
+  initialCountry,
+}) {
   const pickerRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState({
-    code: "US",
-    dial_code: "+1",
-    flag: "🇺🇸",
-    name: "United States",
-  });
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const handleModal = () => {
+  const [selectedCountry, setSelectedCountry] = useState(
+    initialCountry || {
+      code: "US",
+      dial_code: "+1",
+      flag: "🇺🇸",
+      name: "United States",
+    }
+  );
+
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleModal = useCallback(() => {
     if (isModalOpen) {
       pickerRef.current?.dismiss();
     } else {
       pickerRef.current?.present();
     }
     setIsModalOpen((prev) => !prev);
-  };
+  }, [isModalOpen]);
 
-  const handleSelectCountry = useCallback((country) => {
-    setSelectedCountry(country);
-    pickerRef.current?.dismiss();
-    setIsModalOpen(false);
-  }, []);
+  const handleSelectCountry = useCallback(
+    (country) => {
+      setSelectedCountry(country);
+      onChangeCountry?.(country);
+      pickerRef.current?.dismiss();
+      setIsModalOpen(false);
+    },
+    [onChangeCountry]
+  );
 
-  const handlePhoneNumber = useCallback((value) => {
-    setPhoneNumber(value);
-    console.log("Phone number:", value);
-  }, []);
+  // Debounce the phone number changes
+  const handlePhoneNumber = useCallback(
+    (newValue) => {
+      // Prevent unnecessary updates if the value hasn't changed
+      if (newValue !== value) {
+        onChangeNumber?.(newValue);
+      }
+    },
+    [value, onChangeNumber]
+  );
 
   return (
     <View style={styles.container}>
@@ -53,7 +71,7 @@ export default function PhoneNumberInput() {
         <PhoneInput
           style={styles.phoneInput}
           country={selectedCountry.code}
-          value={phoneNumber}
+          value={value}
           onChange={handlePhoneNumber}
           placeholder="Phone Number"
         />

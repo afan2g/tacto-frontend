@@ -44,20 +44,24 @@ import { getLocales } from "expo-localization";
 import CountryPickerModal from "./app/components/modals/CountryPickerModal";
 import { ChevronDown } from "lucide-react-native";
 import PhoneNumberInput from "./app/components/forms/PhoneNumberInput";
+import SignUpScreen from "./app/screens/auth/SignUpScreen";
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <BottomSheetModalProvider>
-        <PhoneNumberInput />
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+    <FormProvider>
+      <GestureHandlerRootView style={styles.container}>
+        <BottomSheetModalProvider>
+          <SignUpScreen />
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </FormProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.blue,
   },
   inputContainer: {
     flexDirection: "row",
