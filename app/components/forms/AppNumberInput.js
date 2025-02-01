@@ -8,7 +8,7 @@ import { colors } from "../../config";
 import CountryPickerModal from "../modals/CountryPickerModal";
 import { ChevronDown } from "lucide-react-native";
 
-export default function PhoneNumberInput({
+export default function AppNumberInput({
   value,
   onChangeNumber,
   onChangeCountry,

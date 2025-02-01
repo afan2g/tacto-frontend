@@ -26,26 +26,21 @@ import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
-import PhoneNumberInput from "../../components/forms/PhoneNumberInput";
+import AppPhoneInput from "../../components/forms/AppPhoneInput";
+import { countryLookup } from "../../../lib/countryData";
 function SignUpScreen({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputType, setInputType] = useState(null); // 'email' or 'phone'
-  const [selectedCountry, setSelectedCountry] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [countryData, setCountryData] = useState({
-    code: "US",
-    dial_code: "+1",
-    flag: "🇺🇸",
-    name: "United States",
-  });
+  const [country, setCountry] = useState(countryLookup["US"]);
 
   useEffect(() => {
     const locales = getLocales();
     console.log("Locale:", locales[0].regionCode);
-    setSelectedCountry(locales[0].regionCode);
+    setCountry(countryLookup[locales[0].regionCode] || countryLookup["US"]);
   }, []);
 
   useEffect(() => {
@@ -162,17 +157,17 @@ function SignUpScreen({ navigation }) {
     (value) => {
       setPhoneNumber(value || ""); // Ensure value is never undefined
       // Only update form data if we have both country code and phone number
-      if (value && countryData.dial_code) {
-        const formattedNumber = `${countryData.dial_code}${value}`;
+      if (value && country.dial_code) {
+        const formattedNumber = `${country.dial_code}${value}`;
         updateFormData({ identifier: formattedNumber });
       }
     },
-    [countryData.dial_code, updateFormData]
+    [country.dial_code, updateFormData]
   );
 
   const handleCountryChange = useCallback(
     (country) => {
-      setCountryData(country);
+      setCountry(country);
       // Only update form data if we have both country code and phone number
       if (phoneNumber && country.dial_code) {
         const formattedNumber = `${country.dial_code}${phoneNumber}`;
@@ -202,11 +197,10 @@ function SignUpScreen({ navigation }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <PhoneNumberInput
-                value={phoneNumber}
+              <AppPhoneInput
                 onChangeNumber={handlePhoneNumberChange}
                 onChangeCountry={handleCountryChange}
-                initialCountry={countryData}
+                initialCountry={country}
               />
               <ErrorMessage error={error} />
               <AppButton

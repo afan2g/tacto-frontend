@@ -1,5 +1,11 @@
-// CountryPicker.tsx
-import React, { useState, useCallback, useMemo, forwardRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from "react";
 import {
   Text,
   View,
@@ -8,118 +14,101 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { BottomSheetModal, BottomSheetFlashList } from "@gorhom/bottom-sheet";
-import defaultCountries from "../../../lib/countryDialInfo.json";
+import { sortedCountries } from "../../../lib/countryData";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
 
-const CountryPickerModal = forwardRef(
-  (
-    {
-      styles: customStyles = {},
-      countryData = defaultCountries,
-      onSelectCountry,
+const CountryPickerModal = forwardRef(({ onSelectCountry }, ref) => {
+  const bottomSheetRef = useRef(null);
+  const [search, setSearch] = useState("");
+  const { handleSheetPositionChange } =
+    useBottomSheetBackHandler(bottomSheetRef);
+
+  // Expose methods to parent
+  useImperativeHandle(ref, () => ({
+    present: () => bottomSheetRef.current?.present(),
+    dismiss: () => {
+      bottomSheetRef.current?.dismiss();
+      setSearch(""); // Clear search when dismissing
     },
-    ref
-  ) => {
-    const [keyboardVisible, setKeyboardVisible] = useState(false);
-    const [search, setSearch] = useState("");
-    const { handleSheetPositionChange } = useBottomSheetBackHandler(ref);
+  }));
 
-    const snapPoints = useMemo(() => ["50%", "90%"], []);
-    const countriesArray = useMemo(() => {
-      return Object.entries(countryData).map(([name, data]) => ({
-        name,
-        ...data,
-      }));
-    }, [countryData]);
+  const snapPoints = useMemo(() => ["50%", "90%"], []);
 
-    const defaultFilterFunction = useCallback((country, searchText) => {
-      const searchLower = searchText.toLowerCase();
-      return (
+  const filteredCountries = useMemo(() => {
+    if (!search) return sortedCountries;
+    const searchLower = search.toLowerCase();
+    return sortedCountries.filter(
+      (country) =>
         country.name.toLowerCase().includes(searchLower) ||
-        country.dial_code.includes(searchText)
-      );
-    }, []);
-
-    const filteredCountries = useMemo(() => {
-      if (!search) return countriesArray;
-      const filterFn = defaultFilterFunction;
-      return countriesArray.filter((country) => filterFn(country, search));
-    }, [countriesArray, search, defaultFilterFunction]);
-
-    const handleSearchChange = useCallback((text) => {
-      setSearch(text);
-    }, []);
-
-    const handleFocus = useCallback(() => {
-      if (!keyboardVisible) {
-        ref.current?.expand();
-      }
-    }, [keyboardVisible]);
-
-    const handleSelectCountry = useCallback(
-      (country) => {
-        onSelectCountry(country);
-        setSearch("");
-      },
-      [onSelectCountry]
+        country.dial_code.includes(search)
     );
-    const renderItem = useCallback(
-      ({ item }) => (
-        <TouchableOpacity
-          style={styles.countryItem}
-          onPress={() => handleSelectCountry(item)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.flag}>{item.flag}</Text>
-          <Text style={styles.countryName}>{item.name}</Text>
-          <Text style={styles.dialCode}>{item.dial_code}</Text>
-        </TouchableOpacity>
-      ),
-      [onSelectCountry]
-    );
+  }, [sortedCountries, search]);
 
-    return (
-      <BottomSheetModal
-        ref={ref}
-        snapPoints={snapPoints}
-        keyboardBehavior="fillParent"
-        enableDynamicSizing={false}
-        onChange={handleSheetPositionChange}
+  const handleSearchChange = useCallback((text) => {
+    setSearch(text);
+  }, []);
+
+  const handleSelectCountry = useCallback(
+    (country) => {
+      onSelectCountry(country);
+      bottomSheetRef.current?.dismiss();
+      setSearch("");
+    },
+    [onSelectCountry]
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <TouchableOpacity
+        style={styles.countryItem}
+        onPress={() => handleSelectCountry(item)}
+        activeOpacity={0.7}
       >
-        <View style={styles.bottomSheetContent}>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search country or dial code..."
-              onChangeText={handleSearchChange}
-              onFocus={handleFocus}
-              autoCorrect={false}
-              autoCapitalize="none"
-              clearButtonMode="while-editing"
-            />
-          </View>
+        <Text style={styles.flag}>{item.flag}</Text>
+        <Text style={styles.countryName}>{item.name}</Text>
+        <Text style={styles.dialCode}>{item.dial_code}</Text>
+      </TouchableOpacity>
+    ),
+    [handleSelectCountry]
+  );
 
-          <BottomSheetFlashList
-            data={filteredCountries}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.name}
-            keyboardShouldPersistTaps="always"
-            keyboardDismissMode="none"
-            estimatedItemSize={65}
-            initialNumToRender={15}
-            maxToRenderPerBatch={10}
-            windowSize={5}
+  return (
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      snapPoints={snapPoints}
+      keyboardBehavior="interactive"
+      enableDynamicSizing={false}
+      onChange={handleSheetPositionChange}
+    >
+      <View style={styles.bottomSheetContent}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search country or dial code..."
+            onChangeText={handleSearchChange}
+            autoCorrect={false}
+            autoCapitalize="none"
+            clearButtonMode="while-editing"
           />
         </View>
-      </BottomSheetModal>
-    );
-  }
-);
+
+        <BottomSheetFlashList
+          data={filteredCountries}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.name}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+          estimatedItemSize={65}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+        />
+      </View>
+    </BottomSheetModal>
+  );
+});
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   bottomSheetContent: {
     flex: 1,
   },

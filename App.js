@@ -1,23 +1,8 @@
 import { setupCrypto } from "./lib/setupCrypto";
 setupCrypto();
 
-import React, {
-  use,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
-import {
-  Button,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
-import { AsYouType } from "libphonenumber-js/mobile";
-import PhoneInput from "react-phone-number-input/react-native-input";
+import React from "react";
+
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 GoogleSignin.configure({
   webClientId:
@@ -37,13 +22,6 @@ import { FormProvider } from "./app/contexts/FormContext";
 import { AuthProvider } from "./app/contexts/AuthContext";
 import { DataProvider } from "./app/contexts/DataContext";
 import { colors } from "./app/config";
-import DropDownPickerComponent from "./app/components/forms/DropDownPickerComponent";
-import DropDownPicker from "react-native-dropdown-picker";
-import countries from "./lib/countryDialInfo.json";
-import { getLocales } from "expo-localization";
-import CountryPickerModal from "./app/components/modals/CountryPickerModal";
-import { ChevronDown } from "lucide-react-native";
-import PhoneNumberInput from "./app/components/forms/PhoneNumberInput";
 import SignUpScreen from "./app/screens/auth/SignUpScreen";
 
 export default function App() {
