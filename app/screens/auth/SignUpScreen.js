@@ -9,9 +9,9 @@ import {
   ScrollView,
   Platform,
   TouchableWithoutFeedback,
+  Button,
 } from "react-native";
-import { getLocales } from "expo-localization";
-
+import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js/mobile";
 import { clientValidation } from "../../validation/clientValidation";
 import { supabase } from "../../../lib/supabase";
 import {
@@ -28,20 +28,15 @@ import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
 import AppPhoneInput from "../../components/forms/AppPhoneInput";
 import { countryLookup } from "../../../lib/countryData";
+
 function SignUpScreen({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [inputType, setInputType] = useState(null); // 'email' or 'phone'
+  const [inputType, setInputType] = useState("email"); // Default to email
   const [phoneNumber, setPhoneNumber] = useState("");
   const [country, setCountry] = useState(countryLookup["US"]);
-
-  useEffect(() => {
-    const locales = getLocales();
-    console.log("Locale:", locales[0].regionCode);
-    setCountry(countryLookup[locales[0].regionCode] || countryLookup["US"]);
-  }, []);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -55,67 +50,77 @@ function SignUpScreen({ navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
-  const formatPhoneNumber = (text) => {
-    if (!text) return ""; // Return empty string for empty/null values
-
-    // Remove all non-numeric characters
-    const cleaned = text.replace(/\D/g, "");
-
-    // Format as (XXX) XXX-XXXX
-    if (cleaned.length >= 10) {
-      const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-      if (match) {
-        return `(${match[1]}) ${match[2]}-${match[3]}`;
-      }
-    }
-    return text;
-  };
-
-  const isEmail = (text) => {
-    return text.includes("@");
-  };
-
-  const validatePhone = (phone) => {
-    console.log("Phone:", phone);
-    if (!phone) return false; // Return false for empty/null values
-    return true;
-  };
-
-  const handleInputChange = (value) => {
-    setError("");
-
-    // Determine if input is email or phone
-    const isEmailInput = isEmail(value);
-    setInputType(isEmailInput ? "email" : "phone");
-
-    if (!isEmailInput) {
-      // Format phone number if it's not an email
-      value = formatPhoneNumber(value);
+  const validateInput = useCallback(() => {
+    if (!formData.identifier) {
+      setError("This field is required");
+      setIsValid(false);
+      return;
     }
 
-    updateFormData({ identifier: value });
-
-    // Validate based on input type
-    if (isEmailInput) {
-      const validationResult = clientValidation.email(value);
+    if (inputType === "email") {
+      const validationResult = clientValidation.email(formData.identifier);
       if (!validationResult.success) {
-        setError(validationResult.error || "Invalid email");
+        setError(validationResult.error || "Invalid email format");
         setIsValid(false);
       } else {
+        setError("");
         setIsValid(true);
       }
     } else {
-      // Phone validation
-      if (validatePhone(value)) {
-        setIsValid(true);
-      } else {
-        setError("Please enter a valid phone number");
+      try {
+        if (!isValidPhoneNumber(phoneNumber, country.code)) {
+          setError("Please enter a valid phone number");
+          setIsValid(false);
+        } else {
+          setError("");
+          setIsValid(true);
+        }
+      } catch (err) {
+        setError("Invalid phone number format");
         setIsValid(false);
       }
     }
+  }, [formData.identifier, inputType, phoneNumber, country.code]);
+
+  useEffect(() => {
+    validateInput();
+  }, [formData.identifier, phoneNumber, country, validateInput]);
+
+  const handleInputTypeChange = () => {
+    setError("");
+    setIsValid(false);
+    if (inputType === "email") {
+      setInputType("phone");
+      updateFormData({ identifier: "", email: null });
+    } else {
+      setInputType("email");
+      updateFormData({ identifier: "", phone: null });
+    }
   };
 
-  const submitIdentifier = async () => {
+  const handleEmailChange = (value) => {
+    setError("");
+    updateFormData({ identifier: value.trim() });
+  };
+
+  const handlePhoneNumberChange = useCallback(
+    (value) => {
+      setPhoneNumber(value || "");
+      updateFormData({ identifier: value });
+    },
+    [updateFormData]
+  );
+
+  const handleCountryChange = useCallback(
+    (newCountry) => {
+      setCountry(newCountry);
+      // Reset phone validation when country changes
+      validateInput();
+    },
+    [validateInput]
+  );
+
+  const handleSubmit = async () => {
     if (!isValid) return;
 
     try {
@@ -125,57 +130,41 @@ function SignUpScreen({ navigation }) {
       const identifier = formData.identifier;
 
       if (inputType === "email") {
-        // Final client-side validation for email
+        // Final validation check before submission
         const validationResult = clientValidation.email(identifier);
         if (!validationResult.success) {
           setError(validationResult.error || "Invalid email");
           return;
         }
-        updateFormData({ email: identifier, phone: null });
+        updateFormData({ email: identifier.toLowerCase(), phone: null });
       } else {
-        // Phone validation
-        const cleanedPhone = identifier.replace(/\D/g, "");
-        if (!validatePhone(cleanedPhone)) {
-          setError("Invalid phone number");
+        // Phone validation before submission
+        try {
+          if (!isValidPhoneNumber(phoneNumber, country.code)) {
+            setError("Invalid phone number");
+            return;
+          }
+          const cleanedPhone = parsePhoneNumber(
+            phoneNumber,
+            country.code
+          ).format("E.164");
+          updateFormData({ phone: cleanedPhone, email: null });
+        } catch (err) {
+          setError("Invalid phone number format");
           return;
         }
-        updateFormData({ phone: cleanedPhone, email: null });
       }
 
       Keyboard.dismiss();
-
       navigation.navigate(routes.SIGNUPPASSWORD);
     } catch (err) {
-      console.error("Validation error:", err);
+      console.error("Submission error:", err);
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePhoneNumberChange = useCallback(
-    (value) => {
-      setPhoneNumber(value || ""); // Ensure value is never undefined
-      // Only update form data if we have both country code and phone number
-      if (value && country.dial_code) {
-        const formattedNumber = `${country.dial_code}${value}`;
-        updateFormData({ identifier: formattedNumber });
-      }
-    },
-    [country.dial_code, updateFormData]
-  );
-
-  const handleCountryChange = useCallback(
-    (country) => {
-      setCountry(country);
-      // Only update form data if we have both country code and phone number
-      if (phoneNumber && country.dial_code) {
-        const formattedNumber = `${country.dial_code}${phoneNumber}`;
-        updateFormData({ identifier: formattedNumber });
-      }
-    },
-    [phoneNumber, updateFormData]
-  );
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -184,7 +173,9 @@ function SignUpScreen({ navigation }) {
           size={42}
           onPress={() => navigation.goBack()}
         />
-        <Header style={styles.header}>Enter your email or phone number</Header>
+        <Header style={styles.header}>
+          Enter your {inputType === "email" ? "email" : "phone number"}
+        </Header>
       </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -197,15 +188,48 @@ function SignUpScreen({ navigation }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <AppPhoneInput
-                onChangeNumber={handlePhoneNumberChange}
-                onChangeCountry={handleCountryChange}
-                initialCountry={country}
+              <Button
+                title={`Switch to ${inputType === "email" ? "phone" : "email"}`}
+                onPress={handleInputTypeChange}
               />
-              <ErrorMessage error={error} />
+              {inputType === "phone" ? (
+                <AppPhoneInput
+                  onChangeNumber={handlePhoneNumberChange}
+                  onChangeCountry={handleCountryChange}
+                  initialCountry={country}
+                  value={phoneNumber}
+                />
+              ) : (
+                <View style={styles.keyboardView}>
+                  <TextInput
+                    autoComplete="email"
+                    autoCorrect={false}
+                    autoFocus={true}
+                    inputMode="email"
+                    numberOfLines={1}
+                    onChangeText={handleEmailChange}
+                    placeholder="Email"
+                    placeholderTextColor={colors.softGray}
+                    returnKeyType="done"
+                    selectionColor={colors.lightGray}
+                    value={formData.identifier}
+                    style={[
+                      styles.text,
+                      {
+                        fontFamily: formData.identifier
+                          ? fonts.black
+                          : fonts.italic,
+                      },
+                    ]}
+                    onSubmitEditing={isValid ? handleSubmit : undefined}
+                  />
+                </View>
+              )}
+              <ErrorMessage error={error} visible={!!error} />
+
               <AppButton
                 color="yellow"
-                onPress={submitIdentifier}
+                onPress={handleSubmit}
                 title={isLoading ? "Checking..." : "Next"}
                 style={styles.next}
                 disabled={!isValid || isLoading}
@@ -230,6 +254,7 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     flex: 1,
+    backgroundColor: colors.blue,
   },
   scrollView: {
     flexGrow: 1,
@@ -271,29 +296,3 @@ const styles = StyleSheet.create({
 });
 
 export default SignUpScreen;
-
-/* {inputType === "email" ? (
-                <TextInput
-                  autoComplete={"email"}
-                  autoCorrect={false}
-                  autoFocus={true}
-                  inputMode={"email"}
-                  numberOfLines={1}
-                  onChangeText={handleInputChange}
-                  placeholder="Email or phone number"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="done"
-                  selectionColor={colors.lightGray}
-                  selectionHandleColor={colors.lightGray}
-                  value={formData.identifier}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: formData.identifier
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                  ]}
-                  onSubmitEditing={isValid ? submitIdentifier : undefined}
-                />
-              ) : */

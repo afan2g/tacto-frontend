@@ -25,6 +25,7 @@ import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
+import { parsePhoneNumber } from "libphonenumber-js/mobile";
 
 function SignUpVerify({ navigation }) {
   const { formData, updateFormData } = useFormData();
@@ -59,6 +60,7 @@ function SignUpVerify({ navigation }) {
           type: "sms",
           phone: formData.phone,
         });
+        console.log("sent phone OTP to ", formData.phone);
       } else {
         // Resend email OTP
         result = await supabase.auth.resend({
@@ -90,7 +92,7 @@ function SignUpVerify({ navigation }) {
       if (isPhoneVerification) {
         // Verify phone OTP
         verifyResult = await supabase.auth.verifyOtp({
-          phone: `+1${formData.phone}`,
+          phone: formData.phone,
           token: formData.verificationCode,
           type: "sms",
         });
@@ -131,8 +133,8 @@ function SignUpVerify({ navigation }) {
   const formatContactInfo = () => {
     if (isPhoneVerification) {
       // Format phone number for display
-      const phone = formData.phone;
-      return `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
+      const phoneNumber = parsePhoneNumber(formData.phone);
+      return phoneNumber.format("NATIONAL", { nationalPrefix: true });
     }
     return formData.email;
   };

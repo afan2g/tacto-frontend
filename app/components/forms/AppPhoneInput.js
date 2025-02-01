@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback } from "react";
 import { Text, TextInput, TouchableOpacity } from "react-native";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Keyboard } from "react-native";
 import {
   AsYouType,
   isValidPhoneNumber,
@@ -8,7 +8,7 @@ import {
 } from "libphonenumber-js/mobile";
 import { colors } from "../../config";
 import CountryPickerModal from "../modals/CountryPickerModal";
-import { ChevronDown } from "lucide-react-native";
+import { ChevronDown, Key } from "lucide-react-native";
 import { countryLookup } from "../../../lib/countryData";
 export default function AppPhoneInput({
   onChangeNumber,
@@ -23,6 +23,7 @@ export default function AppPhoneInput({
   );
 
   const handleModal = useCallback(() => {
+    Keyboard.dismiss();
     pickerRef.current?.present();
   }, []);
 
@@ -110,6 +111,7 @@ export default function AppPhoneInput({
           autoComplete="tel"
           keyboardType="phone-pad"
           onChangeText={handlePhoneNumber}
+          autoFocus={true}
         />
       </View>
 

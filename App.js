@@ -14,6 +14,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
+SystemUI.setBackgroundColorAsync("#364156");
 
 import AppNavigator from "./app/navigation/AppNavigator";
 import navigationTheme from "./app/navigation/navigationTheme";
@@ -25,14 +27,43 @@ import { colors } from "./app/config";
 import SignUpScreen from "./app/screens/auth/SignUpScreen";
 
 export default function App() {
+  const { session, isLoading, needsWallet } = useAuth();
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
-    <FormProvider>
-      <GestureHandlerRootView style={styles.container}>
-        <BottomSheetModalProvider>
-          <SignUpScreen />
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
-    </FormProvider>
+    <AuthProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <SafeAreaProvider>
+          <GestureHandlerRootView style={styles.flex}>
+            <BottomSheetModalProvider>
+              <StatusBar style="auto" />
+              <View style={styles.container}>
+                {session ? (
+                  <DataProvider>
+                    <FormProvider>
+                      <AppNavigator
+                        session={session}
+                        needsWallet={needsWallet}
+                      />
+                    </FormProvider>
+                  </DataProvider>
+                ) : (
+                  <FormProvider>
+                    <AppNavigator session={session} needsWallet={needsWallet} />
+                  </FormProvider>
+                )}
+              </View>
+            </BottomSheetModalProvider>
+          </GestureHandlerRootView>
+        </SafeAreaProvider>
+      </NavigationContainer>
+    </AuthProvider>
   );
 }
 

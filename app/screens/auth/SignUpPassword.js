@@ -71,7 +71,7 @@ function SignUpPassword({ navigation }) {
       // Structure the signup data
       const signUpData = isPhoneVerification
         ? {
-            phone: `+1${formData.phone}`,
+            phone: formData.phone,
             password: formData.password,
             options: {
               data: {
