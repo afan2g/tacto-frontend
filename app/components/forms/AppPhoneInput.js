@@ -18,19 +18,13 @@ export default function AppPhoneInput({
   const pickerRef = useRef(null);
   const [rawValue, setRawValue] = useState("");
   const [formattedValue, setFormattedValue] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(
     initialCountry || countryLookup["US"]
   );
 
   const handleModal = useCallback(() => {
-    if (isModalOpen) {
-      pickerRef.current?.dismiss();
-    } else {
-      pickerRef.current?.present();
-    }
-    setIsModalOpen((prev) => !prev);
-  }, [isModalOpen]);
+    pickerRef.current?.present();
+  }, []);
 
   const handleSelectCountry = useCallback(
     (country) => {
@@ -39,7 +33,6 @@ export default function AppPhoneInput({
       setRawValue("");
       setFormattedValue("");
       pickerRef.current?.dismiss();
-      setIsModalOpen(false);
     },
     [onChangeCountry]
   );
@@ -122,7 +115,6 @@ export default function AppPhoneInput({
 
       <CountryPickerModal
         ref={pickerRef}
-        initialCountry={selectedCountry}
         onSelectCountry={handleSelectCountry}
       />
     </View>

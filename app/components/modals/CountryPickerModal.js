@@ -13,11 +13,15 @@ import {
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import { BottomSheetModal, BottomSheetFlashList } from "@gorhom/bottom-sheet";
+import {
+  BottomSheetModal,
+  BottomSheetFlashList,
+  BottomSheetBackdrop,
+} from "@gorhom/bottom-sheet";
 import { sortedCountries } from "../../../lib/countryData";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
 
-const CountryPickerModal = forwardRef(({ onSelectCountry }, ref) => {
+const CountryPickerModal = forwardRef(({ onSelectCountry, onDismiss }, ref) => {
   const bottomSheetRef = useRef(null);
   const [search, setSearch] = useState("");
   const { handleSheetPositionChange } =
@@ -29,6 +33,7 @@ const CountryPickerModal = forwardRef(({ onSelectCountry }, ref) => {
     dismiss: () => {
       bottomSheetRef.current?.dismiss();
       setSearch(""); // Clear search when dismissing
+      onDismiss?.();
     },
   }));
 
@@ -72,6 +77,17 @@ const CountryPickerModal = forwardRef(({ onSelectCountry }, ref) => {
     [handleSelectCountry]
   );
 
+  const renderBackdrop = useCallback(
+    (props) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    []
+  );
+
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
@@ -79,6 +95,9 @@ const CountryPickerModal = forwardRef(({ onSelectCountry }, ref) => {
       keyboardBehavior="interactive"
       enableDynamicSizing={false}
       onChange={handleSheetPositionChange}
+      enablePanDownToClose={true}
+      backdropComponent={renderBackdrop}
+      onDismiss={() => setSearch("")}
     >
       <View style={styles.bottomSheetContent}>
         <View style={styles.searchContainer}>
