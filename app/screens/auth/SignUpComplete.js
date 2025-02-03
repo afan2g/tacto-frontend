@@ -17,12 +17,7 @@ function SignUpComplete({ navigation }) {
   });
 
   // Generate SVG component for display
-  const generateAvatarComponent = (
-    firstName,
-    lastName,
-    backgroundColor,
-    textColor
-  ) => (
+  const generateAvatarComponent = (initials, backgroundColor, textColor) => (
     <Svg height="80" width="80" xmlns="http://www.w3.org/2000/svg">
       <Circle cx="40" cy="40" r="40" fill={backgroundColor} />
       <SvgText
@@ -34,18 +29,13 @@ function SignUpComplete({ navigation }) {
         textAnchor="middle"
         alignmentBaseline="central"
       >
-        {`${firstName[0]}${lastName[0]}`}
+        {initials}
       </SvgText>
     </Svg>
   );
 
   // Generate SVG string for storage
-  const generateAvatarString = (
-    firstName,
-    lastName,
-    backgroundColor,
-    textColor
-  ) =>
+  const generateAvatarString = (initials, backgroundColor, textColor) =>
     `
     <svg height="80" width="80" xmlns="http://www.w3.org/2000/svg">
       <circle cx="40" cy="40" r="40" fill="${backgroundColor}" />
@@ -58,7 +48,7 @@ function SignUpComplete({ navigation }) {
         text-anchor="middle"
         alignment-baseline="central"
         dominant-baseline="middle"
-      >${firstName[0]}${lastName[0]}</text>
+      >${initials}</text>
     </svg>
   `.trim();
 
@@ -93,14 +83,16 @@ function SignUpComplete({ navigation }) {
   }, []);
 
   const generateNewAvatar = (fullName) => {
-    const [firstName, lastName] = fullName.split(" ");
+    const split = fullName.split(" ");
+    const firstName = split[0];
+    const lastName = split.length > 1 ? split[split.length - 1] : "";
+    const initials = `${firstName[0] || ""}${lastName[0] || ""}`;
     const backgroundColor = colors.blackShade10;
     const textColor = getRandomContrastingColor(backgroundColor);
 
     setAvatarColors({ background: backgroundColor, text: textColor });
     const avatarComponent = generateAvatarComponent(
-      firstName,
-      lastName,
+      initials,
       backgroundColor,
       textColor
     );
@@ -126,10 +118,12 @@ function SignUpComplete({ navigation }) {
 
       // Upload avatar if it's generated (not a URL)
       if (profile && !profile.avatar_url) {
-        const [firstName, lastName] = profile.full_name.split(" ");
+        const split = profile.full_name.split(" ");
+        const firstName = split[0];
+        const lastName = split.length > 1 ? split[split.length - 1] : "";
+        const initials = `${firstName[0] || ""}${lastName[0] || ""}`;
         const svgString = generateAvatarString(
-          firstName,
-          lastName,
+          initials,
           avatarColors.background,
           avatarColors.text
         );
