@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   StyleSheet,
@@ -10,10 +11,10 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import { ChevronLeft } from "lucide-react-native";
+import debounce from "lodash.debounce";
 
 import { supabase } from "../../../lib/supabase";
-import debounce from "lodash.debounce";
-import { ChevronLeft } from "lucide-react-native";
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
 import { AppButton, Header, Screen } from "../../components/primitives";
@@ -21,12 +22,40 @@ import { useFormData } from "../../contexts/FormContext";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { clientValidation } from "../../validation/clientValidation";
+import ProgressBar from "../../components/ProgressBar";
 
-function SignUpUsername({ navigation }) {
-  const { formData, updateFormData } = useFormData();
+function SignUpUsername({ navigation, route }) {
+  const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(false);
+
+  // Handle hardware back press
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        handleBack();
+        return true;
+      }
+    );
+    return () => backHandler.remove();
+  }, [navigation]);
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      // Do something when the screen is focused
+      updateProgress(route.name);
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [route.name])
+  );
 
   // Server-side validation
   const validateUsernameServer = async (username) => {
@@ -37,9 +66,7 @@ function SignUpUsername({ navigation }) {
           username_input: username,
         }
       );
-
       if (rpcError) throw rpcError;
-
       return {
         success: data.valid === true,
         error: data.error || null,
@@ -53,7 +80,7 @@ function SignUpUsername({ navigation }) {
     }
   };
 
-  // Client-side validation with debounce
+  // Debounced client-side validation
   const debouncedClientValidation = useCallback(
     debounce((value) => {
       const validationResult = clientValidation.username(value);
@@ -63,43 +90,38 @@ function SignUpUsername({ navigation }) {
     []
   );
 
-  // Cleanup on unmount
+  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       debouncedClientValidation.cancel();
     };
   }, [debouncedClientValidation]);
 
-  // Handle input change - only client validation
+  // Handle input change and update validation
   const handleInputChange = (value) => {
     const trimmedValue = value.trim().toLowerCase();
     updateFormData({ username: trimmedValue });
-
     if (!trimmedValue) {
       setError("");
       setIsValid(false);
       return;
     }
-
     debouncedClientValidation(trimmedValue);
   };
 
-  // Final submission with server validation
+  // Final submission with server-side validation
   const handleUsernameSubmit = async () => {
     if (!formData.username || !isValid) {
       return;
     }
-
     setIsLoading(true);
     try {
       const serverValidation = await validateUsernameServer(formData.username);
-
       if (!serverValidation.success) {
         setError(serverValidation.error);
         setIsValid(false);
         return;
       }
-
       navigation.navigate(routes.SIGNUPFULLNAME);
     } catch (err) {
       setError("Failed to validate username. Please try again.");
@@ -112,11 +134,7 @@ function SignUpUsername({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <ChevronLeft
-          color={colors.lightGray}
-          size={42}
-          onPress={() => navigation.goBack()}
-        />
+        <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Choose a username</Header>
       </View>
       <KeyboardAvoidingView
@@ -152,6 +170,8 @@ function SignUpUsername({ navigation }) {
                   isValid && !isLoading ? handleUsernameSubmit : undefined
                 }
               />
+              <ProgressBar />
+
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
@@ -190,8 +210,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "flex-end",
-    paddingBottom: 20,
-    marginHorizontal: 10,
+    paddingBottom: 5,
+    marginTop: 10,
   },
   header: {
     paddingLeft: 5,

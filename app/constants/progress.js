@@ -1,0 +1,8 @@
+export const PROGRESS_STEPS = {
+  USERNAME: 0,
+  FULLNAME: 0.2,
+  EMAIL: 0.4,
+  PASSWORD: 0.6,
+  VERIFY: 0.8,
+  WALLET: 1.0,
+};

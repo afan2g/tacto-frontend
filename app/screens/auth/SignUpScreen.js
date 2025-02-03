@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Button,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js/mobile";
 import { clientValidation } from "../../validation/clientValidation";
 import { supabase } from "../../../lib/supabase";
@@ -28,21 +29,20 @@ import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
 import AppPhoneInput from "../../components/forms/AppPhoneInput";
 import { countryLookup } from "../../../lib/countryData";
-
-function SignUpScreen({ navigation }) {
-  const { formData, updateFormData } = useFormData();
+import ProgressBar from "../../components/ProgressBar";
+function SignUpScreen({ navigation, route }) {
+  const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [inputType, setInputType] = useState("email"); // Default to email
   const [phoneNumber, setPhoneNumber] = useState("");
   const [country, setCountry] = useState(countryLookup["US"]);
-
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        navigation.goBack();
+        handleBack();
         return true;
       }
     );
@@ -50,6 +50,20 @@ function SignUpScreen({ navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
+  useFocusEffect(
+    useCallback(() => {
+      // Do something when the screen is focused
+      updateProgress(route.name);
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [route.name])
+  );
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
   const validateInput = useCallback(() => {
     if (!formData.identifier) {
       setError("This field is required");
@@ -168,11 +182,7 @@ function SignUpScreen({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <ChevronLeft
-          color={colors.lightGray}
-          size={42}
-          onPress={() => navigation.goBack()}
-        />
+        <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>
           Enter your {inputType === "email" ? "email" : "phone number"}
         </Header>
@@ -225,6 +235,7 @@ function SignUpScreen({ navigation }) {
                   />
                 </View>
               )}
+              <ProgressBar />
               <ErrorMessage error={error} visible={!!error} />
 
               <AppButton
@@ -265,11 +276,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "flex-end",
-    paddingBottom: 20,
-    marginHorizontal: 10,
+    paddingBottom: 5,
+    marginTop: 10,
   },
   header: {
     paddingLeft: 5,
+  },
+  progressContainer: {
+    borderTopWidth: 2,
+    borderTopColor: colors.fadedGray,
   },
   content: {
     flex: 1,

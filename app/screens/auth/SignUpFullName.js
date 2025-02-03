@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   StyleSheet,
@@ -20,23 +21,38 @@ import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
+import ProgressBar from "../../components/ProgressBar";
 
-function SignUpFullName({ navigation }) {
-  const { formData, updateFormData } = useFormData();
+function SignUpFullName({ navigation, route }) {
+  const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
-
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        navigation.goBack();
+        handleBack();
         return true;
       }
     );
 
     return () => backHandler.remove();
   }, [navigation]);
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      // Do something when the screen is focused
+      updateProgress(route.name);
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [route.name])
+  );
 
   const handleInputChange = (value) => {
     setError("");
@@ -69,17 +85,14 @@ function SignUpFullName({ navigation }) {
     };
     updateFormData(updatedFormData);
     console.log("Form data with parsed names:", updatedFormData);
+
     navigation.navigate(routes.SIGNUPIDENTIFIER);
   };
 
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <ChevronLeft
-          color={colors.lightGray}
-          size={42}
-          onPress={() => navigation.goBack()}
-        />
+        <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>What's your name?</Header>
       </View>
       <KeyboardAvoidingView
@@ -113,6 +126,8 @@ function SignUpFullName({ navigation }) {
                 value={formData.fullName}
                 onSubmitEditing={isValid ? submitFullName : undefined}
               />
+              <ProgressBar />
+
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
@@ -151,12 +166,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "flex-end",
-    paddingBottom: 20,
-    marginHorizontal: 10,
+    paddingBottom: 5,
+    marginTop: 10,
   },
   header: {
     paddingLeft: 5,
   },
+
   content: {
     flex: 1,
     justifyContent: "flex-end",

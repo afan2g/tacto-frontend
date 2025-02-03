@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import RootNavigator from "./RootNavigator";
 import routes from "./routes";
-
 import {
   LandingScreen,
   SignUpComplete,
@@ -34,7 +33,7 @@ function AppNavigator() {
     >
       {!session ? (
         // Non-authenticated stack
-        <Stack.Group>
+        <Stack.Group screenOptions={{ animation: "none" }}>
           {console.log("rendering non-authenticated stack")}
           <Stack.Screen name={routes.LANDING} component={LandingScreen} />
           <Stack.Screen name={routes.LOGIN} component={LoginNavigator} />

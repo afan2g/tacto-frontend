@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -12,8 +12,9 @@ import {
   Pressable,
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
+import { parsePhoneNumber } from "libphonenumber-js/mobile";
+import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "../../../lib/supabase";
-
 import {
   AppButton,
   AppText,
@@ -25,19 +26,17 @@ import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
-import { parsePhoneNumber } from "libphonenumber-js/mobile";
-
-function SignUpVerify({ navigation }) {
-  const { formData, updateFormData } = useFormData();
+import ProgressBar from "../../components/ProgressBar";
+function SignUpVerify({ navigation, route }) {
+  const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const isPhoneVerification = formData.phone != null;
-
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        navigation.goBack();
+        handleBack();
         return true;
       }
     );
@@ -45,6 +44,20 @@ function SignUpVerify({ navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
+  useFocusEffect(
+    useCallback(() => {
+      // Do something when the screen is focused
+      updateProgress(route.name);
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [route.name])
+  );
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
   const handleInputChange = (value) => {
     setError("");
     updateFormData({ verificationCode: value });
@@ -142,11 +155,7 @@ function SignUpVerify({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <ChevronLeft
-          color={colors.lightGray}
-          size={42}
-          onPress={() => navigation.goBack()}
-        />
+        <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Verify your account</Header>
       </View>
 
@@ -194,6 +203,7 @@ function SignUpVerify({ navigation }) {
                   <AppText style={{ color: colors.yellow }}>Resend</AppText>
                 </Pressable>
               </View>
+              <ProgressBar />
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
@@ -243,7 +253,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "flex-end",
     paddingBottom: 20,
-    marginHorizontal: 10,
+    marginTop: 10,
   },
   header: {
     paddingLeft: 5,

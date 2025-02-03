@@ -1,5 +1,4 @@
-//(No Changes to signuppassword.js)
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -12,8 +11,8 @@ import {
   Platform,
 } from "react-native";
 import { supabase } from "../../../lib/supabase";
+import { useFocusEffect } from "@react-navigation/native";
 import { clientValidation } from "../../validation/clientValidation";
-
 import { AppButton, Screen, Header } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
 import routes from "../../navigation/routes";
@@ -21,24 +20,41 @@ import { colors, fonts } from "../../config";
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
 import { ChevronLeft } from "lucide-react-native";
-
-function SignUpPassword({ navigation }) {
-  const { formData, updateFormData } = useFormData();
+import { PROGRESS_STEPS } from "../../constants/progress";
+import ProgressBar from "../../components/ProgressBar";
+function SignUpPassword({ navigation, route }) {
+  const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const isPhoneVerification = formData.phone != null;
+  const progress = PROGRESS_STEPS.PASSWORD;
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        navigation.goBack();
+        handleBack();
         return true;
       }
     );
+
     return () => backHandler.remove();
   }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Do something when the screen is focused
+      updateProgress(route.name);
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [route.name])
+  );
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
   const handleInputChange = (value) => {
     setError("");
@@ -124,13 +140,10 @@ function SignUpPassword({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <ChevronLeft
-          color={colors.lightGray}
-          size={42}
-          onPress={() => navigation.goBack()}
-        />
+        <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Create a password</Header>
       </View>
+      <View style={styles.progressContainer}></View>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -163,6 +176,7 @@ function SignUpPassword({ navigation }) {
                 value={formData.password}
                 onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
               />
+              <ProgressBar />
               <ErrorMessage error={error} />
               {showLoginPrompt && (
                 <View style={styles.loginPrompt}>
@@ -219,10 +233,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "flex-end",
     paddingBottom: 20,
-    marginHorizontal: 10,
+    marginTop: 10,
   },
   header: {
     paddingLeft: 5,
+  },
+  progressContainer: {
+    borderTopWidth: 2,
+    borderTopColor: colors.fadedGray,
   },
   content: {
     flex: 1,
