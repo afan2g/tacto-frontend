@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
@@ -24,6 +24,7 @@ import { ChevronLeft } from "lucide-react-native";
 import ProgressBar from "../../components/ProgressBar";
 
 function SignUpFullName({ navigation, route }) {
+  const inputRef = useRef(null);
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
@@ -47,6 +48,7 @@ function SignUpFullName({ navigation, route }) {
     useCallback(() => {
       // Do something when the screen is focused
       updateProgress(route.name);
+
       return () => {
         // Do something when the screen is unfocused
         // Useful for cleanup functions
@@ -69,7 +71,6 @@ function SignUpFullName({ navigation, route }) {
   };
 
   const submitFullName = () => {
-    Keyboard.dismiss();
     const validationResult = clientValidation.fullName(formData.fullName);
     if (!validationResult.success) {
       setError(validationResult.error || "Invalid name");
@@ -107,6 +108,7 @@ function SignUpFullName({ navigation, route }) {
           >
             <View style={styles.content}>
               <TextInput
+                ref={inputRef}
                 autoComplete="name"
                 autoCorrect={false}
                 autoFocus={true}
@@ -191,6 +193,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingLeft: 10,
     height: 40,
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   next: {
     marginTop: 10,

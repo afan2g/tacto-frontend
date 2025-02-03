@@ -9,7 +9,7 @@ import { colors } from "../config";
 import { useFormData } from "../contexts/FormContext";
 
 const TOTAL_STEPS = 5;
-const SEPARATOR_WIDTH = 0;
+const SEPARATOR_WIDTH = 2;
 
 const SPRING_CONFIG = {
   damping: 15,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   progressContainer: {
-    height: 2,
+    height: 4,
     width: "100%",
     backgroundColor: "transparent",
     overflow: "hidden",

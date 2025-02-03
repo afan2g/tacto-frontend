@@ -24,8 +24,6 @@ import { FormProvider } from "./app/contexts/FormContext";
 import { AuthProvider } from "./app/contexts/AuthContext";
 import { DataProvider } from "./app/contexts/DataContext";
 import { colors } from "./app/config";
-import SignUpScreen from "./app/screens/auth/SignUpScreen";
-import ProgressBarScreen from "./app/testing/ProgressBarScreen";
 
 export default function App() {
   const { session, isLoading, needsWallet } = useAuth();
@@ -65,7 +63,6 @@ export default function App() {
       </NavigationContainer>
     </AuthProvider>
   );
-  // return <ProgressBarScreen />;
 }
 
 const styles = StyleSheet.create({

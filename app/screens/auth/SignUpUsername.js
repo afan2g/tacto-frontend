@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
@@ -23,9 +23,11 @@ import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { clientValidation } from "../../validation/clientValidation";
 import ProgressBar from "../../components/ProgressBar";
+import { set } from "zod";
 
 function SignUpUsername({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
+  const inputRef = useRef(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(false);
@@ -43,6 +45,15 @@ function SignUpUsername({ navigation, route }) {
   }, [navigation]);
 
   const handleBack = () => {
+    updateFormData({
+      progress: 0,
+      prevProgress: 0,
+      username: "",
+      fullName: "",
+      email: "",
+      password: "",
+      identifier: null,
+    });
     navigation.goBack();
   };
 
@@ -149,6 +160,7 @@ function SignUpUsername({ navigation, route }) {
           >
             <View style={styles.content}>
               <TextInput
+                ref={inputRef}
                 autoComplete="username"
                 autoCorrect={false}
                 autoFocus={true}
@@ -234,6 +246,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingLeft: 10,
     height: 40,
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   next: {
     marginTop: 10,

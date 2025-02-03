@@ -124,18 +124,21 @@ export default function AppPhoneInput({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: {},
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    borderRadius: 5,
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderColor: colors.fadedGray,
+    borderWidth: 1,
   },
   pickerButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 5,
     paddingLeft: 10,
     paddingRight: 5,
     borderRightWidth: 1,

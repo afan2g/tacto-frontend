@@ -260,6 +260,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingLeft: 10,
     height: 40,
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   next: {
     marginTop: 10,

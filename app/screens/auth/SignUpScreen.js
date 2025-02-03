@@ -169,7 +169,6 @@ function SignUpScreen({ navigation, route }) {
         }
       }
 
-      Keyboard.dismiss();
       navigation.navigate(routes.SIGNUPPASSWORD);
     } catch (err) {
       console.error("Submission error:", err);
@@ -210,30 +209,28 @@ function SignUpScreen({ navigation, route }) {
                   value={phoneNumber}
                 />
               ) : (
-                <View style={styles.keyboardView}>
-                  <TextInput
-                    autoComplete="email"
-                    autoCorrect={false}
-                    autoFocus={true}
-                    inputMode="email"
-                    numberOfLines={1}
-                    onChangeText={handleEmailChange}
-                    placeholder="Email"
-                    placeholderTextColor={colors.softGray}
-                    returnKeyType="done"
-                    selectionColor={colors.lightGray}
-                    value={formData.identifier}
-                    style={[
-                      styles.text,
-                      {
-                        fontFamily: formData.identifier
-                          ? fonts.black
-                          : fonts.italic,
-                      },
-                    ]}
-                    onSubmitEditing={isValid ? handleSubmit : undefined}
-                  />
-                </View>
+                <TextInput
+                  autoComplete="email"
+                  autoCorrect={false}
+                  autoFocus={true}
+                  inputMode="email"
+                  numberOfLines={1}
+                  onChangeText={handleEmailChange}
+                  placeholder="Email"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  selectionColor={colors.lightGray}
+                  value={formData.identifier}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.identifier
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  onSubmitEditing={isValid ? handleSubmit : undefined}
+                />
               )}
               <ProgressBar />
               <ErrorMessage error={error} visible={!!error} />
@@ -304,6 +301,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingLeft: 10,
     height: 40,
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   next: {
     marginTop: 10,

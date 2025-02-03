@@ -282,6 +282,9 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     textAlignVertical: "center",
     height: 40,
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   resend: {
     position: "absolute",
