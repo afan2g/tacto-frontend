@@ -186,6 +186,8 @@ function SignUpScreen({ navigation, route }) {
           Enter your {inputType === "email" ? "email" : "phone number"}
         </Header>
       </View>
+      <ProgressBar />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -209,30 +211,31 @@ function SignUpScreen({ navigation, route }) {
                   value={phoneNumber}
                 />
               ) : (
-                <TextInput
-                  autoComplete="email"
-                  autoCorrect={false}
-                  autoFocus={true}
-                  inputMode="email"
-                  numberOfLines={1}
-                  onChangeText={handleEmailChange}
-                  placeholder="Email"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="done"
-                  selectionColor={colors.lightGray}
-                  value={formData.identifier}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: formData.identifier
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                  ]}
-                  onSubmitEditing={isValid ? handleSubmit : undefined}
-                />
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    autoComplete="email"
+                    autoCorrect={false}
+                    autoFocus={true}
+                    inputMode="email"
+                    numberOfLines={1}
+                    onChangeText={handleEmailChange}
+                    placeholder="Email"
+                    placeholderTextColor={colors.softGray}
+                    returnKeyType="done"
+                    selectionColor={colors.lightGray}
+                    value={formData.identifier}
+                    style={[
+                      styles.text,
+                      {
+                        fontFamily: formData.identifier
+                          ? fonts.black
+                          : fonts.italic,
+                      },
+                    ]}
+                    onSubmitEditing={isValid ? handleSubmit : undefined}
+                  />
+                </View>
               )}
-              <ProgressBar />
               <ErrorMessage error={error} visible={!!error} />
 
               <AppButton
@@ -290,20 +293,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: "100%",
   },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: colors.blueShade10,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    borderWidth: 2,
+    borderColor: colors.fadedGray,
+  },
   text: {
     color: colors.lightGray,
-    fontSize: 18,
+    fontSize: 20,
     width: "100%",
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
-    lineHeight: 22,
     overflow: "hidden",
-    paddingLeft: 10,
-    height: 40,
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    lineHeight: 25,
   },
   next: {
     marginTop: 10,

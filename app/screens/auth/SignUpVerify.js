@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
-  TextInput,
   View,
   BackHandler,
   Keyboard,
@@ -11,6 +10,7 @@ import {
   Platform,
   Pressable,
 } from "react-native";
+import { OtpInput } from "react-native-otp-entry";
 import { ChevronLeft } from "lucide-react-native";
 import { parsePhoneNumber } from "libphonenumber-js/mobile";
 import { useFocusEffect } from "@react-navigation/native";
@@ -27,11 +27,44 @@ import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import ProgressBar from "../../components/ProgressBar";
+
 function SignUpVerify({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const isPhoneVerification = formData.phone != null;
+
+  // ---------------------------
+  // OTP Resend Cooldown Timer
+  // ---------------------------
+  const COOLDOWN_PERIOD = 60; // seconds
+  const [lastSentTime, setLastSentTime] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  // Effect that updates the countdown timer every second
+  useEffect(() => {
+    let interval = null;
+    if (lastSentTime) {
+      interval = setInterval(() => {
+        const secondsElapsed = Math.floor((Date.now() - lastSentTime) / 1000);
+        const remaining = COOLDOWN_PERIOD - secondsElapsed;
+
+        if (remaining <= 0) {
+          setTimeLeft(0);
+          clearInterval(interval);
+        } else {
+          setTimeLeft(remaining);
+        }
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [lastSentTime]);
+
+  // ---------------------------
+  // Existing Handlers & Effects
+  // ---------------------------
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -40,17 +73,14 @@ function SignUpVerify({ navigation, route }) {
         return true;
       }
     );
-
     return () => backHandler.remove();
   }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
-      // Do something when the screen is focused
       updateProgress(route.name);
       return () => {
-        // Do something when the screen is unfocused
-        // Useful for cleanup functions
+        // Cleanup if needed when the screen is unfocused.
       };
     }, [route.name])
   );
@@ -58,22 +88,28 @@ function SignUpVerify({ navigation, route }) {
   const handleBack = () => {
     navigation.goBack();
   };
+
   const handleInputChange = (value) => {
     setError("");
     updateFormData({ verificationCode: value });
   };
 
+  // ---------------------------
+  // Modified Resend OTP Function
+  // ---------------------------
   const handleResendOTP = async () => {
+    // Prevent resending OTP if the cooldown is active
+    if (timeLeft > 0) return;
+
     try {
       let result;
-
       if (isPhoneVerification) {
         // Resend phone OTP
         result = await supabase.auth.resend({
           type: "sms",
           phone: formData.phone,
         });
-        console.log("sent phone OTP to ", formData.phone);
+        console.log("Sent phone OTP to", formData.phone);
       } else {
         // Resend email OTP
         result = await supabase.auth.resend({
@@ -87,10 +123,12 @@ function SignUpVerify({ navigation, route }) {
 
       if (result.error) {
         setError(result.error.message);
-        console.log("error", result.error);
+        console.log("Error", result.error);
       } else {
         setError("");
-        console.log("success");
+        console.log("OTP resent successfully");
+        // Start the cooldown by recording the current time.
+        setLastSentTime(Date.now());
       }
     } catch (error) {
       setError(error.message);
@@ -158,6 +196,7 @@ function SignUpVerify({ navigation, route }) {
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Verify your account</Header>
       </View>
+      <ProgressBar />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -176,34 +215,21 @@ function SignUpVerify({ navigation, route }) {
             </AppText>
             <View style={styles.content}>
               <View style={styles.textInputContainer}>
-                <TextInput
-                  autoComplete="one-time-code"
-                  autoCorrect={false}
-                  autoFocus={true}
-                  inputMode="numeric"
-                  numberOfLines={1}
-                  onChangeText={handleInputChange}
-                  placeholder="Verification code"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="done"
-                  selectionColor={colors.lightGray}
-                  selectionHandleColor={colors.lightGray}
-                  maxLength={6}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: formData.verificationCode
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                  ]}
-                  value={formData.verificationCode}
+                <OtpInput
+                  numberOfDigits={6}
+                  focusColor={colors.yellow}
+                  blurOnFilled={true}
+                  type="numeric"
+                  theme={{
+                    containerStyle: styles.inputContainer,
+                    pinCodeContainerStyle: styles.pinCodeContainer,
+                    pinCodeTextStyle: styles.pinCodeText,
+                    focusedPinCodeContainerStyle:
+                      styles.focusedPinCodeContainer,
+                    inputsContainerStyle: { gap: 10 },
+                  }}
                 />
-                <Pressable onPress={handleResendOTP} style={styles.resend}>
-                  <AppText style={{ color: colors.yellow }}>Resend</AppText>
-                </Pressable>
               </View>
-              <ProgressBar />
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
@@ -212,6 +238,22 @@ function SignUpVerify({ navigation, route }) {
                 style={styles.next}
                 disabled={loading}
               />
+              <Pressable
+                onPress={handleResendOTP}
+                style={styles.resendContainer}
+                disabled={timeLeft > 0}
+              >
+                <AppText
+                  style={[
+                    styles.resendText,
+                    {
+                      color: timeLeft > 0 ? colors.lightGray : colors.yellow,
+                    },
+                  ]}
+                >
+                  {timeLeft > 0 ? `Resend in ${timeLeft}s` : "Resend"}
+                </AppText>
+              </Pressable>
               <SSOOptions
                 grayText="Have an account? "
                 yellowText="Sign In"
@@ -233,12 +275,12 @@ const styles = StyleSheet.create({
   grayText: {
     paddingHorizontal: 20,
     color: colors.softGray,
-    fontSize: 30,
+    fontSize: 24,
     textAlign: "left",
   },
   yellowText: {
     color: colors.yellow,
-    fontSize: 30,
+    fontSize: 24,
   },
   keyboardView: {
     flex: 1,
@@ -268,30 +310,39 @@ const styles = StyleSheet.create({
   textInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.fadedGray,
-    borderRadius: 5,
-    marginTop: 10,
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    paddingVertical: 10,
   },
-  text: {
+  resendContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 10,
+  },
+  resendText: {
     color: colors.lightGray,
-    fontSize: 18,
-    width: "100%",
-    lineHeight: 22,
-    overflow: "hidden",
-    paddingLeft: 10,
-    textAlignVertical: "center",
-    height: 40,
-  },
-  resend: {
-    position: "absolute",
-    right: 10,
+    textAlign: "center",
+    fontSize: 16,
   },
   next: {
     marginTop: 10,
+  },
+  inputContainer: {
+    width: "auto",
+  },
+  pinCodeContainer: {
+    flex: 1,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: colors.fadedGray,
+    backgroundColor: colors.blueShade10,
+  },
+  pinCodeText: {
+    color: colors.lightGray,
+    fontSize: 28,
+    fontFamily: fonts.black,
+  },
+  focusedPinCodeContainer: {
+    borderColor: colors.yellow,
   },
 });
 

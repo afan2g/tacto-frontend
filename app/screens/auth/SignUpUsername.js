@@ -33,7 +33,6 @@ import { set } from "zod";
 
 function SignUpUsername({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
-  const inputRef = useRef(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(false);
@@ -154,6 +153,8 @@ function SignUpUsername({ navigation, route }) {
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Choose a username</Header>
       </View>
+      <ProgressBar />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -165,30 +166,33 @@ function SignUpUsername({ navigation, route }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <TextInput
-                ref={inputRef}
-                autoComplete="username"
-                autoCorrect={false}
-                autoFocus={true}
-                onChangeText={handleInputChange}
-                numberOfLines={1}
-                placeholder="Username"
-                placeholderTextColor={colors.softGray}
-                returnKeyType="done"
-                selectionColor={colors.lightGray}
-                accessibilityLabel="Username input"
-                style={[
-                  styles.text,
-                  {
-                    fontFamily: formData.username ? fonts.black : fonts.italic,
-                  },
-                ]}
-                value={formData.username}
-                onSubmitEditing={
-                  isValid && !isLoading ? handleUsernameSubmit : undefined
-                }
-              />
-              <ProgressBar />
+              <View style={styles.inputContainer}>
+                <TextInput
+                  autoComplete="username"
+                  autoCorrect={false}
+                  autoFocus={true}
+                  onChangeText={handleInputChange}
+                  numberOfLines={1}
+                  multiline={false}
+                  placeholder="Username"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  selectionColor={colors.lightGray}
+                  accessibilityLabel="Username input"
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.username
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  value={formData.username}
+                  onSubmitEditing={
+                    isValid && !isLoading ? handleUsernameSubmit : undefined
+                  }
+                />
+              </View>
 
               <ErrorMessage error={error} />
               <AppButton
@@ -241,20 +245,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: "100%",
   },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: colors.blueShade10,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    borderWidth: 2,
+    borderColor: colors.fadedGray,
+  },
   text: {
     color: colors.lightGray,
-    fontSize: 18,
+    fontSize: 20,
     width: "100%",
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
-    lineHeight: 22,
     overflow: "hidden",
-    paddingLeft: 10,
-    height: 40,
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    lineHeight: 25,
   },
   next: {
     marginTop: 10,

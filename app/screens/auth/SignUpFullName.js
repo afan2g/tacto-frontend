@@ -96,6 +96,8 @@ function SignUpFullName({ navigation, route }) {
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>What's your name?</Header>
       </View>
+      <ProgressBar />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -107,29 +109,31 @@ function SignUpFullName({ navigation, route }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <TextInput
-                ref={inputRef}
-                autoComplete="name"
-                autoCorrect={false}
-                autoFocus={true}
-                numberOfLines={1}
-                onChangeText={handleInputChange}
-                placeholder="Full name"
-                placeholderTextColor={colors.softGray}
-                returnKeyType="done"
-                selectionColor={colors.lightGray}
-                selectionHandleColor={colors.lightGray}
-                style={[
-                  styles.text,
-                  {
-                    fontFamily: formData.fullName ? fonts.black : fonts.italic,
-                  },
-                ]}
-                value={formData.fullName}
-                onSubmitEditing={isValid ? submitFullName : undefined}
-              />
-              <ProgressBar />
-
+              <View style={styles.inputContainer}>
+                <TextInput
+                  ref={inputRef}
+                  autoComplete="name"
+                  autoCorrect={false}
+                  autoFocus={true}
+                  numberOfLines={1}
+                  onChangeText={handleInputChange}
+                  placeholder="Full name"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  selectionColor={colors.lightGray}
+                  selectionHandleColor={colors.lightGray}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.fullName
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  value={formData.fullName}
+                  onSubmitEditing={isValid ? submitFullName : undefined}
+                />
+              </View>
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
@@ -182,20 +186,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: "100%",
   },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: colors.blueShade10,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    borderWidth: 2,
+    borderColor: colors.fadedGray,
+  },
   text: {
     color: colors.lightGray,
-    fontSize: 18,
+    fontSize: 20,
     width: "100%",
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
-    lineHeight: 22,
     overflow: "hidden",
-    paddingLeft: 10,
-    height: 40,
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    lineHeight: 25,
   },
   next: {
     marginTop: 10,

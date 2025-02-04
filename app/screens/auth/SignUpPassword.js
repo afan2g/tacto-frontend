@@ -10,8 +10,10 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import { supabase } from "../../../lib/supabase";
 import { useFocusEffect } from "@react-navigation/native";
+import { OtpInput } from "react-native-otp-entry";
+
+import { supabase } from "../../../lib/supabase";
 import { clientValidation } from "../../validation/clientValidation";
 import { AppButton, Screen, Header } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
@@ -82,7 +84,6 @@ function SignUpPassword({ navigation, route }) {
 
       setIsSubmitting(true);
       setError("");
-      Keyboard.dismiss();
 
       // Structure the signup data
       const signUpData = isPhoneVerification
@@ -143,7 +144,8 @@ function SignUpPassword({ navigation, route }) {
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Create a password</Header>
       </View>
-      <View style={styles.progressContainer}></View>
+      <ProgressBar />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -176,7 +178,7 @@ function SignUpPassword({ navigation, route }) {
                 value={formData.password}
                 onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
               />
-              <ProgressBar />
+
               <ErrorMessage error={error} />
               {showLoginPrompt && (
                 <View style={styles.loginPrompt}>
