@@ -142,11 +142,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: SEPARATOR_WIDTH,
     height: "100%",
-    backgroundColor: colors.lightGray,
+    backgroundColor: colors.black,
+
     zIndex: 2,
   },
   endSeparator: {
-    backgroundColor: colors.lightGray,
+    backgroundColor: colors.black,
   },
   progressSegment: {
     position: "absolute",

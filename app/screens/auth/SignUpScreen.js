@@ -302,12 +302,10 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
     marginTop: 10,
   },
-  backButton: {
-    padding: 8,
-  },
   header: {
     paddingLeft: 5,
   },
+
   keyboardView: {
     flex: 1,
     backgroundColor: colors.blue,

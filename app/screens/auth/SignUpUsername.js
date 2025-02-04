@@ -220,14 +220,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 0,
   },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flexGrow: 1,
-    justifyContent: "space-between",
-    paddingTop: 20,
-  },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "flex-start",
@@ -237,6 +229,14 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingLeft: 5,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
+    justifyContent: "space-between",
+    paddingTop: 20,
   },
   content: {
     flex: 1,
