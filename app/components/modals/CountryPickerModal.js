@@ -6,13 +6,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from "react";
-import {
-  Text,
-  View,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
+import { Text, View, StyleSheet, TextInput } from "react-native";
 import {
   BottomSheetModal,
   BottomSheetFlashList,
@@ -20,7 +14,8 @@ import {
 } from "@gorhom/bottom-sheet";
 import { sortedCountries } from "../../../lib/countryData";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
-
+import CountryItem from "../CountryItem";
+import { colors, fonts } from "../../config";
 const CountryPickerModal = forwardRef(({ onSelectCountry, onDismiss }, ref) => {
   const bottomSheetRef = useRef(null);
   const [search, setSearch] = useState("");
@@ -63,17 +58,7 @@ const CountryPickerModal = forwardRef(({ onSelectCountry, onDismiss }, ref) => {
   );
 
   const renderItem = useCallback(
-    ({ item }) => (
-      <TouchableOpacity
-        style={styles.countryItem}
-        onPress={() => handleSelectCountry(item)}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.flag}>{item.flag}</Text>
-        <Text style={styles.countryName}>{item.name}</Text>
-        <Text style={styles.dialCode}>{item.dial_code}</Text>
-      </TouchableOpacity>
-    ),
+    ({ item }) => <CountryItem country={item} onSelect={handleSelectCountry} />,
     [handleSelectCountry]
   );
 
@@ -98,16 +83,19 @@ const CountryPickerModal = forwardRef(({ onSelectCountry, onDismiss }, ref) => {
       enablePanDownToClose={true}
       backdropComponent={renderBackdrop}
       onDismiss={() => setSearch("")}
+      backgroundStyle={styles.bottomSheetBackground}
     >
       <View style={styles.bottomSheetContent}>
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
             placeholder="Search country or dial code..."
+            placeholderTextColor={colors.fadedGray}
             onChangeText={handleSearchChange}
             autoCorrect={false}
             autoCapitalize="none"
             clearButtonMode="while-editing"
+            selectionColor={colors.lightGray}
           />
         </View>
 
@@ -128,41 +116,31 @@ const CountryPickerModal = forwardRef(({ onSelectCountry, onDismiss }, ref) => {
 });
 
 const styles = StyleSheet.create({
+  bottomSheetBackground: {
+    backgroundColor: colors.black,
+  },
   bottomSheetContent: {
     flex: 1,
   },
   searchContainer: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-    backgroundColor: "white",
+    borderBottomColor: colors.blackTint10,
+    backgroundColor: colors.black,
   },
   searchInput: {
     height: 40,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: colors.blackTint10,
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 16,
+    color: colors.lightGray,
+    fontFamily: fonts.medium,
   },
-  countryItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-    backgroundColor: "white",
-  },
+
   flag: {
     fontSize: 24,
     marginRight: 12,
-  },
-  countryName: {
-    flex: 1,
-    fontSize: 16,
-  },
-  dialCode: {
-    fontSize: 16,
-    color: "#64748B",
   },
 });
 

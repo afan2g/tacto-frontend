@@ -9,7 +9,7 @@ import { colors } from "../config";
 import { useFormData } from "../contexts/FormContext";
 
 const TOTAL_STEPS = 5;
-const SEPARATOR_WIDTH = 8;
+const SEPARATOR_WIDTH = 5;
 
 const SPRING_CONFIG = {
   damping: 15,

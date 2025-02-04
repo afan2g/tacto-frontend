@@ -157,27 +157,31 @@ function SignUpPassword({ navigation, route }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <TextInput
-                autoComplete="new-password"
-                autoCorrect={false}
-                autoFocus={true}
-                numberOfLines={1}
-                onChangeText={handleInputChange}
-                placeholder="Password"
-                placeholderTextColor={colors.softGray}
-                returnKeyType="done"
-                secureTextEntry
-                selectionColor={colors.lightGray}
-                selectionHandleColor={colors.lightGray}
-                style={[
-                  styles.text,
-                  {
-                    fontFamily: formData.password ? fonts.black : fonts.italic,
-                  },
-                ]}
-                value={formData.password}
-                onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
-              />
+              <View style={styles.inputContainer}>
+                <TextInput
+                  autoComplete="new-password"
+                  autoCorrect={false}
+                  autoFocus={true}
+                  numberOfLines={1}
+                  onChangeText={handleInputChange}
+                  placeholder="Password"
+                  placeholderTextColor={colors.softGray}
+                  returnKeyType="done"
+                  secureTextEntry
+                  selectionColor={colors.lightGray}
+                  selectionHandleColor={colors.lightGray}
+                  style={[
+                    styles.text,
+                    {
+                      fontFamily: formData.password
+                        ? fonts.black
+                        : fonts.italic,
+                    },
+                  ]}
+                  value={formData.password}
+                  onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
+                />
+              </View>
 
               <ErrorMessage error={error} />
               {showLoginPrompt && (
@@ -222,6 +226,16 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 0,
   },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingBottom: 5,
+    marginTop: 10,
+  },
+  header: {
+    paddingLeft: 5,
+  },
   keyboardView: {
     flex: 1,
   },
@@ -230,20 +244,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingTop: 20,
   },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "flex-end",
-    paddingBottom: 20,
-    marginTop: 10,
-  },
-  header: {
-    paddingLeft: 5,
-  },
-  progressContainer: {
-    borderTopWidth: 2,
-    borderTopColor: colors.fadedGray,
-  },
   content: {
     flex: 1,
     justifyContent: "flex-end",
@@ -251,20 +251,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: "100%",
   },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: colors.blueShade10,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    borderWidth: 2,
+    borderColor: colors.fadedGray,
+  },
   text: {
     color: colors.lightGray,
-    fontSize: 18,
+    fontSize: 20,
     width: "100%",
-    borderColor: colors.fadedGray,
-    borderWidth: 1,
-    borderRadius: 5,
-    lineHeight: 22,
     overflow: "hidden",
-    paddingLeft: 10,
-    height: 40,
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    lineHeight: 25,
   },
   next: {
     marginTop: 10,

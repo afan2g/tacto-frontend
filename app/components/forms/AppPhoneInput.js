@@ -131,6 +131,7 @@ export default function AppPhoneInput({
           keyboardType="phone-pad"
           onChangeText={handlePhoneNumber}
           autoFocus={true}
+          selectionColor={colors.lightGray}
         />
       </View>
 

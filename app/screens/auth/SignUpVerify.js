@@ -38,7 +38,7 @@ function SignUpVerify({ navigation, route }) {
   // OTP Resend Cooldown Timer
   // ---------------------------
   const COOLDOWN_PERIOD = 60; // seconds
-  const [lastSentTime, setLastSentTime] = useState(null);
+  const [lastSentTime, setLastSentTime] = useState(Date.now());
   const [timeLeft, setTimeLeft] = useState(0);
 
   // Effect that updates the countdown timer every second
@@ -251,7 +251,7 @@ function SignUpVerify({ navigation, route }) {
                     },
                   ]}
                 >
-                  {timeLeft > 0 ? `Resend in ${timeLeft}s` : "Resend"}
+                  {timeLeft > 0 ? `Resend (${timeLeft}s)` : "Resend"}
                 </AppText>
               </Pressable>
               <SSOOptions
@@ -272,6 +272,16 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 0,
   },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingBottom: 5,
+    marginTop: 10,
+  },
+  header: {
+    paddingLeft: 5,
+  },
   grayText: {
     paddingHorizontal: 20,
     color: colors.softGray,
@@ -289,16 +299,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "space-between",
     paddingTop: 20,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "flex-end",
-    paddingBottom: 20,
-    marginTop: 10,
-  },
-  header: {
-    paddingLeft: 5,
   },
   content: {
     flex: 1,
