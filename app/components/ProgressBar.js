@@ -9,7 +9,7 @@ import { colors } from "../config";
 import { useFormData } from "../contexts/FormContext";
 
 const TOTAL_STEPS = 5;
-const SEPARATOR_WIDTH = 2;
+const SEPARATOR_WIDTH = 8;
 
 const SPRING_CONFIG = {
   damping: 15,
@@ -20,22 +20,21 @@ const SPRING_CONFIG = {
   restSpeedThreshold: 2,
 };
 
-const ProgressSegment = ({ start, end, step, currentStep, containerWidth }) => {
-  // Initialize as filled if it's a previous step, empty otherwise
+const ProgressSegment = ({ step, start, end, currentStep, containerWidth }) => {
+  // Shift the progress segment right to avoid overlapping the separator.
+  const adjustedStart = start * containerWidth + SEPARATOR_WIDTH;
   const progress = useSharedValue(step < currentStep - 1 ? 1 : 0);
 
   useEffect(() => {
-    // Animate if this is the current step OR if we're going backwards
-    if (
-      step === currentStep - 1 ||
-      (step > currentStep - 1 && progress.value === 1)
-    ) {
+    const isCurrentStep = step === currentStep - 1;
+    const isGoingBackwards = step > currentStep - 1 && progress.value === 1;
+
+    if (isCurrentStep || isGoingBackwards) {
       progress.value = withSpring(
         step <= currentStep - 1 ? 1 : 0,
         SPRING_CONFIG
       );
     } else if (step < currentStep - 1) {
-      // Immediately fill previous steps without animation
       progress.value = 1;
     }
   }, [currentStep, step]);
@@ -50,13 +49,23 @@ const ProgressSegment = ({ start, end, step, currentStep, containerWidth }) => {
 
   return (
     <Animated.View
-      style={[
-        styles.progressSegment,
-        segmentStyle,
-        {
-          left: start * containerWidth + SEPARATOR_WIDTH / 2,
-        },
-      ]}
+      style={[styles.progressSegment, segmentStyle, { left: adjustedStart }]}
+    />
+  );
+};
+
+const Separator = ({ position, isEnd }) => {
+  // For the end separator, subtract the SEPARATOR_WIDTH so it remains within the container.
+  const stylePosition =
+    position !== undefined
+      ? isEnd
+        ? { left: position - SEPARATOR_WIDTH }
+        : { left: position }
+      : { right: 0 };
+
+  return (
+    <View
+      style={[styles.separator, isEnd && styles.endSeparator, stylePosition]}
     />
   );
 };
@@ -81,19 +90,19 @@ const ProgressBar = () => {
     <View style={styles.container}>
       <View style={styles.progressContainer} onLayout={onLayoutHandler}>
         <View style={styles.track}>
-          {segments.map((segment) => (
-            <View
-              key={`separator-${segment.id}`}
-              style={[
-                styles.separator,
-                {
-                  left: segment.start * containerWidth - SEPARATOR_WIDTH / 2,
-                },
-              ]}
-            />
-          ))}
+          {/* Render separators including the end separator */}
+          {[...segments, { id: "end", start: 1 }].map(
+            (separator, index, array) => (
+              <Separator
+                key={`separator-${separator.id}`}
+                position={separator.start * containerWidth}
+                isEnd={index === array.length - 1}
+              />
+            )
+          )}
         </View>
 
+        {/* Render progress segments once the container width is known */}
         {containerWidth > 0 &&
           segments.map((segment) => (
             <ProgressSegment
@@ -113,6 +122,7 @@ const ProgressBar = () => {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+    overflow: "hidden",
   },
   progressContainer: {
     height: 4,
@@ -132,12 +142,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: SEPARATOR_WIDTH,
     height: "100%",
-    backgroundColor: "transparent",
+    backgroundColor: colors.lightGray,
+    zIndex: 2,
+  },
+  endSeparator: {
+    backgroundColor: colors.lightGray,
   },
   progressSegment: {
     position: "absolute",
     height: "100%",
     backgroundColor: colors.yellow,
+    zIndex: 1,
   },
 });
 

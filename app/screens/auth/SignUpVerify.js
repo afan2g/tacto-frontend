@@ -272,6 +272,9 @@ const styles = StyleSheet.create({
     borderColor: colors.fadedGray,
     borderRadius: 5,
     marginTop: 10,
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   text: {
     color: colors.lightGray,
@@ -282,9 +285,6 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     textAlignVertical: "center",
     height: 40,
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
   },
   resend: {
     position: "absolute",
