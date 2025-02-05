@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -13,8 +13,6 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js/mobile";
-import { clientValidation } from "../../validation/clientValidation";
-import { supabase } from "../../../lib/supabase";
 import {
   Screen,
   Header,
@@ -22,39 +20,39 @@ import {
   AppText,
 } from "../../components/primitives";
 import { useFormData } from "../../contexts/FormContext";
-import routes from "../../navigation/routes";
-import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft, Mail, Phone } from "lucide-react-native";
 import AppPhoneInput from "../../components/forms/AppPhoneInput";
 import { countryLookup } from "../../../lib/countryData";
 import ProgressBar from "../../components/ProgressBar";
+import routes from "../../navigation/routes";
+import { colors, fonts } from "../../config";
 
-const INPUT_TYPES = {
-  EMAIL: "email",
-  PHONE: "phone",
-};
-
-function SignUpScreen({ navigation, route }) {
+const SignUpScreen = ({ navigation, route }) => {
   const { formData, updateFormData, updateProgress } = useFormData();
-  const [error, setError] = useState("");
-  const [isValid, setIsValid] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [inputType, setInputType] = useState(INPUT_TYPES.EMAIL);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [country, setCountry] = useState(countryLookup["US"]);
+  const [formState, setFormState] = useState({
+    isEmail: true,
+    error: "",
+    isValid: false,
+    isLoading: false,
+    phoneNumber: "",
+    country: countryLookup["US"],
+  });
 
-  // Back handler setup
+  // Handle back navigation
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      handleBack
+      () => {
+        navigation.goBack();
+        return true;
+      }
     );
     return () => backHandler.remove();
   }, []);
 
-  // Progress tracking
+  // Track progress
   useFocusEffect(
     useCallback(() => {
       // Do something when the screen is focused
@@ -66,48 +64,44 @@ function SignUpScreen({ navigation, route }) {
     }, [route.name])
   );
 
-  const handleBack = () => {
-    navigation.goBack();
-    return true;
+  // Validate input based on type
+  const validateInput = (value, isEmailType = formState.isEmail) => {
+    if (!value) {
+      return { isValid: false, error: "This field is required" };
+    }
+
+    if (isEmailType) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return {
+        isValid: emailRegex.test(value),
+        error: emailRegex.test(value) ? "" : "Invalid email format",
+      };
+    }
+
+    try {
+      const isValid = isValidPhoneNumber(value, formState.country.code);
+      return {
+        isValid,
+        error: isValid ? "" : "Please enter a valid phone number",
+      };
+    } catch {
+      return {
+        isValid: false,
+        error: "Invalid phone number format",
+      };
+    }
   };
 
-  const validateInput = useCallback(() => {
-    if (!formData.identifier) {
-      setError("This field is required");
-      setIsValid(false);
-      return;
-    }
+  // Handle input type toggle
+  const toggleInputType = (isEmail) => {
+    if (isEmail === formState.isEmail) return;
 
-    if (inputType === INPUT_TYPES.EMAIL) {
-      const validationResult = clientValidation.email(formData.identifier);
-      setError(
-        validationResult.success
-          ? ""
-          : validationResult.error || "Invalid email format"
-      );
-      setIsValid(validationResult.success);
-    } else {
-      try {
-        const isValid = isValidPhoneNumber(phoneNumber, country.code);
-        setError(isValid ? "" : "Please enter a valid phone number");
-        setIsValid(isValid);
-      } catch (err) {
-        setError("Invalid phone number format");
-        setIsValid(false);
-      }
-    }
-  }, [formData.identifier, inputType, phoneNumber, country.code]);
-
-  useEffect(() => {
-    validateInput();
-  }, [formData.identifier, phoneNumber, country, validateInput]);
-
-  const handleInputTypeChange = (newType) => {
-    if (newType === inputType) return;
-
-    setError("");
-    setIsValid(false);
-    setInputType(newType);
+    setFormState((prev) => ({
+      ...prev,
+      isEmail,
+      error: "",
+      isValid: false,
+    }));
     updateFormData({
       identifier: "",
       email: null,
@@ -115,85 +109,78 @@ function SignUpScreen({ navigation, route }) {
     });
   };
 
-  const handleEmailChange = (value) => {
-    setError("");
-    updateFormData({ identifier: value.trim() });
+  // Handle input changes
+  const handleInputChange = (value) => {
+    const input = formState.isEmail ? value.trim() : value;
+    const validation = validateInput(input);
+
+    setFormState((prev) => ({
+      ...prev,
+      error: validation.error,
+      isValid: validation.isValid,
+    }));
+
+    if (formState.isEmail) {
+      updateFormData({ identifier: input });
+    } else {
+      setFormState((prev) => ({ ...prev, phoneNumber: value }));
+      updateFormData({ identifier: value });
+    }
   };
 
-  const handlePhoneNumberChange = useCallback(
-    (value) => {
-      setPhoneNumber(value || "");
-      updateFormData({ identifier: value });
-    },
-    [updateFormData]
-  );
-
-  const handleCountryChange = useCallback(
-    (newCountry) => {
-      setCountry(newCountry);
-      validateInput();
-    },
-    [validateInput]
-  );
-
+  // Handle form submission
   const handleSubmit = async () => {
-    if (!isValid) return;
+    if (!formState.isValid) return;
 
     try {
-      setIsLoading(true);
-      setError("");
+      setFormState((prev) => ({ ...prev, isLoading: true, error: "" }));
 
-      const identifier = formData.identifier;
-
-      if (inputType === INPUT_TYPES.EMAIL) {
-        const validationResult = clientValidation.email(identifier);
-        if (!validationResult.success) {
-          setError(validationResult.error || "Invalid email");
-          return;
-        }
-        updateFormData({ email: identifier.toLowerCase(), phone: null });
+      if (formState.isEmail) {
+        updateFormData({
+          email: formData.identifier.toLowerCase(),
+          phone: null,
+        });
       } else {
-        try {
-          if (!isValidPhoneNumber(phoneNumber, country.code)) {
-            setError("Invalid phone number");
-            return;
-          }
-          const cleanedPhone = parsePhoneNumber(
-            phoneNumber,
-            country.code
-          ).format("E.164");
-          updateFormData({ phone: cleanedPhone, email: null });
-        } catch (err) {
-          setError("Invalid phone number format");
-          return;
-        }
+        const cleanedPhone = parsePhoneNumber(
+          formState.phoneNumber,
+          formState.country.code
+        ).format("E.164");
+        updateFormData({
+          phone: cleanedPhone,
+          email: null,
+        });
       }
 
       navigation.navigate(routes.SIGNUPPASSWORD);
     } catch (err) {
-      console.error("Submission error:", err);
-      setError("An error occurred. Please try again.");
+      setFormState((prev) => ({
+        ...prev,
+        error: "An error occurred. Please try again.",
+      }));
     } finally {
-      setIsLoading(false);
+      setFormState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
-  const InputTypeButton = ({ type, icon: Icon, isSelected }) => (
+  const InputTypeButton = ({ isEmail, icon: Icon }) => (
     <TouchableOpacity
       style={[
         styles.inputTypeButton,
-        isSelected && styles.inputTypeButtonSelected,
+        formState.isEmail === isEmail && styles.inputTypeButtonSelected,
       ]}
-      onPress={() => handleInputTypeChange(type)}
+      onPress={() => toggleInputType(isEmail)}
     >
-      <Icon size={24} color={isSelected ? colors.yellow : colors.lightGray} />
+      <Icon
+        size={24}
+        color={formState.isEmail === isEmail ? colors.yellow : colors.lightGray}
+      />
       <AppText
         style={[
           styles.inputTypeText,
-          isSelected && styles.inputTypeTextSelected,
+          formState.isEmail === isEmail && styles.inputTypeTextSelected,
         ]}
       >
-        {type === INPUT_TYPES.EMAIL ? "Email" : "Phone"}
+        {isEmail ? "Email" : "Phone"}
       </AppText>
     </TouchableOpacity>
   );
@@ -201,14 +188,17 @@ function SignUpScreen({ navigation, route }) {
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <ChevronLeft color={colors.lightGray} size={42} />
         </TouchableOpacity>
         <Header style={styles.header}>
-          Enter your{" "}
-          {inputType === INPUT_TYPES.EMAIL ? "email" : "phone number"}
+          Enter your {formState.isEmail ? "email" : "phone number"}
         </Header>
       </View>
+
       <ProgressBar />
 
       <KeyboardAvoidingView
@@ -223,39 +213,21 @@ function SignUpScreen({ navigation, route }) {
           >
             <View style={styles.content}>
               <View style={styles.inputTypeContainer}>
-                <InputTypeButton
-                  type={INPUT_TYPES.EMAIL}
-                  icon={Mail}
-                  isSelected={inputType === INPUT_TYPES.EMAIL}
-                />
-                <InputTypeButton
-                  type={INPUT_TYPES.PHONE}
-                  icon={Phone}
-                  isSelected={inputType === INPUT_TYPES.PHONE}
-                />
+                <InputTypeButton isEmail={true} icon={Mail} />
+                <InputTypeButton isEmail={false} icon={Phone} />
               </View>
 
-              {inputType === INPUT_TYPES.PHONE ? (
-                <AppPhoneInput
-                  onChangeNumber={handlePhoneNumberChange}
-                  onChangeCountry={handleCountryChange}
-                  initialCountry={country}
-                  value={phoneNumber}
-                />
-              ) : (
+              {formState.isEmail ? (
                 <View style={styles.inputContainer}>
                   <TextInput
                     autoComplete="email"
                     autoCorrect={false}
-                    autoFocus={true}
+                    autoFocus
                     inputMode="email"
-                    numberOfLines={1}
-                    onChangeText={handleEmailChange}
+                    value={formData.identifier}
+                    onChangeText={handleInputChange}
                     placeholder="Email"
                     placeholderTextColor={colors.softGray}
-                    returnKeyType="done"
-                    selectionColor={colors.lightGray}
-                    value={formData.identifier}
                     style={[
                       styles.text,
                       {
@@ -264,19 +236,35 @@ function SignUpScreen({ navigation, route }) {
                           : fonts.italic,
                       },
                     ]}
-                    onSubmitEditing={isValid ? handleSubmit : undefined}
+                    onSubmitEditing={
+                      formState.isValid ? handleSubmit : undefined
+                    }
                   />
                 </View>
+              ) : (
+                <AppPhoneInput
+                  onChangeNumber={handleInputChange}
+                  onChangeCountry={(country) =>
+                    setFormState((prev) => ({ ...prev, country }))
+                  }
+                  initialCountry={formState.country}
+                  value={formState.phoneNumber}
+                />
               )}
-              <ErrorMessage error={error} visible={!!error} />
+
+              <ErrorMessage
+                error={formState.error}
+                visible={!!formState.error}
+              />
 
               <AppButton
                 color="yellow"
                 onPress={handleSubmit}
-                title={isLoading ? "Checking..." : "Next"}
+                title={formState.isLoading ? "Checking..." : "Next"}
                 style={styles.next}
-                disabled={!isValid || isLoading}
+                disabled={!formState.isValid || formState.isLoading}
               />
+
               <SSOOptions
                 grayText="Have an account? "
                 yellowText="Sign In"
@@ -288,7 +276,7 @@ function SignUpScreen({ navigation, route }) {
       </KeyboardAvoidingView>
     </Screen>
   );
-}
+};
 
 const styles = StyleSheet.create({
   screen: {
@@ -305,7 +293,6 @@ const styles = StyleSheet.create({
   header: {
     paddingLeft: 5,
   },
-
   keyboardView: {
     flex: 1,
     backgroundColor: colors.blue,
