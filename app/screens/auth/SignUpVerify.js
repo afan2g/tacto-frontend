@@ -33,7 +33,7 @@ function SignUpVerify({ navigation, route }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const isPhoneVerification = formData.phone != null;
-
+  console.log("formData:", formData);
   // ---------------------------
   // OTP Resend Cooldown Timer
   // ---------------------------
@@ -216,10 +216,15 @@ function SignUpVerify({ navigation, route }) {
             <View style={styles.content}>
               <View style={styles.textInputContainer}>
                 <OtpInput
-                  numberOfDigits={6}
-                  focusColor={colors.yellow}
                   blurOnFilled={true}
+                  focusColor={colors.yellow}
+                  numberOfDigits={6}
+                  textInputProps={{
+                    accessibilityLabel: "Verification code input",
+                  }}
                   type="numeric"
+                  onFilled={verifyOTP}
+                  onTextChange={handleInputChange}
                   theme={{
                     containerStyle: styles.inputContainer,
                     pinCodeContainerStyle: styles.pinCodeContainer,

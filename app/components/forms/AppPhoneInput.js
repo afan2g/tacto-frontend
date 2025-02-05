@@ -1,6 +1,12 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
-import { Text, TextInput, TouchableOpacity } from "react-native";
-import { View, StyleSheet, Keyboard } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  Keyboard,
+  TextInput,
+} from "react-native";
 import {
   AsYouType,
   isValidPhoneNumber,
@@ -8,6 +14,8 @@ import {
   getExampleNumber,
 } from "libphonenumber-js/mobile";
 import examples from "libphonenumber-js/mobile/examples";
+import { TextInput as TextInputPaper, useTheme } from "react-native-paper";
+
 import { colors, fonts } from "../../config";
 import CountryPickerModal from "../modals/CountryPickerModal";
 import { ChevronDown } from "lucide-react-native";
@@ -25,7 +33,7 @@ export default function AppPhoneInput({
     initialCountry || countryLookup["US"]
   );
   const [template, setTemplate] = useState("");
-
+  const [focused, setFocused] = useState(false);
   useEffect(() => {
     const newTemplate = getExampleNumber(
       selectedCountry.code,
@@ -106,8 +114,13 @@ export default function AppPhoneInput({
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
+    <View style={[styles.container]}>
+      <View
+        style={[
+          styles.inputContainer,
+          focused && { borderColor: colors.yellow },
+        ]}
+      >
         <TouchableOpacity style={styles.pickerButton} onPress={handleModal}>
           <Text style={styles.flag}>{selectedCountry.flag}</Text>
           <ChevronDown
@@ -118,20 +131,23 @@ export default function AppPhoneInput({
         </TouchableOpacity>
 
         <TextInput
+          // {...theme.formInput}
           value={formattedValue}
           placeholder={template}
           placeholderTextColor={colors.softGray}
           style={[
             styles.phoneInput,
-            {
-              fontFamily: rawValue ? fonts.black : fonts.italic,
-            },
+            // {
+            //   fontFamily: rawValue ? fonts.black : fonts.italic,
+            // },
           ]}
           autoComplete="tel"
           keyboardType="phone-pad"
           onChangeText={handlePhoneNumber}
           autoFocus={true}
           selectionColor={colors.lightGray}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
         />
       </View>
 
@@ -166,12 +182,14 @@ const styles = StyleSheet.create({
   },
   chevronDown: {
     marginHorizontal: 5,
+    marginTop: 2,
   },
   phoneInput: {
     flex: 1,
     height: 50, // Reduced from 50
-    fontSize: 20,
+    fontSize: 18,
     paddingHorizontal: 10,
     color: colors.lightGray,
+    fontFamily: fonts.bold,
   },
 });

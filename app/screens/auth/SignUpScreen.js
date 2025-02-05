@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
-  TextInput,
   BackHandler,
   Keyboard,
   KeyboardAvoidingView,
@@ -10,9 +9,12 @@ import {
   Platform,
   TouchableWithoutFeedback,
   TouchableOpacity,
+  Text,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js/mobile";
+import { TextInput, useTheme } from "react-native-paper";
+
 import {
   Screen,
   Header,
@@ -39,6 +41,7 @@ const SignUpScreen = ({ navigation, route }) => {
     phoneNumber: "",
     country: countryLookup["US"],
   });
+  const theme = useTheme();
 
   // Handle back navigation
   useEffect(() => {
@@ -218,29 +221,21 @@ const SignUpScreen = ({ navigation, route }) => {
               </View>
 
               {formState.isEmail ? (
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    autoComplete="email"
-                    autoCorrect={false}
-                    autoFocus
-                    inputMode="email"
-                    value={formData.identifier}
-                    onChangeText={handleInputChange}
-                    placeholder="Email"
-                    placeholderTextColor={colors.softGray}
-                    style={[
-                      styles.text,
-                      {
-                        fontFamily: formData.identifier
-                          ? fonts.black
-                          : fonts.italic,
-                      },
-                    ]}
-                    onSubmitEditing={
-                      formState.isValid ? handleSubmit : undefined
-                    }
-                  />
-                </View>
+                <TextInput
+                  {...theme.formInput}
+                  theme={{
+                    colors: {
+                      onSurfaceVariant: colors.softGray,
+                    },
+                  }}
+                  label={<Text style={{ fontFamily: fonts.bold }}>Email</Text>}
+                  autoComplete="email"
+                  autoCorrect={false}
+                  autoFocus
+                  value={formData.identifier}
+                  onChangeText={handleInputChange}
+                  onSubmitEditing={formState.isValid ? handleSubmit : undefined}
+                />
               ) : (
                 <AppPhoneInput
                   onChangeNumber={handleInputChange}

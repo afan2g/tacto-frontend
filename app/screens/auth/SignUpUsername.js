@@ -9,17 +9,17 @@ import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   StyleSheet,
-  TextInput,
   BackHandler,
   Keyboard,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   ScrollView,
   Platform,
+  Text,
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import debounce from "lodash.debounce";
-
+import { TextInput, useTheme } from "react-native-paper";
 import { supabase } from "../../../lib/supabase";
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
@@ -29,14 +29,13 @@ import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { clientValidation } from "../../validation/clientValidation";
 import ProgressBar from "../../components/ProgressBar";
-import { set } from "zod";
 
 function SignUpUsername({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(false);
-
+  const theme = useTheme();
   // Handle hardware back press
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -166,34 +165,25 @@ function SignUpUsername({ navigation, route }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  autoComplete="username"
-                  autoCorrect={false}
-                  autoFocus={true}
-                  onChangeText={handleInputChange}
-                  numberOfLines={1}
-                  multiline={false}
-                  placeholder="Username"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="done"
-                  selectionColor={colors.lightGray}
-                  accessibilityLabel="Username input"
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: formData.username
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                  ]}
-                  value={formData.username}
-                  onSubmitEditing={
-                    isValid && !isLoading ? handleUsernameSubmit : undefined
-                  }
-                />
-              </View>
-
+              <TextInput
+                {...theme.formInput}
+                theme={{
+                  colors: {
+                    onSurfaceVariant: colors.softGray,
+                  },
+                }}
+                label={<Text style={{ fontFamily: fonts.bold }}>Username</Text>}
+                accessibilityLabel="Username input"
+                autoComplete="username"
+                autoCorrect={false}
+                autoFocus={true}
+                onChangeText={handleInputChange}
+                onSubmitEditing={
+                  isValid && !isLoading ? handleUsernameSubmit : undefined
+                }
+                returnKeyType="done"
+                value={formData.username}
+              />
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"
@@ -242,7 +232,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingBottom: Platform.OS === "ios" ? 20 : 40,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     width: "100%",
   },
   inputContainer: {
@@ -256,11 +246,8 @@ const styles = StyleSheet.create({
     borderColor: colors.fadedGray,
   },
   text: {
-    color: colors.lightGray,
-    fontSize: 20,
-    width: "100%",
-    overflow: "hidden",
-    lineHeight: 25,
+    fontFamily: fonts.black,
+    backgroundColor: colors.blueShade10,
   },
   next: {
     marginTop: 10,

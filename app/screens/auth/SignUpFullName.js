@@ -3,14 +3,15 @@ import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   StyleSheet,
-  TextInput,
   BackHandler,
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
   TouchableWithoutFeedback,
+  Text,
 } from "react-native";
+import { TextInput, useTheme } from "react-native-paper";
 import { clientValidation } from "../../validation/clientValidation"; // Add this import
 
 import parseFullName from "../../utils/parseFullName";
@@ -28,6 +29,7 @@ function SignUpFullName({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
+  const theme = useTheme();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -109,31 +111,26 @@ function SignUpFullName({ navigation, route }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  ref={inputRef}
-                  autoComplete="name"
-                  autoCorrect={false}
-                  autoFocus={true}
-                  numberOfLines={1}
-                  onChangeText={handleInputChange}
-                  placeholder="Full name"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="done"
-                  selectionColor={colors.lightGray}
-                  selectionHandleColor={colors.lightGray}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: formData.fullName
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                  ]}
-                  value={formData.fullName}
-                  onSubmitEditing={isValid ? submitFullName : undefined}
-                />
-              </View>
+              <TextInput
+                {...theme.formInput}
+                theme={{
+                  colors: {
+                    onSurfaceVariant: colors.softGray,
+                  },
+                }}
+                label={
+                  <Text style={{ fontFamily: fonts.black }}>Full name</Text>
+                }
+                ref={inputRef}
+                value={formData.fullName}
+                onChangeText={handleInputChange}
+                autoComplete="name"
+                autoCorrect={false}
+                autoFocus={true}
+                returnKeyType="done"
+                onSubmitEditing={isValid ? submitFullName : undefined}
+                accessibilityLabel="Username input"
+              />
               <ErrorMessage error={error} />
               <AppButton
                 color="yellow"

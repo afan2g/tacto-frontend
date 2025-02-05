@@ -1,29 +1,26 @@
 import { setupCrypto } from "./lib/setupCrypto";
 setupCrypto();
-
-import React from "react";
-
+import * as SystemUI from "expo-system-ui";
+SystemUI.setBackgroundColorAsync("#364156");
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 GoogleSignin.configure({
   webClientId:
     "785186330408-e70b787gaulcvn8m1qdfqvulem1su9q2.apps.googleusercontent.com",
 });
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { View, StyleSheet, ActivityIndicator, Keyboard } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { StatusBar } from "expo-status-bar";
-import * as SystemUI from "expo-system-ui";
-SystemUI.setBackgroundColorAsync("#364156");
-
+import { PaperProvider, MD3DarkTheme } from "react-native-paper";
 import AppNavigator from "./app/navigation/AppNavigator";
 import navigationTheme from "./app/navigation/navigationTheme";
 import useAuth from "./app/hooks/useAuth";
-import { FormProvider } from "./app/contexts/FormContext";
-import { AuthProvider } from "./app/contexts/AuthContext";
-import { DataProvider } from "./app/contexts/DataContext";
+import { AuthProvider, DataProvider, FormProvider } from "./app/contexts";
 import { colors } from "./app/config";
+import { theme } from "./app/themes/themes";
 
 export default function App() {
   const { session, isLoading, needsWallet } = useAuth();
@@ -35,33 +32,38 @@ export default function App() {
     );
   }
   return (
-    <AuthProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <SafeAreaProvider>
-          <GestureHandlerRootView style={styles.flex}>
-            <BottomSheetModalProvider>
-              <StatusBar style="auto" />
-              <View style={styles.container}>
-                {session ? (
-                  <DataProvider>
+    <PaperProvider theme={theme}>
+      <AuthProvider>
+        <NavigationContainer theme={navigationTheme}>
+          <SafeAreaProvider>
+            <GestureHandlerRootView style={styles.flex}>
+              <BottomSheetModalProvider>
+                <StatusBar style="auto" />
+                <View style={styles.container}>
+                  {session ? (
+                    <DataProvider>
+                      <FormProvider>
+                        <AppNavigator
+                          session={session}
+                          needsWallet={needsWallet}
+                        />
+                      </FormProvider>
+                    </DataProvider>
+                  ) : (
                     <FormProvider>
                       <AppNavigator
                         session={session}
                         needsWallet={needsWallet}
                       />
                     </FormProvider>
-                  </DataProvider>
-                ) : (
-                  <FormProvider>
-                    <AppNavigator session={session} needsWallet={needsWallet} />
-                  </FormProvider>
-                )}
-              </View>
-            </BottomSheetModalProvider>
-          </GestureHandlerRootView>
-        </SafeAreaProvider>
-      </NavigationContainer>
-    </AuthProvider>
+                  )}
+                </View>
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
+          </SafeAreaProvider>
+        </NavigationContainer>
+      </AuthProvider>
+    </PaperProvider>
   );
 }
 

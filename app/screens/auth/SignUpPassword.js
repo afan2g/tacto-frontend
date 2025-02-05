@@ -2,17 +2,17 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
-  TextInput,
+  TextInput as RNTextInput,
   BackHandler,
   Keyboard,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   ScrollView,
   Platform,
+  Text,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { OtpInput } from "react-native-otp-entry";
-
+import { TextInput, useTheme } from "react-native-paper";
 import { supabase } from "../../../lib/supabase";
 import { clientValidation } from "../../validation/clientValidation";
 import { AppButton, Screen, Header } from "../../components/primitives";
@@ -30,8 +30,7 @@ function SignUpPassword({ navigation, route }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const isPhoneVerification = formData.phone != null;
-  const progress = PROGRESS_STEPS.PASSWORD;
-
+  const theme = useTheme();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -157,32 +156,23 @@ function SignUpPassword({ navigation, route }) {
             bounces={false}
           >
             <View style={styles.content}>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  autoComplete="new-password"
-                  autoCorrect={false}
-                  autoFocus={true}
-                  numberOfLines={1}
-                  onChangeText={handleInputChange}
-                  placeholder="Password"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="done"
-                  secureTextEntry
-                  selectionColor={colors.lightGray}
-                  selectionHandleColor={colors.lightGray}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: formData.password
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                  ]}
-                  value={formData.password}
-                  onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
-                />
-              </View>
-
+              <TextInput
+                {...theme.formInput}
+                theme={{
+                  colors: {
+                    onSurfaceVariant: colors.softGray,
+                  },
+                }}
+                label={<Text style={{ fontFamily: fonts.bold }}>Password</Text>}
+                autoComplete="new-password"
+                autoCorrect={false}
+                autoFocus
+                value={formData.password}
+                onChangeText={handleInputChange}
+                onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
+                secureTextEntry
+                returnKeyType="done"
+              />
               <ErrorMessage error={error} />
               {showLoginPrompt && (
                 <View style={styles.loginPrompt}>
