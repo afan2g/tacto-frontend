@@ -135,6 +135,52 @@ function SignUpVerify({ navigation, route }) {
     }
   };
 
+  const handleOTPComplete = async (value) => {
+    setLoading(true);
+    try {
+      let verifyResult;
+
+      if (isPhoneVerification) {
+        // Verify phone OTP
+        verifyResult = await supabase.auth.verifyOtp({
+          phone: formData.phone,
+          token: value,
+          type: "sms",
+        });
+      } else {
+        // Verify email OTP
+        verifyResult = await supabase.auth.verifyOtp({
+          email: formData.email,
+          token: value,
+          type: "email",
+        });
+      }
+
+      if (verifyResult.error) throw verifyResult.error;
+
+      // Get session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user?.id) throw new Error("Session not found");
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      console.log("Profile check in verify:", { profile, profileError });
+      if (profileError) throw profileError;
+
+      navigation.navigate(routes.SIGNUPGENERATEWALLET);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const verifyOTP = async () => {
     setLoading(true);
     try {
@@ -221,9 +267,10 @@ function SignUpVerify({ navigation, route }) {
                   numberOfDigits={6}
                   textInputProps={{
                     accessibilityLabel: "Verification code input",
+                    autoComplete: "one-time-code",
                   }}
                   type="numeric"
-                  onFilled={verifyOTP}
+                  onFilled={handleOTPComplete}
                   onTextChange={handleInputChange}
                   theme={{
                     containerStyle: styles.inputContainer,

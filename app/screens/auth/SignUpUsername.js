@@ -126,9 +126,6 @@ function SignUpUsername({ navigation, route }) {
 
   // Final submission with server-side validation
   const handleUsernameSubmit = async () => {
-    if (!formData.username || !isValid) {
-      return;
-    }
     setIsLoading(true);
     try {
       const serverValidation = await validateUsernameServer(formData.username);
@@ -190,7 +187,9 @@ function SignUpUsername({ navigation, route }) {
                 onPress={handleUsernameSubmit}
                 title={isLoading ? "Checking..." : "Next"}
                 style={styles.next}
-                disabled={isLoading || !isValid || !!error}
+                disabled={
+                  isLoading || !isValid || !!error || !formData.username
+                }
               />
               <SSOOptions
                 grayText="Have an account? "
