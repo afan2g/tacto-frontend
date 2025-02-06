@@ -102,32 +102,6 @@ function LoginScreen({ navigation }) {
           >
             <View style={styles.content}>
               <View style={styles.formContainer}>
-                {/* <TextInput
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  name="identifier"
-                  numberOfLines={1}
-                  multiline={false}
-                  onChangeText={(value) =>
-                    handleInputChange("identifier", value)
-                  }
-                  onSubmitEditing={() => passwordRef.current?.focus()}
-                  placeholder="Username, email, or phone #"
-                  placeholderTextColor={colors.softGray}
-                  returnKeyType="next"
-                  selectionColor={colors.lightGray}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: loginForm.identifier
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                    errors.username && styles.textError,
-                  ]}
-                  value={loginForm.identifier}
-                /> */}
                 <TextInput
                   {...theme.formInput}
                   theme={{
@@ -193,7 +167,7 @@ function LoginScreen({ navigation }) {
               <SSOOptions
                 grayText="Don't have an account? "
                 yellowText="Sign up"
-                onPress={() => navigation.navigate(routes.SIGNUPCREATE)}
+                onPress={() => navigation.navigate(routes.SIGNUPUSERNAME)}
               />
             </View>
           </ScrollView>
@@ -223,7 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingBottom: Platform.OS === "ios" ? 20 : 40,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     width: "100%",
   },
   formContainer: {
