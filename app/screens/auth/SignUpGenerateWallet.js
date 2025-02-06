@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, StyleSheet, Button, BackHandler } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { ethers } from "ethers";
+import { ethers, id } from "ethers";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { useFormData } from "../../contexts/FormContext";
 import { supabase } from "../../../lib/supabase";
 import { AppText, Header, Screen } from "../../components/primitives";
@@ -63,20 +62,19 @@ function SignUpGenerateWallet({ navigation }) {
 
       console.log("Profile check in wallet:", { profile, profileError });
 
-      // Check wallet
-      const { data: existingWallet, error: walletError } = await supabase
+      // Check if user has any wallets
+      const { data: existingWallets, error: walletError } = await supabase
         .from("wallets")
         .select("*")
-        .eq("id", session.user.id)
-        .single();
+        .eq("owner_id", session.user.id);
 
-      console.log("Wallet check:", { existingWallet, walletError });
+      console.log("Wallet check:", { existingWallets, walletError });
 
       if (walletError && walletError.code !== "PGRST116") {
         throw walletError;
       }
 
-      if (existingWallet) {
+      if (existingWallets && existingWallets.length > 0) {
         navigation.replace(routes.SIGNUPCOMPLETE);
         return;
       }
@@ -89,11 +87,14 @@ function SignUpGenerateWallet({ navigation }) {
   };
   const generateWallet = useCallback(() => {
     try {
-      const randomBytes = ethers.randomBytes(32);
+      const randomBytes = ethers.randomBytes(32); // generate random bytes
       const newWallet = ethers.Wallet.createRandom({
+        // create a new wallet. This creates a
         extraEntropy: randomBytes,
       });
       setWallet(newWallet);
+      const neuteredWallet = newWallet.neuter();
+      console.log("neuteredWallet", neuteredWallet);
       setError(null);
     } catch (error) {
       setError("Failed to generate wallet");
@@ -111,19 +112,6 @@ function SignUpGenerateWallet({ navigation }) {
         throw new Error("Authentication required");
       }
 
-      // Check again if wallet exists right before saving
-      const { data: existingWallet, error: checkError } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      if (existingWallet) {
-        // If wallet exists, just navigate to completion
-        navigation.navigate(routes.SIGNUPCOMPLETE);
-        return;
-      }
-
       // Save encrypted wallet to secure storage
       await SecureStore.setItemAsync(
         WALLET_STORAGE_KEY,
@@ -137,13 +125,21 @@ function SignUpGenerateWallet({ navigation }) {
       );
       console.log("Wallet saved to secure storage");
 
+      // Get neutered wallet info
+      const uncompressedPublicKey = wallet.publicKey;
+      const neuteredWallet = wallet.neuter();
       // Save public wallet info
       const publicInfo = {
-        id: session.user.id,
-        path: wallet.path || "m/44'/60'/0'/0/0",
-        address: ethers.getAddress(wallet.address),
-        public_key: wallet.publicKey,
-        index: 0,
+        owner_id: session.user.id,
+        name: "Primary Wallet", // Default name for first wallet
+        address: ethers.getAddress(neuteredWallet.address),
+        public_key: uncompressedPublicKey,
+        parent_fingerprint: neuteredWallet.parentFingerprint,
+        chain_code: neuteredWallet.chainCode,
+        path: neuteredWallet.path || "m/44'/60'/0'/0/0",
+        index: neuteredWallet.index,
+        depth: neuteredWallet.depth,
+        is_primary: true, // First wallet is primary
       };
 
       const { error: walletError } = await supabase

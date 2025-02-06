@@ -4,7 +4,7 @@ import Svg, { SvgUri } from "react-native-svg";
 import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
-
+import AppAvatar from "../AppAvatar";
 function UserCard({
   user,
   subtext,
@@ -15,72 +15,15 @@ function UserCard({
   disabled,
   scale = 1,
 }) {
-  const [avatarUrl, setAvatarUrl] = useState(null);
   const displayText = subtext === null ? null : subtext ?? user.username;
-  const size = 54 * scale;
 
   const scaleStyle = {
-    profilePic: {
-      height: size,
-      width: size,
-      borderRadius: size / 2,
-    },
     fullName: {
       fontSize: 20 * scale,
     },
     username: {
       fontSize: 15 * scale,
     },
-  };
-
-  useEffect(() => {
-    if (user.profilePicUrl) {
-      setAvatarUrl(user.profilePicUrl);
-    }
-  }, [user.profilePicUrl]);
-
-  const renderAvatar = () => {
-    const url = user.profilePicUrl;
-    const isSvg = url?.toLowerCase().endsWith(".svg");
-
-    if (!url) {
-      return (
-        <View
-          style={[
-            scaleStyle.profilePic,
-            styles.profilePic,
-            styles.placeholderAvatar,
-          ]}
-        >
-          <AppText style={styles.placeholderText}>
-            {user.full_name
-              ?.split(" ")
-              .map((name) => name?.[0] || "")
-              .join("") ||
-              user.fullName
-                ?.split(" ")
-                .map((name) => name?.[0] || "")
-                .join("")}
-          </AppText>
-        </View>
-      );
-    }
-
-    if (isSvg) {
-      return (
-        <View style={[scaleStyle.profilePic, styles.svgContainer]}>
-          <SvgUri uri={url} width={size} height={size} viewBox="0 0 80 80" />
-        </View>
-      );
-    } else {
-      return (
-        <Image
-          source={{ uri: url }}
-          resizeMode="cover"
-          style={[scaleStyle.profilePic, styles.profilePic]}
-        />
-      );
-    }
   };
 
   return (
@@ -92,7 +35,7 @@ function UserCard({
       unstable_pressDelay={200}
     >
       <View style={[styles.container, style]}>
-        {renderAvatar()}
+        <AppAvatar user={user} scale={scale} />
         <View style={styles.userNameContainer}>
           <AppText style={[scaleStyle.fullName, styles.fullName]}>
             {user.full_name || user.fullName}
@@ -121,15 +64,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     justifyContent: "flex-start",
   },
-  profilePic: {
-    overflow: "hidden",
-  },
-  svgContainer: {
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "transparent",
-  },
   userNameContainer: {
     alignItems: "flex-start",
     paddingHorizontal: 10,
@@ -141,16 +75,6 @@ const styles = StyleSheet.create({
   username: {
     fontFamily: fonts.light,
     color: colors.lightGray,
-  },
-  placeholderAvatar: {
-    backgroundColor: colors.blackShade10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  placeholderText: {
-    color: colors.lightGray,
-    fontSize: 20,
-    fontFamily: fonts.medium,
   },
 });
 
