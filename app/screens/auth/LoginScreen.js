@@ -7,12 +7,13 @@ import {
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
-  TextInput,
+  // TextInput,
+  Text,
   Alert,
   BackHandler,
 } from "react-native";
 import { supabase } from "../../../lib/supabase";
-
+import { TextInput, useTheme } from "react-native-paper";
 import { colors, fonts } from "../../config";
 import {
   AppText,
@@ -32,7 +33,7 @@ function LoginScreen({ navigation }) {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const theme = useTheme();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -101,7 +102,7 @@ function LoginScreen({ navigation }) {
           >
             <View style={styles.content}>
               <View style={styles.formContainer}>
-                <TextInput
+                {/* <TextInput
                   autoCapitalize="none"
                   autoCorrect={false}
                   autoComplete="email"
@@ -126,33 +127,50 @@ function LoginScreen({ navigation }) {
                     errors.username && styles.textError,
                   ]}
                   value={loginForm.identifier}
+                /> */}
+                <TextInput
+                  {...theme.formInput}
+                  theme={{
+                    colors: {
+                      onSurfaceVariant: colors.softGray,
+                    },
+                  }}
+                  style={[theme.formInput.style, { marginBottom: 5 }]}
+                  label={
+                    <Text style={{ fontFamily: fonts.bold }}>
+                      Username, email, or phone #
+                    </Text>
+                  }
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="email"
+                  name="identifier"
+                  onChangeText={(value) =>
+                    handleInputChange("identifier", value)
+                  }
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  value={loginForm.identifier}
                 />
                 {errors.username && <ErrorMessage error={errors.username} />}
 
                 <TextInput
+                  {...theme.formInput}
+                  theme={{
+                    colors: {
+                      onSurfaceVariant: colors.softGray,
+                    },
+                  }}
+                  label={
+                    <Text style={{ fontFamily: fonts.bold }}>Password</Text>
+                  }
                   autoCapitalize="none"
                   autoCorrect={false}
                   autoComplete="current-password"
                   name="password"
-                  numberOfLines={1}
-                  multiline={false}
                   onChangeText={(value) => handleInputChange("password", value)}
-                  placeholder="Password"
-                  placeholderTextColor={colors.softGray}
                   ref={passwordRef}
                   returnKeyType="done"
                   secureTextEntry
-                  selectionColor={colors.lightGray}
-                  style={[
-                    styles.text,
-                    {
-                      fontFamily: loginForm.password
-                        ? fonts.black
-                        : fonts.italic,
-                    },
-                    errors.password && styles.textError,
-                  ]}
-                  textContentType="password"
                   value={loginForm.password}
                 />
                 {errors.password && <ErrorMessage error={errors.password} />}

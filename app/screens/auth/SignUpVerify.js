@@ -135,8 +135,11 @@ function SignUpVerify({ navigation, route }) {
     }
   };
 
-  const handleOTPComplete = async (value) => {
+  const verifyOTP = async (value) => {
+    if (loading) return;
+    const otp = value || formData.verificationCode;
     setLoading(true);
+
     try {
       let verifyResult;
 
@@ -144,60 +147,14 @@ function SignUpVerify({ navigation, route }) {
         // Verify phone OTP
         verifyResult = await supabase.auth.verifyOtp({
           phone: formData.phone,
-          token: value,
+          token: otp,
           type: "sms",
         });
       } else {
         // Verify email OTP
         verifyResult = await supabase.auth.verifyOtp({
           email: formData.email,
-          token: value,
-          type: "email",
-        });
-      }
-
-      if (verifyResult.error) throw verifyResult.error;
-
-      // Get session
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.user?.id) throw new Error("Session not found");
-
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      console.log("Profile check in verify:", { profile, profileError });
-      if (profileError) throw profileError;
-
-      navigation.navigate(routes.SIGNUPGENERATEWALLET);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOTP = async () => {
-    setLoading(true);
-    try {
-      let verifyResult;
-
-      if (isPhoneVerification) {
-        // Verify phone OTP
-        verifyResult = await supabase.auth.verifyOtp({
-          phone: formData.phone,
-          token: formData.verificationCode,
-          type: "sms",
-        });
-      } else {
-        // Verify email OTP
-        verifyResult = await supabase.auth.verifyOtp({
-          email: formData.email,
-          token: formData.verificationCode,
+          token: otp,
           type: "email",
         });
       }
@@ -270,8 +227,9 @@ function SignUpVerify({ navigation, route }) {
                     autoComplete: "one-time-code",
                   }}
                   type="numeric"
-                  onFilled={handleOTPComplete}
+                  onFilled={verifyOTP}
                   onTextChange={handleInputChange}
+                  disabled={loading}
                   theme={{
                     containerStyle: styles.inputContainer,
                     pinCodeContainerStyle: styles.pinCodeContainer,
@@ -293,7 +251,7 @@ function SignUpVerify({ navigation, route }) {
               <Pressable
                 onPress={handleResendOTP}
                 style={styles.resendContainer}
-                disabled={timeLeft > 0}
+                disabled={timeLeft > 0 || loading}
               >
                 <AppText
                   style={[
