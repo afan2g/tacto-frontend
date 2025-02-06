@@ -30,6 +30,7 @@ function SignUpPassword({ navigation, route }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const isPhoneVerification = formData.phone != null;
+  const [showPassword, setShowPassword] = useState(false);
   const theme = useTheme();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -170,8 +171,16 @@ function SignUpPassword({ navigation, route }) {
                 value={formData.password}
                 onChangeText={handleInputChange}
                 onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 returnKeyType="done"
+                right={
+                  <TextInput.Icon
+                    color={!showPassword ? colors.fadedGray : colors.lightGray}
+                    forceTextInputFocus={false}
+                    icon={showPassword ? "eye" : "eye-off"}
+                    onPress={() => setShowPassword((prev) => !prev)}
+                  />
+                }
               />
               <ErrorMessage error={error} />
               {showLoginPrompt && (

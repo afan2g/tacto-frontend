@@ -24,6 +24,7 @@ import {
 import routes from "../../navigation/routes";
 import SSOOptions from "../../components/login/SSOOptions";
 import ErrorMessage from "../../components/forms/ErrorMessage";
+import { Eye } from "lucide-react-native";
 
 function LoginScreen({ navigation }) {
   const passwordRef = useRef(null);
@@ -33,6 +34,7 @@ function LoginScreen({ navigation }) {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const theme = useTheme();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -144,8 +146,18 @@ function LoginScreen({ navigation }) {
                   onChangeText={(value) => handleInputChange("password", value)}
                   ref={passwordRef}
                   returnKeyType="done"
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   value={loginForm.password}
+                  right={
+                    <TextInput.Icon
+                      color={
+                        !showPassword ? colors.fadedGray : colors.lightGray
+                      }
+                      forceTextInputFocus={false}
+                      icon={showPassword ? "eye" : "eye-off"}
+                      onPress={() => setShowPassword((prev) => !prev)}
+                    />
+                  }
                 />
                 {errors.password && <ErrorMessage error={errors.password} />}
 
