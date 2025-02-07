@@ -253,11 +253,12 @@ const SignUpScreen = ({ navigation, route }) => {
               />
 
               <AppButton
-                color="yellow"
+                color={colors.yellow}
                 onPress={handleSubmit}
                 title={formState.isLoading ? "Checking..." : "Next"}
                 style={styles.next}
                 disabled={!formState.isValid || formState.isLoading}
+                loading={formState.isLoading}
               />
 
               <SSOOptions

@@ -9,6 +9,7 @@ import TransactionDetailScreen from "../screens/TransactionDetailScreen";
 import SelectUserScreen from "../screens/transact/SelectUserScreen";
 import ConfirmTransactionScreen from "../screens/transact/ConfirmTransactionScreen";
 import TransactionProvider from "../contexts/TransactionContext";
+import TestingScreen from "../screens/TestingScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -56,6 +57,7 @@ function RootNavigator() {
                 component={TransactionDetailScreen}
               />
             </Stack.Group>
+            <Stack.Screen name={routes.TESTING} component={TestingScreen} />
           </Stack.Navigator>
         </TransactionProvider>
       </SafeAreaView>

@@ -8,7 +8,10 @@ import { supabase } from "../../../lib/supabase";
 import { AppText, Header, Screen } from "../../components/primitives";
 import MnemonicTable from "../../components/MnemonicTable";
 import routes from "../../navigation/routes";
+import { AppButton } from "../../components/primitives";
+import { colors } from "../../config";
 const WALLET_STORAGE_KEY = "ENCRYPTED_WALLET";
+
 function SignUpGenerateWallet({ navigation }) {
   const { formData, updateFormData } = useFormData();
   const [wallet, setWallet] = useState(null);
@@ -113,18 +116,35 @@ function SignUpGenerateWallet({ navigation }) {
       }
 
       // Save encrypted wallet to secure storage
-      await SecureStore.setItemAsync(
-        WALLET_STORAGE_KEY,
-        JSON.stringify({
-          phrase: wallet.mnemonic.phrase,
-          path: wallet.path || "m/44'/60'/0'/0/0",
-        }),
-        {
-          requireAuthentication: true,
+      try {
+        // Attempt to save to secure storage
+        await SecureStore.setItemAsync(
+          WALLET_STORAGE_KEY,
+          JSON.stringify({
+            phrase: wallet.mnemonic.phrase,
+            path: wallet.path || "m/44'/60'/0'/0/0",
+          }),
+          {
+            requireAuthentication: true,
+          }
+        );
+      } catch (secureStoreError) {
+        // Check for authentication cancellation
+        if (
+          secureStoreError.message.includes(
+            "Could not Authenticate the user: User canceled"
+          )
+        ) {
+          throw new Error("Authentication was cancelled. Please try again.");
         }
-      );
-      console.log("Wallet saved to secure storage");
+        if (secureStoreError.message.includes("Could not Authenticate")) {
+          throw new Error("Authentication failed. Please try again.");
+        }
+        // For any other secure storage errors
+        throw new Error("Failed to securely store wallet. Please try again.");
+      }
 
+      console.log("Wallet saved to secure storage");
       // Get neutered wallet info
       const uncompressedPublicKey = wallet.publicKey;
       const neuteredWallet = wallet.neuter();
@@ -160,31 +180,31 @@ function SignUpGenerateWallet({ navigation }) {
     }
   };
 
-  const handleRetrieveWallet = async () => {
-    try {
-      const storedWallet = await SecureStore.getItemAsync(WALLET_STORAGE_KEY, {
-        requireAuthentication: true,
-      });
+  // const handleRetrieveWallet = async () => {
+  //   try {
+  //     const storedWallet = await SecureStore.getItemAsync(WALLET_STORAGE_KEY, {
+  //       requireAuthentication: true,
+  //     });
 
-      if (!storedWallet) {
-        throw new Error("No wallet found in secure storage");
-      }
+  //     if (!storedWallet) {
+  //       throw new Error("No wallet found in secure storage");
+  //     }
 
-      const { phrase, path } = JSON.parse(storedWallet);
+  //     const { phrase, path } = JSON.parse(storedWallet);
 
-      // Use ethers.HDNodeWallet for v6
-      const recoveredWallet = ethers.HDNodeWallet.fromPhrase(
-        phrase,
-        undefined,
-        path
-      );
-      setWallet(recoveredWallet);
-      setError(null);
-    } catch (error) {
-      setError("Failed to retrieve wallet");
-      console.error("Wallet retrieval error:", error);
-    }
-  };
+  //     // Use ethers.HDNodeWallet for v6
+  //     const recoveredWallet = ethers.HDNodeWallet.fromPhrase(
+  //       phrase,
+  //       undefined,
+  //       path
+  //     );
+  //     setWallet(recoveredWallet);
+  //     setError(null);
+  //   } catch (error) {
+  //     setError("Failed to retrieve wallet");
+  //     console.error("Wallet retrieval error:", error);
+  //   }
+  // };
 
   const insets = useSafeAreaInsets();
 
@@ -207,18 +227,21 @@ function SignUpGenerateWallet({ navigation }) {
       )}
 
       <View style={styles.buttonContainer}>
-        <Button
-          disabled={isStoring}
+        <AppButton
+          style={styles.button}
           title="Generate New Wallet"
           onPress={generateWallet}
-          style={styles.button}
+          disabled={isStoring}
+          color={colors.lightGray}
         />
-        <Button
-          title="Save and Continue"
+        <AppButton
+          style={styles.button}
+          title={isStoring ? "Storing..." : "Store and Continue"}
           onPress={handleSaveWallet}
           disabled={!wallet || isStoring}
+          color={colors.yellow}
+          loading={isStoring}
         />
-        <Button title="Retrieve Wallet" onPress={handleRetrieveWallet} />
       </View>
     </Screen>
   );
@@ -242,9 +265,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 20,
   },
-  button: {
-    marginTop: 20,
-  },
+  button: {},
 });
 
 export default SignUpGenerateWallet;

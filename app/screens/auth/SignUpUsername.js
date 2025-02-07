@@ -29,7 +29,7 @@ import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { clientValidation } from "../../validation/clientValidation";
 import ProgressBar from "../../components/ProgressBar";
-
+import { Button } from "react-native-paper";
 function SignUpUsername({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
@@ -183,9 +183,10 @@ function SignUpUsername({ navigation, route }) {
               />
               <ErrorMessage error={error} />
               <AppButton
-                color="yellow"
+                color={colors.yellow}
                 onPress={handleUsernameSubmit}
                 title={isLoading ? "Checking..." : "Next"}
+                loading={isLoading}
                 style={styles.next}
                 disabled={
                   isLoading || !isValid || !!error || !formData.username

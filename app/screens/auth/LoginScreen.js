@@ -169,7 +169,7 @@ function LoginScreen({ navigation }) {
                 </AppText>
 
                 <AppButton
-                  color="yellow"
+                  color={colors.yellow}
                   title="Log in"
                   style={styles.button}
                   onPress={handleSignIn}

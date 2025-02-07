@@ -52,14 +52,14 @@ function TransactScreen({ navigation }) {
       <View style={styles.input}>
         <View style={styles.sendReceiveContainer}>
           <AppButton
-            color="yellow"
+            color={colors.yellow}
             title="Send"
             onPress={handleSend}
             style={styles.button}
             textStyle={styles.buttonText}
           />
           <AppButton
-            color="lightGray"
+            color={colors.lightGray}
             title="Request"
             onPress={handleRequest}
             style={styles.button}

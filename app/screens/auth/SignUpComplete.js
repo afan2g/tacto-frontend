@@ -4,6 +4,7 @@ import { Screen, AppButton } from "../../components/primitives";
 import { colors } from "../../config";
 import { supabase } from "../../../lib/supabase";
 import AppAvatar from "../../components/AppAvatar";
+import { ethers } from "ethers";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -121,7 +122,7 @@ function SignUpComplete({ navigation }) {
 
       {profile && !profile.profilePicUrl && (
         <AppButton
-          color="lightGray"
+          color={colors.lightGray}
           onPress={handleRefreshAvatar}
           title="Refresh Avatar"
           style={styles.refreshButton}
@@ -131,10 +132,11 @@ function SignUpComplete({ navigation }) {
       <Text style={styles.text}>Sign Up Complete</Text>
 
       <AppButton
-        color="yellow"
+        color={colors.yellow}
         onPress={handleSubmit}
         title={isLoading ? "Loading..." : "Go to App"}
         disabled={isLoading}
+        loading={isLoading}
       />
     </Screen>
   );

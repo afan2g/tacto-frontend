@@ -40,7 +40,7 @@ export default function App() {
               <BottomSheetModalProvider>
                 <StatusBar style="auto" />
                 <View style={styles.container}>
-                  {session ? (
+                  {/* {session ? (
                     <DataProvider>
                       <FormProvider>
                         <AppNavigator
@@ -56,7 +56,15 @@ export default function App() {
                         needsWallet={needsWallet}
                       />
                     </FormProvider>
-                  )}
+                  )} */}
+                  <DataProvider>
+                    <FormProvider>
+                      <AppNavigator
+                        session={session}
+                        needsWallet={needsWallet}
+                      />
+                    </FormProvider>
+                  </DataProvider>
                 </View>
               </BottomSheetModalProvider>
             </GestureHandlerRootView>

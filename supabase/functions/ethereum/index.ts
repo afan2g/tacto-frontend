@@ -3,14 +3,10 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ethers } from "npm:ethers";
 
 // Initialize Ethereum provider
-const provider = new ethers.JsonRpcProvider(
-  Deno.env.get("ALCHEMY_ETHEREUM_RPC")
+const provider = new ethers.AlchemyProvider(
+  "sepolia",
+  Deno.env.get("ALCHEMY_API_KEY")
 );
-
-// Initialize Supabase client
-const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Helper function to create consistent responses
 const createJsonResponse = (data: any, status = 200) => {
@@ -39,6 +35,11 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Initialize Supabase client
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
     // Authenticate user
     const authHeader = req.headers.get("Authorization")!;
@@ -46,15 +47,14 @@ Deno.serve(async (req) => {
       return createJsonResponse({ error: "Missing authorization header" }, 401);
     }
 
-    // const jwt = authHeader.replace("Bearer ", "");
-    // const {
-    //   data: { user },
-    //   error: authError,
-    // } = await supabase.auth.getUser(jwt);
-
-    // if (authError || !user) {
-    //   return createJsonResponse({ error: "Unauthorized" }, 401);
-    // }
+    const jwt = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(jwt);
+    if (authError || !user) {
+      return createJsonResponse({ error: "Unauthorized" }, 401);
+    }
 
     // Parse request body once
     const { action, ...params } = await req.json();
@@ -70,6 +70,136 @@ Deno.serve(async (req) => {
         return createJsonResponse({ balance: balance.toString() });
       }
 
+      case "sendTransaction": {
+        const {
+          signedTransaction,
+          fromWalletId,
+          toUserId,
+          methodId,
+          requestId = null, // Optional, for request fulfillment
+        } = params;
+
+        if (!signedTransaction || !fromWalletId || !toUserId || !methodId) {
+          return createJsonResponse(
+            {
+              error: "Missing required transaction parameters",
+            },
+            400
+          );
+        }
+
+        // Get wallet details
+        const { data: wallet, error: walletError } = await supabase
+          .from("wallets")
+          .select("*")
+          .eq("id", fromWalletId)
+          .single();
+
+        if (walletError || !wallet) {
+          return createJsonResponse({ error: "Wallet not found" }, 404);
+        }
+
+        // Verify wallet ownership
+        if (wallet.owner_id !== user.id) {
+          return createJsonResponse(
+            { error: "Unauthorized wallet access" },
+            403
+          );
+        }
+
+        try {
+          // Parse the transaction to get details
+          const tx = ethers.Transaction.from(signedTransaction);
+
+          // Create pending transaction record
+          const { data: dbTx, error: insertError } = await supabase
+            .from("transactions")
+            .insert({
+              wallet_id: fromWalletId,
+              from_user_id: user.id,
+              to_user_id: toUserId,
+              method_id: methodId,
+              status: "pending",
+              from_address: tx.from,
+              to_address: tx.to,
+              amount: tx.value.toString(),
+              gas_price: tx.gasPrice?.toString(),
+              gas_limit: tx.gasLimit.toString(),
+              nonce: tx.nonce,
+              request_id: requestId,
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+
+          // Broadcast transaction
+          const broadcastedTx = await provider.broadcastTransaction(
+            signedTransaction
+          );
+
+          // Update transaction with hash
+          await supabase
+            .from("transactions")
+            .update({
+              hash: broadcastedTx.hash,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", dbTx.id);
+
+          // If this is fulfilling a request, update the request status
+          if (requestId) {
+            await supabase
+              .from("payment_requests")
+              .update({
+                status: "completed",
+                fulfilled_by: dbTx.id,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", requestId);
+          }
+
+          return createJsonResponse({
+            transaction: dbTx,
+            hash: broadcastedTx.hash,
+          });
+        } catch (error) {
+          // If broadcasting fails, update transaction status
+          if (dbTx) {
+            await supabase
+              .from("transactions")
+              .update({
+                status: "failed",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", dbTx.id);
+          }
+          throw error;
+        }
+      }
+
+      case "getNetwork": {
+        const network = await provider.getNetwork();
+        return createJsonResponse({ network });
+      }
+      case "sendDirectTransaction": {
+        const { signedTransaction } = params;
+        if (!signedTransaction) {
+          return createJsonResponse(
+            { error: "Missing signed transaction" },
+            400
+          );
+        }
+        try {
+          ethers.provider.broadcastTransaction(signedTransaction);
+        } catch (error) {
+          return createJsonResponse(
+            { error: error instanceof Error ? error.message : "Uknown error" },
+            400
+          );
+        }
+        return createJsonResponse({ success: true });
+      }
       case "getTransaction": {
         const { txHash } = params;
         if (!txHash) {
@@ -78,8 +208,49 @@ Deno.serve(async (req) => {
             400
           );
         }
-        const transaction = await provider.getTransaction(hash);
+        const transaction = await provider.getTransaction(txHash);
         return createJsonResponse({ transaction });
+      }
+
+      case "getTransactionStatus": {
+        const { transactionId } = params;
+        if (!transactionId) {
+          return createJsonResponse({ error: "Transaction ID required" }, 400);
+        }
+
+        // Get transaction from database
+        const { data: tx, error: txError } = await supabase
+          .from("transactions")
+          .select("*")
+          .eq("id", transactionId)
+          .single();
+
+        if (txError) {
+          return createJsonResponse({ error: "Transaction not found" }, 404);
+        }
+
+        // If pending, check current status
+        if (tx.status === "pending" && tx.hash) {
+          const receipt = await provider.getTransactionReceipt(tx.hash);
+          if (receipt) {
+            // Update status based on receipt
+            const newStatus = receipt.status ? "confirmed" : "failed";
+            await supabase
+              .from("transactions")
+              .update({
+                status: newStatus,
+                block_number: receipt.blockNumber,
+                block_timestamp: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", transactionId);
+
+            tx.status = newStatus;
+            tx.block_number = receipt.blockNumber;
+          }
+        }
+
+        return createJsonResponse({ transaction: tx });
       }
 
       case "getBlockNumber": {

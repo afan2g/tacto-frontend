@@ -75,7 +75,11 @@ export function DataProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      if (
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "INITIAL_SESSION"
+      ) {
         fetchUserData();
       } else if (event === "SIGNED_OUT") {
         clearData();
@@ -88,19 +92,23 @@ export function DataProvider({ children }) {
   }, []);
 
   const fetchUserData = async () => {
+    console.log("Fetching user data...");
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const userId = session?.user?.id;
       if (!userId) {
+        console.error("No user ID found in session.");
         clearData();
         return;
+      } else {
+        console.log("User ID found:", userId);
       }
 
       const [profileResponse, walletResponse] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
-        supabase.from("wallets").select("*").eq("id", userId).single(),
+        supabase.from("wallets").select("*").eq("owner_id", userId).single(),
       ]);
 
       if (profileResponse.error) {
@@ -108,12 +116,14 @@ export function DataProvider({ children }) {
       } else {
         const sanitizedProfile = sanitizeProfileData(profileResponse.data);
         updateProfile(sanitizedProfile);
+        console.log("Profile fetched:", sanitizedProfile);
       }
 
       if (walletResponse.error && walletResponse.error.code !== "PGRST116") {
         console.error("Error fetching wallet:", walletResponse.error);
       } else if (walletResponse.data) {
         updateWallet(walletResponse.data);
+        console.log("Wallet fetched:", walletResponse.data);
       }
     } catch (error) {
       console.error("Error in fetchUserData:", error);

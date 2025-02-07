@@ -133,7 +133,7 @@ function SignUpFullName({ navigation, route }) {
               />
               <ErrorMessage error={error} />
               <AppButton
-                color="yellow"
+                color={colors.yellow}
                 onPress={submitFullName}
                 title="Next"
                 style={styles.next}

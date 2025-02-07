@@ -22,6 +22,8 @@ import {
 } from "../../components/cards";
 import { useData } from "../../contexts/DataContext";
 import { storage } from "../../../lib/storage";
+import { Button } from "react-native-paper";
+import routes from "../../navigation/routes";
 const SECTIONS = [
   {
     title: "Settings",
@@ -70,26 +72,6 @@ function AccountScreen({ navigation }) {
     const { error } = await supabase.auth.signOut();
   };
 
-  const handleViewStorage = () => {
-    console.log("Storage pressed!");
-    console.log("storage profile: ", profile);
-    console.log("storage wallet: ", wallet);
-  };
-
-  const handleViewSecureStorage = async () => {
-    console.log("Secure storage pressed!");
-    const secureData = JSON.parse(
-      await SecureStore.getItemAsync("ENCRYPTED_WALLET")
-    );
-    console.log("Secure data: ", secureData);
-    const secureWallet = ethers.HDNodeWallet.fromPhrase(
-      secureData.phrase,
-      undefined,
-      secureData.path
-    );
-    console.log("Secure wallet: ", secureWallet);
-  };
-
   return (
     <Screen style={styles.screen}>
       <View style={styles.accountContainer}>
@@ -105,15 +87,9 @@ function AccountScreen({ navigation }) {
           </View>
         )}
         <AccountBalanceCard balance={FAKEPROFILE.balance} />
-        <Pressable style={styles.refreshButton} onPress={handleViewStorage}>
-          <AppText style={styles.refreshText}>View Storage</AppText>
-        </Pressable>
-        <Pressable
-          style={styles.refreshButton}
-          onPress={handleViewSecureStorage}
-        >
-          <AppText style={styles.refreshText}>View Secure Storage</AppText>
-        </Pressable>
+        <Button onPress={() => navigation.navigate(routes.TESTING)}>
+          Go To Testing Screen
+        </Button>
       </View>
       <SectionList
         sections={SECTIONS}

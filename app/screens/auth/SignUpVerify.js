@@ -242,11 +242,12 @@ function SignUpVerify({ navigation, route }) {
               </View>
               <ErrorMessage error={error} />
               <AppButton
-                color="yellow"
+                color={colors.yellow}
                 onPress={verifyOTP}
                 title={loading ? "Verifying..." : "Verify"}
                 style={styles.next}
                 disabled={loading}
+                loading={loading}
               />
               <Pressable
                 onPress={handleResendOTP}

@@ -124,8 +124,8 @@ function ConfirmTransactionScreen({ navigation }) {
         <View style={styles.bottomContainer}>
           <View style={styles.buttonContainer}>
             <AppButton
-              onPress={() => console.log(transaction)}
-              color="yellow"
+              onPress={handleConfirm}
+              color={colors.yellow}
               title="Confirm"
             />
           </View>

@@ -189,7 +189,7 @@ function SignUpPassword({ navigation, route }) {
                     Want to sign in instead?
                   </AppText>
                   <AppButton
-                    color="yellow"
+                    color={colors.yellow}
                     onPress={() => {
                       navigation.navigate(routes.LOGIN, {
                         email: formData.email,
@@ -201,11 +201,12 @@ function SignUpPassword({ navigation, route }) {
                 </View>
               )}
               <AppButton
-                color="yellow"
+                color={colors.yellow}
                 onPress={handleSubmit}
                 title={isSubmitting ? "Sending..." : "Get Verification Code"}
                 disabled={isSubmitting || !isPasswordValid}
                 style={styles.next}
+                loading={isSubmitting}
               />
               <SSOOptions
                 grayText="Have an account? "

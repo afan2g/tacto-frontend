@@ -29,4 +29,5 @@ export default Object.freeze({
   USERPROFILE: "UserProfile",
   APPTABS: "AppTabs",
   ROOT: "Root",
+  TESTING: "Testing",
 });

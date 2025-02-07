@@ -42,36 +42,45 @@ function LandingScreen({ navigation }) {
       </View>
       <View style={styles.buttonContainer}>
         <AppButton
-          color="yellow"
+          color={colors.yellow}
           onPress={() => navigation.navigate(routes.SIGNUPUSERNAME)}
           style={styles.button}
           title="Sign up"
+          disabled={isLoading}
+          loading={isLoading}
         />
         <AppButton
-          color="lightGray"
+          color={colors.lightGray}
           onPress={() => navigation.navigate(routes.LOGIN)}
           style={styles.button}
           title="Log in"
+          disabled={isLoading}
+          loading={isLoading}
         />
         <OrSeparator />
         <AppButton
-          color="lightGray"
+          color={colors.lightGray}
           onPress={handleGoogleSignIn}
           style={styles.button}
           title={isLoading ? "Loading..." : "Continue With Google"}
           disabled={isLoading}
+          loading={isLoading}
         />
         <AppButton
-          color="lightGray"
+          color={colors.lightGray}
           onPress={() => console.log("apple")}
           style={styles.button}
-          title="Continue With Apple"
+          title={isLoading ? "Loading..." : "Continue With Apple"}
+          disabled={isLoading}
+          loading={isLoading}
         />
         <AppButton
-          color="lightGray"
+          color={colors.lightGray}
           onPress={() => console.log("meta")}
           style={styles.button}
-          title="Continue With Meta"
+          title={isLoading ? "Loading..." : "Continue With Meta"}
+          disabled={isLoading}
+          loading={isLoading}
         />
       </View>
     </Screen>
