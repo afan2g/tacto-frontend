@@ -183,16 +183,23 @@ Deno.serve(async (req) => {
         return createJsonResponse({ network });
       }
       case "sendDirectTransaction": {
+        console.log("sendDirectTransaction called");
         const { signedTransaction } = params;
         if (!signedTransaction) {
+          console.log("Missing signed transaction");
           return createJsonResponse(
             { error: "Missing signed transaction" },
             400
           );
         }
+        console.log("signed transaction received", signedTransaction);
         try {
-          ethers.provider.broadcastTransaction(signedTransaction);
+          const TransactionResponse = await provider.broadcastTransaction(
+            signedTransaction
+          );
+          console.log("TransactionResponse", TransactionResponse);
         } catch (error) {
+          console.log("error occured sending transaction", error);
           return createJsonResponse(
             { error: error instanceof Error ? error.message : "Uknown error" },
             400
@@ -261,6 +268,52 @@ Deno.serve(async (req) => {
       case "getFeeData": {
         const feeData = await provider.getFeeData();
         return createJsonResponse({ feeData });
+      }
+
+      case "getTransactionRequirements": {
+        const { txRequest } = params;
+        if (
+          !txRequest ||
+          !txRequest.from ||
+          !txRequest.to ||
+          !txRequest.value
+        ) {
+          console.log("Invalid transaction request", txRequest);
+          return createJsonResponse(
+            { error: "Invalid transaction request. Required: from, to, value" },
+            400
+          );
+        }
+
+        try {
+          const [gasLimit, feeData, nonce] = await Promise.all([
+            provider.estimateGas(txRequest),
+            provider.getFeeData(),
+            provider.getTransactionCount(txRequest.from),
+          ]);
+
+          return createJsonResponse({
+            gasLimit: gasLimit.toString(), // Convert BigInt to string
+            feeData: {
+              maxFeePerGas: feeData.maxFeePerGas?.toString(),
+              maxPriorityFeePerGas: feeData.maxPriorityFeePerGas?.toString(),
+              gasPrice: feeData.gasPrice?.toString(),
+            },
+            nonce,
+          });
+        } catch (error) {
+          console.error("Error getting transaction requirements:", error);
+          return createJsonResponse(
+            {
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to get transaction requirements",
+              details: error,
+            },
+            500
+          );
+        }
       }
 
       default:
