@@ -185,6 +185,14 @@ function TestingScreen({ navigation }) {
     console.log("signed transaction: ", signedTx);
   };
 
+  const handleSendTransaction = async () => {
+    const result = await sendTransaction(
+      "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
+      0.001
+    );
+    console.log("result: ", result);
+  };
+
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
@@ -225,6 +233,9 @@ function TestingScreen({ navigation }) {
         }
       >
         <AppText style={styles.refreshText}>Send Transaction</AppText>
+      </Pressable>
+      <Pressable style={styles.refreshButton} onPress={handleSendTransaction}>
+        <AppText style={styles.refreshText}>Send Complete Transaction</AppText>
       </Pressable>
     </Screen>
   );

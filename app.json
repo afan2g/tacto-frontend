@@ -24,7 +24,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#364156"
       },
-      "package": "com.afan2.Tacto"
+      "package": "com.afan2.Tacto",
+      "googleServicesFile": "./secrets/google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

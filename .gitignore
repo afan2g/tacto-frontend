@@ -40,3 +40,4 @@ variables.js
 #CNG
 android/
 ios/
+secrets/

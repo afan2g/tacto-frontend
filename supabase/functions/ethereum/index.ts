@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { ethers } from "npm:ethers";
+import { ethers } from "npm:ethers@^6.13.5";
 
 // Initialize Ethereum provider
 const provider = new ethers.AlchemyProvider(
@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
           );
         }
 
+        let dbTx: any;
         try {
           // Parse the transaction to get details
           const tx = ethers.Transaction.from(signedTransaction);
