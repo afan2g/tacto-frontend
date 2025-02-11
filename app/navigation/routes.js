@@ -30,4 +30,5 @@ export default Object.freeze({
   APPTABS: "AppTabs",
   ROOT: "Root",
   TESTING: "Testing",
+  TESTNOTIFICATIONS: "TestNotifications",
 });

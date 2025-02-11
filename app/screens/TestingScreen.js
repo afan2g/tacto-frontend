@@ -9,6 +9,7 @@ import { ethers } from "ethers";
 import { useData } from "../contexts";
 import { colors, fonts } from "../config";
 import { supabase } from "../../lib/supabase";
+import routes from "../navigation/routes";
 function TestingScreen({ navigation }) {
   const { profile, wallet, fetchUserData } = useData();
 
@@ -58,7 +59,7 @@ function TestingScreen({ navigation }) {
     if (error) {
       console.error("Error getting balance:", error);
     } else {
-      console.log("Balance:", data);
+      console.log("Balance:", ethers.formatEther(data.balance));
     }
   };
 
@@ -188,9 +189,18 @@ function TestingScreen({ navigation }) {
   const handleSendTransaction = async () => {
     const result = await sendTransaction(
       "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
-      0.001
+      0.0001
     );
     console.log("result: ", result);
+  };
+
+  const handleLogWebhooks = async () => {
+    const { data, error } = await supabase.functions.invoke("alchemy-test", {});
+    if (error) {
+      console.error("Error logging webhooks:", error);
+    } else {
+      console.log("Webhooks logged:", data);
+    }
   };
 
   return (
@@ -236,6 +246,17 @@ function TestingScreen({ navigation }) {
       </Pressable>
       <Pressable style={styles.refreshButton} onPress={handleSendTransaction}>
         <AppText style={styles.refreshText}>Send Complete Transaction</AppText>
+      </Pressable>
+      <Pressable style={styles.refreshButton} onPress={handleLogWebhooks}>
+        <AppText style={styles.refreshText}>Log webhooks</AppText>
+      </Pressable>
+      <Pressable
+        style={styles.refreshButton}
+        onPress={() => navigation.navigate(routes.TESTNOTIFICATIONS)}
+      >
+        <AppText style={styles.refreshText}>
+          go to notification testing screen
+        </AppText>
       </Pressable>
     </Screen>
   );

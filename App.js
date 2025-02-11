@@ -24,56 +24,55 @@ import { theme } from "./app/themes/themes";
 import NotificationsTest from "./app/testing/NotificationsTest";
 
 export default function App() {
-  // const { session, isLoading, needsWallet } = useAuth();
-  // if (isLoading) {
-  //   return (
-  //     <View style={styles.loadingContainer}>
-  //       <ActivityIndicator size="large" color="#0000ff" />
-  //     </View>
-  //   );
-  // }
+  const { session, isLoading, needsWallet } = useAuth();
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
   return (
-    // <PaperProvider theme={theme}>
-    //   <AuthProvider>
-    //     <NavigationContainer theme={navigationTheme}>
-    //       <SafeAreaProvider>
-    //         <GestureHandlerRootView style={styles.flex}>
-    //           <BottomSheetModalProvider>
-    //             <StatusBar style="auto" />
-    //             <View style={styles.container}>
-    //               {/* {session ? (
-    //                 <DataProvider>
-    //                   <FormProvider>
-    //                     <AppNavigator
-    //                       session={session}
-    //                       needsWallet={needsWallet}
-    //                     />
-    //                   </FormProvider>
-    //                 </DataProvider>
-    //               ) : (
-    //                 <FormProvider>
-    //                   <AppNavigator
-    //                     session={session}
-    //                     needsWallet={needsWallet}
-    //                   />
-    //                 </FormProvider>
-    //               )} */}
-    //               <DataProvider>
-    //                 <FormProvider>
-    //                   <AppNavigator
-    //                     session={session}
-    //                     needsWallet={needsWallet}
-    //                   />
-    //                 </FormProvider>
-    //               </DataProvider>
-    //             </View>
-    //           </BottomSheetModalProvider>
-    //         </GestureHandlerRootView>
-    //       </SafeAreaProvider>
-    //     </NavigationContainer>
-    //   </AuthProvider>
-    // </PaperProvider>
-    <NotificationsTest />
+    <PaperProvider theme={theme}>
+      <AuthProvider>
+        <NavigationContainer theme={navigationTheme}>
+          <SafeAreaProvider>
+            <GestureHandlerRootView style={styles.flex}>
+              <BottomSheetModalProvider>
+                <StatusBar style="auto" />
+                <View style={styles.container}>
+                  {/* {session ? (
+                    <DataProvider>
+                      <FormProvider>
+                        <AppNavigator
+                          session={session}
+                          needsWallet={needsWallet}
+                        />
+                      </FormProvider>
+                    </DataProvider>
+                  ) : (
+                    <FormProvider>
+                      <AppNavigator
+                        session={session}
+                        needsWallet={needsWallet}
+                      />
+                    </FormProvider>
+                  )} */}
+                  <DataProvider>
+                    <FormProvider>
+                      <AppNavigator
+                        session={session}
+                        needsWallet={needsWallet}
+                      />
+                    </FormProvider>
+                  </DataProvider>
+                </View>
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
+          </SafeAreaProvider>
+        </NavigationContainer>
+      </AuthProvider>
+    </PaperProvider>
   );
 }
 
