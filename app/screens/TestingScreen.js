@@ -5,11 +5,14 @@ import { AppText, Screen } from "../components/primitives";
 import { Pressable } from "react-native";
 import { storage } from "../../lib/storage";
 import * as SecureStore from "expo-secure-store";
+import { Wallet, utils, EIP712Signer, Provider, types } from "zksync-ethers";
 import { ethers } from "ethers";
 import { useData } from "../contexts";
 import { colors, fonts } from "../config";
 import { supabase } from "../../lib/supabase";
 import routes from "../navigation/routes";
+import { util } from "zod";
+
 function TestingScreen({ navigation }) {
   const { profile, wallet, fetchUserData } = useData();
 
@@ -203,61 +206,279 @@ function TestingScreen({ navigation }) {
     }
   };
 
+  const retrieveBlockNumberZK = async () => {
+    console.log("Retrieving zksync block number...");
+    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
+      body: { action: "getBlockNumber" },
+    });
+    if (error) {
+      console.error("Error getting balance:", error);
+    } else {
+      console.log("Block:", data);
+    }
+  };
+
+  const retrieveBalanceZK = async () => {
+    console.log("Retrieving zksync balance...");
+    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
+      body: { action: "getBalance", address: wallet.address },
+    });
+    if (error) {
+      console.error("Error getting balance:", error);
+    } else {
+      console.log("Balance:", data);
+    }
+  };
+
+  const retrieveNetworkZK = async () => {
+    console.log("Retrieving zksync network...");
+    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
+      body: { action: "getNetwork" },
+    });
+    if (error) {
+      console.error("Error getting network:", error);
+    } else {
+      console.log("Network:", data);
+    }
+  };
+
+  const retrieveUSDCBalanceZK = async () => {
+    console.log("Retrieving zksync USDC balance...");
+    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
+      body: { action: "getUSDCBalance", address: wallet.address },
+    });
+    if (error) {
+      console.error("Error getting balance:", error);
+    } else {
+      console.log("Balance:", data);
+    }
+  };
+
+  const populateUSDCTransferZK = async () => {
+    const tx = JSON.parse(
+      await createUSDCTransactionZK(
+        "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
+        0.0001
+      )
+    );
+    console.log(`tx: ${tx} type: ${typeof tx}`);
+
+    const fee = JSON.parse(await estimateFee(tx));
+    console.log(`fee: ${fee} type: ${typeof fee}`);
+
+    const result = { ...tx, ...fee };
+    result.type = utils.EIP712_TX_TYPE;
+    result.chainId = 300;
+    result.customData = {};
+    result.customData.gasPerPubdata = result.gasPerPubdataLimit;
+    result.customData.factoryDeps = [];
+    const nonce = await supabase.functions.invoke("ethereum-zksync", {
+      body: {
+        action: "getNonce",
+        address: wallet.address,
+      },
+    });
+    result.nonce = Number(nonce.data);
+    result.value = 0;
+    console.log("result: ", result);
+    return result;
+  };
+
+  const createUSDCTransactionZK = async (to, value) => {
+    console.log("Creating USDC transaction...");
+    const formatted = ethers.parseUnits(value.toString(), 6).toString();
+    console.log("formatted value: ", formatted);
+
+    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
+      body: {
+        action: "getTransferTx",
+        txRequest: {
+          from: wallet.address,
+          to: to,
+          value: formatted,
+        },
+      },
+    });
+
+    if (error) {
+      console.error("Error creating transaction:", error);
+      return null;
+    } else {
+      console.log("Transaction created:", data);
+      return data;
+    }
+  };
+
+  const estimateFee = async (tx) => {
+    console.log("Getting fee...");
+    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
+      body: {
+        action: "estimateFee",
+        txRequest: tx,
+      },
+    });
+
+    if (error) {
+      console.error("Error getting fee:", error);
+      return null;
+    } else {
+      console.log("Fee:", data);
+      return data;
+    }
+  };
+  const handleSend = async () => {
+    try {
+      // Get the wallet from secure storage
+      const secureWallet = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
+      const walletData = JSON.parse(secureWallet);
+
+      const wallet = Wallet.fromMnemonic(walletData.phrase);
+      // Create the transaction
+      const transaction = await populateUSDCTransferZK();
+
+      if (!transaction) {
+        throw new Error("Failed to create transaction");
+      }
+      console.log("Transaction to sign:", transaction);
+      const signer = new EIP712Signer(wallet, transaction.chainId);
+      transaction.customData.customSignature = await signer.sign(transaction);
+
+      const signedTx = utils.serializeEip712(transaction);
+      console.log("Signed transaction:", signedTx);
+      // Send the signed transaction
+      const { data, error } = await supabase.functions.invoke(
+        "ethereum-zksync",
+        {
+          body: {
+            action: "sendTestTransactionUSDC",
+            signedTransaction: signedTx,
+          },
+        }
+      );
+
+      if (error) {
+        throw new Error(`Error sending transaction: ${error.message}`);
+      }
+
+      // const zkProvider = Provider.getDefaultProvider(types.Network.Sepolia);
+      // const l1Provider = ethers.getDefaultProvider("sepolia");
+      // const tx = await zkProvider.sendRawTransactionWithDetailedOutput(
+      //   signedTx
+      // );
+      // console.log("tx: ", tx);
+      // const receipt = await tx.awaitReceipt();
+      // console.log("receipt: ", receipt);
+
+      console.log("Transaction sent successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      throw error;
+    }
+  };
+
+  const handleLocalProvider = async () => {
+    const secureWallet = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
+    const walletData = JSON.parse(secureWallet);
+    console.log("wallet: ", walletData);
+    const privateKey = ethers.HDNodeWallet.fromPhrase(
+      walletData.phrase
+    ).privateKey;
+    const zkProvider = Provider.getDefaultProvider(types.Network.Sepolia);
+    const l1Provider = ethers.getDefaultProvider("sepolia");
+    console.log("private key: ", privateKey);
+    console.log("provider: ", zkProvider);
+    console.log("ethProvider: ", l1Provider);
+
+    const signer = new Wallet(privateKey, zkProvider, l1Provider);
+    console.log("signer: ", signer);
+    const usdcContractAddress = "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
+
+    const transaction = await zkProvider.getTransferTx({
+      to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
+      amount: ethers.parseUnits("0.0001", 6).toString(),
+      token: usdcContractAddress,
+      from: "0x1cDF47C79f79147F29AD9991457a2F0340678688",
+    });
+    console.log("transaction: ", transaction);
+
+    const populated = await signer.populateTransaction(transaction);
+    console.log("populated: ", populated);
+
+    const signed = await signer.signTransaction(populated);
+    console.log("signed: ", signed);
+
+    const tx = await zkProvider.sendRawTransactionWithDetailedOutput(signed);
+    console.log("tx: ", tx);
+
+    const receipt = await tx.awaitReceipt();
+    console.log("receipt: ", receipt);
+  };
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
       <Button onPress={() => navigation.goBack()}>Go back</Button>
-      <Pressable style={styles.refreshButton} onPress={handleViewStorage}>
-        <AppText style={styles.refreshText}>View Storage</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={handleViewSecureStorage}>
-        <AppText style={styles.refreshText}>View Secure Storage</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={handleDataRefresh}>
-        <AppText style={styles.refreshText}>Refresh Data</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={retrieveBlockNumber}>
-        <AppText style={styles.refreshText}>View Block</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={retrieveBalance}>
-        <AppText style={styles.refreshText}>View Balance</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={retrieveNetwork}>
-        <AppText style={styles.refreshText}>View Current Network</AppText>
-      </Pressable>
-      <Pressable
-        style={styles.refreshButton}
-        onPress={() =>
-          createTransaction("0x328961a35076fF0610fb65d9e18cEB8f8B358dc6", 0.001)
-        }
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          width: "100%",
+          paddingHorizontal: 20,
+        }}
       >
-        <AppText style={styles.refreshText}>Create Transaction</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={handleSignTransaction}>
-        <AppText style={styles.refreshText}>Sign Transaction</AppText>
-      </Pressable>
-      <Pressable
-        style={styles.refreshButton}
-        onPress={() =>
-          sendTransaction("0x328961a35076fF0610fb65d9e18cEB8f8B358dc6", 0.001)
-        }
+        <Button onPress={handleViewStorage}>View Storage</Button>
+        <Button onPress={handleViewSecureStorage}>View Secure Storage</Button>
+        <Button onPress={handleDataRefresh}>Refresh Data</Button>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          width: "100%",
+          paddingHorizontal: 20,
+        }}
       >
-        <AppText style={styles.refreshText}>Send Transaction</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={handleSendTransaction}>
-        <AppText style={styles.refreshText}>Send Complete Transaction</AppText>
-      </Pressable>
-      <Pressable style={styles.refreshButton} onPress={handleLogWebhooks}>
-        <AppText style={styles.refreshText}>Log webhooks</AppText>
-      </Pressable>
-      <Pressable
-        style={styles.refreshButton}
-        onPress={() => navigation.navigate(routes.TESTNOTIFICATIONS)}
+        <Button onPress={retrieveBlockNumber}>View Mainnet Block</Button>
+        <Button onPress={retrieveBlockNumberZK}>View ZKSync Block</Button>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          width: "100%",
+          paddingHorizontal: 20,
+        }}
       >
-        <AppText style={styles.refreshText}>
-          go to notification testing screen
-        </AppText>
-      </Pressable>
+        <Button onPress={retrieveBalance}>View Balance</Button>
+        <Button onPress={retrieveBalanceZK}>View ZKSync Balance</Button>
+      </View>
+      <Button onPress={retrieveUSDCBalanceZK}>View ZKSync USDC balance</Button>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          width: "100%",
+          paddingHorizontal: 20,
+        }}
+      >
+        <Button onPress={retrieveNetwork}>View Current Network</Button>
+        <Button onPress={retrieveNetworkZK}>View ZKSync Network</Button>
+      </View>
+      <Button onPress={populateUSDCTransferZK}>
+        Create USDC Transaction on ZK Sync
+      </Button>
+      <Button onPress={handleSend}>Send ZK Sync USDC Transaction</Button>
+      <Button onPress={handleSignTransaction}>Sign Transaction</Button>
+      <Button onPress={handleSendTransaction}>Send Transaction</Button>
+      <Button onPress={handleLogWebhooks}>Log Webhooks</Button>
+      <Button onPress={() => navigation.navigate(routes.TESTNOTIFICATIONS)}>
+        Test Notifications
+      </Button>
+      <Button onPress={handleLocalProvider}>Local Provider Test</Button>
     </Screen>
   );
 }
@@ -265,6 +486,7 @@ function TestingScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: {
     paddingHorizontal: 0,
+    alignItems: "center",
   },
   refreshButton: {
     padding: 20,

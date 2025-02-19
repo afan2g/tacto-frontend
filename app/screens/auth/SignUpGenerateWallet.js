@@ -180,32 +180,6 @@ function SignUpGenerateWallet({ navigation }) {
     }
   };
 
-  // const handleRetrieveWallet = async () => {
-  //   try {
-  //     const storedWallet = await SecureStore.getItemAsync(WALLET_STORAGE_KEY, {
-  //       requireAuthentication: true,
-  //     });
-
-  //     if (!storedWallet) {
-  //       throw new Error("No wallet found in secure storage");
-  //     }
-
-  //     const { phrase, path } = JSON.parse(storedWallet);
-
-  //     // Use ethers.HDNodeWallet for v6
-  //     const recoveredWallet = ethers.HDNodeWallet.fromPhrase(
-  //       phrase,
-  //       undefined,
-  //       path
-  //     );
-  //     setWallet(recoveredWallet);
-  //     setError(null);
-  //   } catch (error) {
-  //     setError("Failed to retrieve wallet");
-  //     console.error("Wallet retrieval error:", error);
-  //   }
-  // };
-
   const insets = useSafeAreaInsets();
 
   return (
