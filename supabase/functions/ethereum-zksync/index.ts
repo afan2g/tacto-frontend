@@ -110,26 +110,8 @@ Deno.serve(async (req) => {
         return createJsonResponse(utils.toJSON(txResponseDetailedOutput));
       }
 
-      case "estimateFee": {
-        console.log("estimateFee");
-        const { txRequest } = params;
-        console.log("txRequest: ", txRequest);
-
-        const fee = await provider.estimateFee(txRequest);
-        console.log("fee: ", fee);
-        return createJsonResponse(utils.toJSON(fee));
-      }
-
-      case "getNonce": {
-        console.log("getNonce");
-        const { address } = params;
-        console.log("address: ", address);
-        const nonce = await provider.getTransactionCount(address);
-        console.log("nonce: ", nonce);
-        return createJsonResponse(utils.toJSON(nonce));
-      }
-      case "getTransferTx": {
-        console.log("getTransferTx");
+      case "getCompleteTransferTx": {
+        console.log("getCompleteTransferTx");
         const { txRequest } = params;
         console.log("txRequest: ", txRequest);
         if (
@@ -146,9 +128,7 @@ Deno.serve(async (req) => {
         }
         console.log("successful params check");
         const usdcContractAddress =
-          "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
-
-        console.log("Getting transfer transaction");
+          "0xAe045DE5638162fa134807Cb558E15A3F5A7F853"; // USDC contract address
         const transferTx = await provider.getTransferTx({
           from: txRequest.from,
           to: txRequest.to,
@@ -156,8 +136,28 @@ Deno.serve(async (req) => {
           token: usdcContractAddress,
         });
         console.log("transferTx: ", transferTx);
+        const [fee, nonce] = await Promise.all([
+          provider.estimateFee(transferTx),
+          provider.getTransactionCount(txRequest.from),
+        ]);
+        console.log("fee: ", fee);
+        console.log("nonce: ", nonce);
 
-        return createJsonResponse(utils.toJSON(transferTx));
+        const customData = {
+          gasPerPubdata: fee.gasPerPubdataLimit,
+          factoryDeps: [],
+        };
+        const completeTransferTx = {
+          ...transferTx,
+          ...fee,
+          nonce,
+          value: 0,
+          type: utils.EIP712_TX_TYPE,
+          chainId: 300,
+          customData,
+        };
+        console.log("completeTransferTx: ", completeTransferTx);
+        return createJsonResponse(utils.toJSON(completeTransferTx));
       }
       default:
         return createJsonResponse({ error: "Invalid action" }, 400);

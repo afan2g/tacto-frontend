@@ -254,78 +254,29 @@ function TestingScreen({ navigation }) {
     }
   };
 
-  const populateUSDCTransferZK = async () => {
-    const tx = JSON.parse(
-      await createUSDCTransactionZK(
-        "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
-        0.0001
-      )
-    );
-    console.log(`tx: ${tx} type: ${typeof tx}`);
-
-    const fee = JSON.parse(await estimateFee(tx));
-    console.log(`fee: ${fee} type: ${typeof fee}`);
-
-    const result = { ...tx, ...fee };
-    result.type = utils.EIP712_TX_TYPE;
-    result.chainId = 300;
-    result.customData = {};
-    result.customData.gasPerPubdata = result.gasPerPubdataLimit;
-    result.customData.factoryDeps = [];
-    const nonce = await supabase.functions.invoke("ethereum-zksync", {
-      body: {
-        action: "getNonce",
-        address: wallet.address,
-      },
-    });
-    result.nonce = Number(nonce.data);
-    result.value = 0;
-    console.log("result: ", result);
-    return result;
-  };
-
-  const createUSDCTransactionZK = async (to, value) => {
-    console.log("Creating USDC transaction...");
-    const formatted = ethers.parseUnits(value.toString(), 6).toString();
-    console.log("formatted value: ", formatted);
-
-    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
-      body: {
-        action: "getTransferTx",
-        txRequest: {
-          from: wallet.address,
-          to: to,
-          value: formatted,
+  const populateUSDCTransferZK = async (value, to) => {
+    const { data: tx, error } = await supabase.functions.invoke(
+      "ethereum-zksync",
+      {
+        body: {
+          action: "getCompleteTransferTx",
+          txRequest: {
+            from: wallet.address,
+            to: to,
+            value: ethers.parseUnits(value.toString(), 6).toString(),
+          },
         },
-      },
-    });
-
+      }
+    );
     if (error) {
       console.error("Error creating transaction:", error);
       return null;
-    } else {
-      console.log("Transaction created:", data);
-      return data;
     }
+
+    console.log("tx: ", JSON.parse(tx));
+    return JSON.parse(tx);
   };
 
-  const estimateFee = async (tx) => {
-    console.log("Getting fee...");
-    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
-      body: {
-        action: "estimateFee",
-        txRequest: tx,
-      },
-    });
-
-    if (error) {
-      console.error("Error getting fee:", error);
-      return null;
-    } else {
-      console.log("Fee:", data);
-      return data;
-    }
-  };
   const handleSend = async () => {
     try {
       // Get the wallet from secure storage
@@ -334,7 +285,10 @@ function TestingScreen({ navigation }) {
 
       const wallet = Wallet.fromMnemonic(walletData.phrase);
       // Create the transaction
-      const transaction = await populateUSDCTransferZK();
+      const transaction = await populateUSDCTransferZK(
+        0.0001,
+        "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6"
+      );
 
       if (!transaction) {
         throw new Error("Failed to create transaction");
@@ -391,25 +345,6 @@ function TestingScreen({ navigation }) {
     console.log("tx: ", tx);
     const receipt = await tx.wait();
     console.log("receipt: ", receipt);
-    // const transaction = await zkProvider.getTransferTx({
-    //   to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
-    //   amount: ethers.parseUnits("0.0001", 6).toString(),
-    //   token: usdcContractAddress,
-    //   from: "0x1cDF47C79f79147F29AD9991457a2F0340678688",
-    // });
-    // console.log("transaction: ", transaction);
-
-    // const populated = await signer.populateTransaction(transaction);
-    // console.log("populated: ", populated);
-
-    // const signed = await signer.signTransaction(populated);
-    // console.log("signed: ", signed);
-
-    // const tx = await zkProvider.sendRawTransactionWithDetailedOutput(signed);
-    // console.log("tx: ", tx);
-
-    // const receipt = await tx.awaitReceipt();
-    // console.log("receipt: ", receipt);
   };
   return (
     <Screen style={styles.screen}>
