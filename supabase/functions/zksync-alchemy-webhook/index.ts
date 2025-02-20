@@ -186,11 +186,11 @@ Deno.serve(async (req: Request) => {
       // Create notification message with net fee
       const message = {
         title: `${mainTransfer.asset} Transfer`,
-        body: `${fromUser?.username || "Unknown"} sent ${mainTransfer.value} ${
-          mainTransfer.asset
-        } to ${toUser?.username || "Unknown"} (Fee: ${totalFees.toFixed(
-          8
-        )} ETH)`,
+        body: `${fromUser?.username || mainTransfer.fromAddress} sent ${
+          mainTransfer.value
+        } ${mainTransfer.asset} to ${
+          toUser?.username || mainTransfer.toAddress
+        } (Fee: ${totalFees.toFixed(8)} ETH)`,
         data: {
           type: "transfer",
           hash: mainTransfer.hash,
