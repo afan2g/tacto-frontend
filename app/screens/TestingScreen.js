@@ -360,15 +360,6 @@ function TestingScreen({ navigation }) {
         throw new Error(`Error sending transaction: ${error.message}`);
       }
 
-      // const zkProvider = Provider.getDefaultProvider(types.Network.Sepolia);
-      // const l1Provider = ethers.getDefaultProvider("sepolia");
-      // const tx = await zkProvider.sendRawTransactionWithDetailedOutput(
-      //   signedTx
-      // );
-      // console.log("tx: ", tx);
-      // const receipt = await tx.awaitReceipt();
-      // console.log("receipt: ", receipt);
-
       console.log("Transaction sent successfully:", data);
       return data;
     } catch (error) {
@@ -385,34 +376,40 @@ function TestingScreen({ navigation }) {
       walletData.phrase
     ).privateKey;
     const zkProvider = Provider.getDefaultProvider(types.Network.Sepolia);
-    const l1Provider = ethers.getDefaultProvider("sepolia");
     console.log("private key: ", privateKey);
     console.log("provider: ", zkProvider);
-    console.log("ethProvider: ", l1Provider);
 
-    const signer = new Wallet(privateKey, zkProvider, l1Provider);
-    console.log("signer: ", signer);
     const usdcContractAddress = "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
 
-    const transaction = await zkProvider.getTransferTx({
-      to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
-      amount: ethers.parseUnits("0.0001", 6).toString(),
-      token: usdcContractAddress,
-      from: "0x1cDF47C79f79147F29AD9991457a2F0340678688",
+    const signer = new Wallet(privateKey, zkProvider);
+    console.log("signer: ", signer);
+    const tx = signer.transfer({
+      to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6", // recipient address
+      amount: ethers.parseUnits("0.0001", 6), // amount in USDC
+      token: usdcContractAddress, // USDC token address
     });
-    console.log("transaction: ", transaction);
-
-    const populated = await signer.populateTransaction(transaction);
-    console.log("populated: ", populated);
-
-    const signed = await signer.signTransaction(populated);
-    console.log("signed: ", signed);
-
-    const tx = await zkProvider.sendRawTransactionWithDetailedOutput(signed);
     console.log("tx: ", tx);
-
-    const receipt = await tx.awaitReceipt();
+    const receipt = await tx.wait();
     console.log("receipt: ", receipt);
+    // const transaction = await zkProvider.getTransferTx({
+    //   to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
+    //   amount: ethers.parseUnits("0.0001", 6).toString(),
+    //   token: usdcContractAddress,
+    //   from: "0x1cDF47C79f79147F29AD9991457a2F0340678688",
+    // });
+    // console.log("transaction: ", transaction);
+
+    // const populated = await signer.populateTransaction(transaction);
+    // console.log("populated: ", populated);
+
+    // const signed = await signer.signTransaction(populated);
+    // console.log("signed: ", signed);
+
+    // const tx = await zkProvider.sendRawTransactionWithDetailedOutput(signed);
+    // console.log("tx: ", tx);
+
+    // const receipt = await tx.awaitReceipt();
+    // console.log("receipt: ", receipt);
   };
   return (
     <Screen style={styles.screen}>
