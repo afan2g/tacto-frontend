@@ -9,10 +9,10 @@ function AppAvatar({ user, scale = 1 }) {
   const [url, setUrl] = useState(null);
 
   useEffect(() => {
-    if (user.profilePicUrl) {
-      setUrl(user.profilePicUrl);
+    if (user.avatar_url) {
+      setUrl(user.avatar_url);
     }
-  }, [user.profilePicUrl]);
+  }, [user.avatar_url]);
   const isSvg = url?.toLowerCase().endsWith(".svg");
   const size = 54 * scale;
 

@@ -7,7 +7,7 @@ import { colors, fonts } from "../../config";
 import { X } from "lucide-react-native";
 
 function OtherUserHeader({ user, style, handleClose }) {
-  const status = user.friendStatus;
+  const status = user.friendStatus ?? "none";
 
   return (
     <View style={[styles.headerContainer, style]}>
@@ -22,11 +22,11 @@ function OtherUserHeader({ user, style, handleClose }) {
       <UserCardVertical user={user} scale={0.8} />
       <View style={styles.userStats}>
         <Pressable style={styles.stat}>
-          <AppText style={styles.statNumber}>{user.friends}</AppText>
+          <AppText style={styles.statNumber}>{user.friends ?? 0}</AppText>
           <AppText style={styles.statLabel}>friends</AppText>
         </Pressable>
         <Pressable style={styles.stat}>
-          <AppText style={styles.statNumber}>{user.mutualFriends}</AppText>
+          <AppText style={styles.statNumber}>{user.mutualFriends ?? 0}</AppText>
           <AppText style={styles.statLabel}>mutuals</AppText>
         </Pressable>
       </View>

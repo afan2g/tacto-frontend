@@ -2,7 +2,10 @@ import React, { useContext } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
+import { useQuery } from "@tanstack/react-query";
+import { FlashList } from "@shopify/flash-list";
 
+import fetchProfiles from "../../api/fetchProfiles";
 import { AppText, Screen } from "../../components/primitives";
 import FindUserBar from "../../components/forms/FindUserBar";
 import UserCard from "../../components/cards/UserCard";
@@ -23,6 +26,25 @@ function SelectUserScreen({ navigation }) {
   // Access transaction and setTransaction from context
   const { transaction, setTransaction } = useContext(TransactionContext);
 
+  const {
+    data: profiles,
+    error,
+    isPending,
+    isError,
+  } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+
+  if (isPending) {
+    console.log("Loading profiles data");
+  }
+
+  if (isError) {
+    console.log("Error loading profiles data", error.message);
+  }
+
+  if (!isPending && !isError) {
+    console.log("Successfully loaded profiles data", profiles);
+  }
+
   // Handle user card press
   const handleCardPress = (item) => {
     // Update the transaction with the selected user
@@ -35,8 +57,9 @@ function SelectUserScreen({ navigation }) {
   };
 
   const handleCardLongPress = (item) => {
+    console.log("Long press on user card", item);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    openModal(FAKE_OTHER_USERS[0]);
+    openModal(item);
   };
 
   return (
@@ -57,8 +80,9 @@ function SelectUserScreen({ navigation }) {
         style={styles.FindUserBar}
         action={transaction.action.slice(0, 4).toLowerCase()}
       />
-      <FlatList
-        data={FAKEUSERS}
+      <FlashList
+        estimatedItemSize={76}
+        data={profiles}
         renderItem={({ item }) => (
           <UserCard
             user={item}

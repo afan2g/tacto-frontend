@@ -3,19 +3,20 @@ import { View, StyleSheet, Image, Pressable } from "react-native";
 import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
+import AppAvatar from "../AppAvatar";
 
-function UserCardVertical({ user, onPress, navigation, scale, style }) {
+function UserCardVertical({ user, onPress, navigation, scale = 1, style }) {
   const scaleStyle = {
     profilePic: {
-      height: 72 * (scale ?? 1),
-      width: 72 * (scale ?? 1),
-      borderRadius: 36 * (scale ?? 1),
+      height: 72 * scale,
+      width: 72 * scale,
+      borderRadius: 36 * scale,
     },
     fullName: {
-      fontSize: 26 * (scale ?? 1),
+      fontSize: 26 * scale,
     },
     username: {
-      fontSize: 20 * (scale ?? 1),
+      fontSize: 20 * scale,
     },
   };
   return (
@@ -28,14 +29,10 @@ function UserCardVertical({ user, onPress, navigation, scale, style }) {
       ]}
     >
       <>
-        <Image
-          source={{ uri: user.profilePicUrl }}
-          resizeMode="contain"
-          style={scaleStyle.profilePic}
-        />
+        <AppAvatar user={user} scale={scale * 1.5} />
         <View style={styles.userNameContainer}>
           <AppText style={[styles.fullName, scaleStyle.fullName]}>
-            {user.fullName}
+            {user.full_name}
           </AppText>
           <AppText style={[styles.username, scaleStyle.username]}>
             {user.username}
@@ -55,6 +52,7 @@ const styles = StyleSheet.create({
   userNameContainer: {
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: 10,
   },
   fullName: {
     fontFamily: fonts.medium,
