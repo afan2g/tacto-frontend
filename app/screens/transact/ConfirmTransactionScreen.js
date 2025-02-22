@@ -71,6 +71,7 @@ function ConfirmTransactionScreen({ navigation }) {
   const handleConfirm = () => {
     // Handle the confirm action here
     console.log("Transaction confirmed:", transaction);
+
     // navigation.navigate('NextScreen'); // Uncomment and replace with your screen
   };
 

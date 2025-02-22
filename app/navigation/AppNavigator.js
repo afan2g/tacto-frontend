@@ -13,7 +13,7 @@ import {
   SignUpVerify,
   SignUpGenerateWallet,
 } from "../screens/auth";
-import LoginNavigator from "./entry/LoginNavigator";
+import LoginNavigator from "./LoginNavigator";
 import { useAuthContext } from "../contexts/AuthContext";
 import SignUpScreen from "../screens/auth/SignUpScreen";
 const Stack = createNativeStackNavigator();
