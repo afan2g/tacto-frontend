@@ -7,6 +7,8 @@ GoogleSignin.configure({
   webClientId:
     "785186330408-e70b787gaulcvn8m1qdfqvulem1su9q2.apps.googleusercontent.com",
 });
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient();
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { View, StyleSheet, ActivityIndicator, Keyboard } from "react-native";
@@ -15,14 +17,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { StatusBar } from "expo-status-bar";
 import { PaperProvider, MD3DarkTheme } from "react-native-paper";
+
 import AppNavigator from "./app/navigation/AppNavigator";
 import navigationTheme from "./app/navigation/navigationTheme";
 import useAuth from "./app/hooks/useAuth";
 import { AuthProvider, DataProvider, FormProvider } from "./app/contexts";
 import { colors } from "./app/config";
 import { theme } from "./app/themes/themes";
-import NotificationsTest from "./app/testing/NotificationsTest";
-
 export default function App() {
   const { session, isLoading, needsWallet } = useAuth();
   if (isLoading) {
@@ -32,16 +33,17 @@ export default function App() {
       </View>
     );
   }
+
   return (
-    <PaperProvider theme={theme}>
-      <AuthProvider>
-        <NavigationContainer theme={navigationTheme}>
-          <SafeAreaProvider>
-            <GestureHandlerRootView style={styles.flex}>
-              <BottomSheetModalProvider>
-                <StatusBar style="auto" />
-                <View style={styles.container}>
-                  {/* {session ? (
+    <QueryClientProvider client={queryClient}>
+      <PaperProvider theme={theme}>
+        <AuthProvider>
+          <NavigationContainer theme={navigationTheme}>
+            <SafeAreaProvider>
+              <GestureHandlerRootView style={styles.flex}>
+                <BottomSheetModalProvider>
+                  <StatusBar style="auto" />
+                  <View style={styles.container}>
                     <DataProvider>
                       <FormProvider>
                         <AppNavigator
@@ -50,29 +52,14 @@ export default function App() {
                         />
                       </FormProvider>
                     </DataProvider>
-                  ) : (
-                    <FormProvider>
-                      <AppNavigator
-                        session={session}
-                        needsWallet={needsWallet}
-                      />
-                    </FormProvider>
-                  )} */}
-                  <DataProvider>
-                    <FormProvider>
-                      <AppNavigator
-                        session={session}
-                        needsWallet={needsWallet}
-                      />
-                    </FormProvider>
-                  </DataProvider>
-                </View>
-              </BottomSheetModalProvider>
-            </GestureHandlerRootView>
-          </SafeAreaProvider>
-        </NavigationContainer>
-      </AuthProvider>
-    </PaperProvider>
+                  </View>
+                </BottomSheetModalProvider>
+              </GestureHandlerRootView>
+            </SafeAreaProvider>
+          </NavigationContainer>
+        </AuthProvider>
+      </PaperProvider>
+    </QueryClientProvider>
   );
 }
 
