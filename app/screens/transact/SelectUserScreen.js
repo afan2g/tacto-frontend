@@ -5,7 +5,7 @@ import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList } from "@shopify/flash-list";
 
-import fetchProfiles from "../../api/fetchProfiles";
+import { fetchProfiles, fetchWallet } from "../../api";
 import { AppText, Screen } from "../../components/primitives";
 import FindUserBar from "../../components/forms/FindUserBar";
 import UserCard from "../../components/cards/UserCard";
@@ -31,7 +31,23 @@ function SelectUserScreen({ navigation }) {
     error,
     isPending,
     isError,
+    isSuccess,
   } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+
+  const userId = transaction.otherUser?.id;
+  const {
+    data: wallet,
+    status: walletStatus,
+    fetchStatus: walletFetchStatus,
+  } = useQuery({
+    queryKey: ["wallet", userId],
+    queryFn: () => fetchWallet(userId),
+    enabled: !!userId,
+  });
+
+  if (walletStatus === "success") {
+    console.log("Successfully loaded wallet data", wallet);
+  }
 
   if (isPending) {
     console.log("Loading profiles data");
@@ -41,7 +57,7 @@ function SelectUserScreen({ navigation }) {
     console.log("Error loading profiles data", error.message);
   }
 
-  if (!isPending && !isError) {
+  if (isSuccess) {
     console.log("Successfully loaded profiles data", profiles);
   }
 
@@ -52,6 +68,7 @@ function SelectUserScreen({ navigation }) {
       ...prev,
       otherUser: { ...item },
     }));
+    console.log("Selected user", item);
     // Navigate to the Confirm Transaction screen
     navigation.navigate(routes.TRANSACTCONFIRM);
   };
