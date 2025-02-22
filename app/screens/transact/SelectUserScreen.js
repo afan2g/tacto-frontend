@@ -4,7 +4,6 @@ import { ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList } from "@shopify/flash-list";
-
 import { fetchProfiles, fetchWallet } from "../../api";
 import { AppText, Screen } from "../../components/primitives";
 import FindUserBar from "../../components/forms/FindUserBar";
@@ -47,6 +46,7 @@ function SelectUserScreen({ navigation }) {
 
   if (walletStatus === "success") {
     console.log("Successfully loaded wallet data", wallet);
+    transaction.otherUserWallet = wallet;
   }
 
   if (isPending) {
