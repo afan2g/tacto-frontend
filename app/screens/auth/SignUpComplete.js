@@ -5,6 +5,7 @@ import { colors } from "../../config";
 import { supabase } from "../../../lib/supabase";
 import AppAvatar from "../../components/AppAvatar";
 import { ethers } from "ethers";
+import { NotificationManager } from "../../lib/NotificationManager";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,8 +13,18 @@ function SignUpComplete({ navigation }) {
 
   useEffect(() => {
     checkProfile();
+    registerForPushNotifications();
+
   }, []);
 
+  async function registerForPushNotifications() {
+    try {
+      const token = await NotificationManager.registerForPushNotifications();
+      console.log("Expo Push Token:", token.data);
+    } catch (error) {
+      console.error("Error registering for push notifications:", error);
+    }
+  }
   const checkProfile = async () => {
     try {
       const {

@@ -4,7 +4,7 @@ import { View, Button, Text, StyleSheet, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '../../lib/supabase'; // Adjust path as needed
 import Constants from 'expo-constants';
-
+import { useAuthContext } from '../contexts';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -16,7 +16,7 @@ Notifications.setNotificationHandler({
 export default function NotificationsTest() {
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
-
+  const {session} = useAuthContext();
   useEffect(() => {
     registerForPushNotifications();
 
@@ -49,6 +49,12 @@ export default function NotificationsTest() {
         return;
       }
 
+      const {data, error: retrieveTokenError } = await supabase.from('notification_tokens').select('push_token').eq('user_id', session.user.id).maybeSingle();
+      if (retrieveTokenError) throw retrieveTokenError;
+      if (data) {
+        setPushToken(data.push_token);
+        return;
+      }
       const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
       const tokenData = await Notifications.getExpoPushTokenAsync({
         projectId

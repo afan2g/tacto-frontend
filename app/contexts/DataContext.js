@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { storage } from "../../lib/storage";
 import { supabase } from "../../lib/supabase";
-import { transformProfileData } from "../utils/TransformProfileData";
 
 const DataContext = createContext();
 
@@ -135,11 +134,13 @@ export function DataProvider({ children }) {
       try {
         const sanitizedProfile = sanitizeProfileData(dbProfile);
         storage.set(STORAGE_KEYS.PROFILE, JSON.stringify(sanitizedProfile));
-        setProfile(transformProfileData(sanitizedProfile));
+        setProfile(sanitizedProfile);
       } catch (error) {
         console.error("Error updating profile:", error);
       }
     }
+
+
   };
 
   const updateWallet = (newWallet) => {

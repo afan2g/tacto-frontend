@@ -22,6 +22,7 @@ function AppAvatar({ user, scale = 1 }) {
     borderRadius: size / 2,
   };
   if (!url) {
+    console.log("No avatar url found for user", user);
     return (
       <View style={[scaleStyle, styles.profilePic, styles.placeholderAvatar]}>
         <AppText style={styles.placeholderText}>

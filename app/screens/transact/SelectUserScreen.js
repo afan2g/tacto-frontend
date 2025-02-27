@@ -19,19 +19,23 @@ import {
 import { AppCardSeparator } from "../../components/cards";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
+import { useAuthContext, useData } from "../../contexts";
 
 function SelectUserScreen({ navigation }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
   // Access transaction and setTransaction from context
   const { transaction, setTransaction } = useContext(TransactionContext);
-
+  const { profile } = useData();
   const {
     data: profiles,
     error,
     isPending,
     isError,
     isSuccess,
-  } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  } = useQuery({
+    queryKey: ["profiles", profile.id],
+    queryFn: () => fetchProfiles(profile.id),
+  });
 
   const userId = transaction.otherUser?.id;
   const {
