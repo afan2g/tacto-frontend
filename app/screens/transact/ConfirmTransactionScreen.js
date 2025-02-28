@@ -1,14 +1,15 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   View,
   StyleSheet,
-  TextInput,
+  TextInput as RNTextInput,
   Keyboard,
   ScrollView,
   Pressable,
+  Text,
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
-
+import { TextInput, useTheme } from "react-native-paper";
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import { UserCardVertical } from "../../components/cards";
 import { TransactionContext } from "../../contexts/TransactionContext";
@@ -21,7 +22,8 @@ function ConfirmTransactionScreen({ navigation }) {
   const { transaction, setTransaction } = useContext(TransactionContext);
   const [showKeypad, setShowKeypad] = useState(false);
   const [inputHeight, setInputHeight] = useState(100); // Initial height
-
+  const theme = useTheme();
+  const memoRef = useRef(null);
   // Initialize useKeypadInput with transaction.amount
   const { value, handleKeyPress } = useKeypadInput(transaction.amount || "", {
     maxDecimalPlaces: 2,
@@ -42,10 +44,6 @@ function ConfirmTransactionScreen({ navigation }) {
       ...prev,
       memo: memoValue,
     }));
-  };
-
-  const handleContentSizeChange = (event) => {
-    setInputHeight(event.nativeEvent.contentSize.height);
   };
 
   const handleUserPress = () => {
@@ -95,6 +93,7 @@ function ConfirmTransactionScreen({ navigation }) {
           <UserCardVertical
             user={transaction.otherUser}
             onPress={handleUserPress}
+            scale={0.8}
           />
           <AppText
             style={[
@@ -105,21 +104,42 @@ function ConfirmTransactionScreen({ navigation }) {
           >
             ${value === "" ? "0" : value}
           </AppText>
-          <TextInput
-            onChangeText={handleInputChange}
-            placeholder="Memo cannot be blank..."
-            placeholderTextColor={colors.softGray}
-            style={[
-              styles.input,
-              transaction.memo ? styles.text : styles.placeholder,
-              { height: inputHeight },
-            ]}
-            value={transaction.memo}
-            multiline
-            onFocus={() => setShowKeypad(false)}
-            maxLength={140}
-            onContentSizeChange={handleContentSizeChange}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              {...theme.formInput}
+              theme={{
+                colors: {
+                  onSurfaceVariant: colors.softGray,
+                },
+              }}
+              ref={memoRef}
+              value={transaction.memo}
+              onChangeText={handleInputChange}
+              autoCorrect={true}
+              onFocus={() => setShowKeypad(false)}
+              maxLength={80}
+              multiline
+              accessibilityLabel="Memo input"
+              contentStyle={{ alignItems: "flex-start" }}
+              textAlignVertical="top"
+              label={
+                <Text style={{ fontFamily: fonts.black }}>Memo</Text>
+              }
+              render={(innerProps) => (
+                <RNTextInput
+                  {...innerProps}
+                  style={[
+                    innerProps.style,
+                    {
+                      paddingTop: 8,
+                      paddingBottom: 8,
+                      height: 100,
+                    }
+                  ]}
+                />
+              )}
+            />
+          </View>
         </ScrollView>
 
         <View style={styles.bottomContainer}>
@@ -200,12 +220,16 @@ const styles = StyleSheet.create({
   buttonContainer: {
     padding: 5,
     backgroundColor: colors.white,
+    paddingBottom: 30,
   },
   bottomContainer: {
     width: "100%",
     position: "absolute",
     bottom: 0,
     alignSelf: "center",
+  },
+  inputContainer: {
+    width: "100%",
   },
 });
 

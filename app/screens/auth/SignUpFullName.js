@@ -183,16 +183,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     width: "100%",
   },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    backgroundColor: colors.blueShade10,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    borderWidth: 2,
-    borderColor: colors.fadedGray,
-  },
   text: {
     color: colors.lightGray,
     fontSize: 20,
