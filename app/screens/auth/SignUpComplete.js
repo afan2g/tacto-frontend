@@ -4,33 +4,25 @@ import { Screen, AppButton } from "../../components/primitives";
 import { colors } from "../../config";
 import { supabase } from "../../../lib/supabase";
 import AppAvatar from "../../components/AppAvatar";
-import { ethers } from "ethers";
 import { NotificationManager } from "../../lib/NotificationManager";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     checkProfile();
-    registerForPushNotifications();
-
   }, []);
 
-  async function registerForPushNotifications() {
-    try {
-      const token = await NotificationManager.registerForPushNotifications();
-      console.log("Expo Push Token:", token.data);
-    } catch (error) {
-      console.error("Error registering for push notifications:", error);
-    }
-  }
   const checkProfile = async () => {
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) return;
+
+      setUserId(session.user.id);
 
       const { data: profileData } = await supabase
         .from("profiles")
@@ -48,10 +40,23 @@ function SignUpComplete({ navigation }) {
       if (!profileData.avatar_url) {
         await generateServerAvatar(session.user.id, profileData.full_name);
       }
+
+      // Register for push notifications after profile check
+      await registerForPushNotifications(session.user.id);
+
     } catch (error) {
       console.error("Profile check error:", error);
     }
   };
+
+  async function registerForPushNotifications(userId) {
+    try {
+      const token = await NotificationManager.registerForPushNotifications(userId);
+      console.log("Expo Push Token:", token.data);
+    } catch (error) {
+      console.error("Error registering for push notifications:", error);
+    }
+  }
 
   const generateServerAvatar = async (userId, fullName) => {
     setIsLoading(true);
@@ -104,16 +109,19 @@ function SignUpComplete({ navigation }) {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.user?.id) throw new Error("No authenticated user");
+      if (!userId) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.user?.id) throw new Error("No authenticated user");
+        setUserId(session.user.id);
+      }
 
       // Update onboarding status
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ onboarding_complete: true })
-        .eq("id", session.user.id);
+        .eq("id", userId);
 
       if (profileError) throw profileError;
 

@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, StyleSheet, Button, BackHandler } from "react-native";
+import { View, StyleSheet, BackHandler } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { ethers, id } from "ethers";
+import { ethers } from "ethers";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFormData } from "../../contexts/FormContext";
 import { supabase } from "../../../lib/supabase";
 import { AppText, Header, Screen } from "../../components/primitives";
 import MnemonicTable from "../../components/MnemonicTable";
@@ -13,7 +12,6 @@ import { colors } from "../../config";
 const WALLET_STORAGE_KEY = "ENCRYPTED_WALLET";
 
 function SignUpGenerateWallet({ navigation }) {
-  const { formData, updateFormData } = useFormData();
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
   const [isStoring, setIsStoring] = useState(false);

@@ -1,8 +1,9 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-
+import Constants from "expo-constants";
+import { supabase } from "../../lib/supabase";
 export class NotificationManager {
-  static async registerForPushNotifications() {
+  static async registerForPushNotifications(userId = null) {
     try {
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
@@ -24,10 +25,15 @@ export class NotificationManager {
         projectId,
       });
 
+      if (!userId) {
+        const { data: { session } } = await supabase.auth.getUser();
+        userId = session?.user?.id;
+      }
+
       // Save token to database
       const { error } = await supabase.from("notification_tokens").upsert(
         {
-          user_id: supabase.auth.user()?.id,
+          user_id: userId,
           push_token: token.data,
           device_type: Platform.OS,
           last_used: new Date().toISOString(),
