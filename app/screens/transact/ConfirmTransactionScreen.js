@@ -8,6 +8,12 @@ import {
   Pressable,
   Text,
 } from "react-native";
+import { Wallet, utils, EIP712Signer, Provider, types } from "zksync-ethers";
+import { ethers } from "ethers";
+import * as SecureStore from "expo-secure-store";
+import { supabase } from "../../../lib/supabase";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWallet } from "../../api";
 import { ChevronLeft } from "lucide-react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import { AppButton, AppText, Screen } from "../../components/primitives";
@@ -17,11 +23,13 @@ import { colors, fonts } from "../../config";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
+import { set } from "zod";
 
 function ConfirmTransactionScreen({ navigation }) {
   const { transaction, setTransaction } = useContext(TransactionContext);
   const [showKeypad, setShowKeypad] = useState(false);
-  const [inputHeight, setInputHeight] = useState(100); // Initial height
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const theme = useTheme();
   const memoRef = useRef(null);
   // Initialize useKeypadInput with transaction.amount
@@ -30,7 +38,22 @@ function ConfirmTransactionScreen({ navigation }) {
     allowLeadingZero: false,
     maxValue: 999999.99,
   });
+  const otherUserId = transaction.otherUser?.id;
+  const { data: wallet, isLoading, error: walletError } = useQuery({
+    queryKey: ["wallet", otherUserId],
+    queryFn: () => fetchWallet(otherUserId),
+    enabled: !!otherUserId,
+  });
 
+  if (isLoading) {
+    console.log("Loading wallet data");
+  }
+  if (wallet) {
+    console.log("Wallet data loaded", wallet);
+  }
+  if (walletError) {
+    console.log("Error loading wallet data", walletError.message);
+  }
   // Update transaction.amount whenever value changes
   useEffect(() => {
     setTransaction((prev) => ({
@@ -66,13 +89,91 @@ function ConfirmTransactionScreen({ navigation }) {
     Keyboard.dismiss();
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     // Handle the confirm action here
     console.log("Transaction confirmed:", transaction);
+    setLoading(true);
+    setError(null);
+    try {
+      // Perform the transaction here
+      const result = await performTransaction(transaction);
+      console.log("Transaction result:", result);
 
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
     // navigation.navigate('NextScreen'); // Uncomment and replace with your screen
   };
 
+  const populateUSDCTransferZK = async (value, to) => {
+    const { data: tx, error } = await supabase.functions.invoke(
+      "ethereum-zksync",
+      {
+        body: {
+          action: "getCompleteTransferTx",
+          txRequest: {
+            from: wallet.address,
+            to: to,
+            value: ethers.parseUnits(value.toString(), 6).toString(),
+          },
+        },
+      }
+    );
+    if (error) {
+      console.error("Error creating transaction:", error);
+      return null;
+    }
+
+    console.log("tx: ", JSON.parse(tx));
+    return JSON.parse(tx);
+  };
+
+  const performTransaction = async () => {
+    try {
+      // Get the wallet from secure storage
+      const secureWallet = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
+      const walletData = JSON.parse(secureWallet);
+
+      const wallet = Wallet.fromMnemonic(walletData.phrase);
+      // Create the transaction
+      const txRequest = await populateUSDCTransferZK(
+        transaction.amount,
+        transaction.otherUserWallet.address
+      );
+
+      if (!txRequest) {
+        throw new Error("Failed to create transaction");
+      }
+      console.log("Transaction to sign:", txRequest);
+      const signer = new EIP712Signer(wallet, txRequest.chainId);
+      txRequest.customData.customSignature = await signer.sign(txRequest);
+
+      const signedTx = utils.serializeEip712(txRequest);
+      console.log("Signed transaction:", signedTx);
+      // Send the signed transaction
+      const { data, error } = await supabase.functions.invoke(
+        "ethereum-zksync",
+        {
+          body: {
+            action: "sendTestTransactionUSDC",
+            signedTransaction: signedTx,
+          },
+        }
+      );
+
+      if (error) {
+        throw new Error(`Error sending transaction: ${error.message}`);
+      }
+
+      console.log("Transaction sent successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      throw error;
+    }
+  };
   return (
     <Pressable style={styles.container} onPress={dismissInputs}>
       <Screen style={styles.screen}>

@@ -168,6 +168,11 @@ function SignUpGenerateWallet({ navigation }) {
 
       if (walletError) throw walletError;
 
+      const { data: addToWebhookData, error: addToWebhookError } = await supabase.rpc("add_wallet_to_webhook", {
+        address: publicInfo.address
+      });
+
+      if (addToWebhookError) throw addToWebhookError;
       clearMemory();
       navigation.navigate(routes.SIGNUPCOMPLETE);
     } catch (error) {

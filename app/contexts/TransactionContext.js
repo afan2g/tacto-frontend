@@ -7,7 +7,6 @@ export default function TransactionProvider({ children }) {
     action: null,
     amount: null,
     otherUser: null,
-    otherUserWallet: null,
     memo: null,
   });
   return (

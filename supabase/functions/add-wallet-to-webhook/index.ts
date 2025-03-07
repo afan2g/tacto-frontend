@@ -64,15 +64,20 @@ Deno.serve(async (req) => {
 
     console.log("User:", user);
     console.log("gathering all webhooks");
-    // Parse request body once
-    const webhooks = await alchemy.notify.getAllWebhooks();
-    console.log("webhooks", webhooks);
-    return createJsonResponse(webhooks);
+
+    const { address } = await req.json();
+    if (!address) {
+      return createJsonResponse({ error: "Missing address" }, 400);
+    }
+
+    await alchemy.notify.updateWebhook("wh_87yf9xiskybg3txg", {
+      addAddresses: [address],
+    });
+
+    return createJsonResponse({ success: true });
   } catch (error) {
-    return createJsonResponse(
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      500
-    );
+    console.error("Error adding address to webhook:", error);
+    return createJsonResponse({ error: "Internal server error" }, 500);
   }
 });
 

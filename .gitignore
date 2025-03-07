@@ -43,3 +43,5 @@ ios/
 secrets/
 
 credentials.json
+
+workers/

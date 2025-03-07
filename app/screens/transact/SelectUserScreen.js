@@ -4,18 +4,13 @@ import { ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList } from "@shopify/flash-list";
-import { fetchProfiles, fetchWallet } from "../../api";
+import { fetchProfiles } from "../../api";
 import { AppText, Screen } from "../../components/primitives";
 import FindUserBar from "../../components/forms/FindUserBar";
 import UserCard from "../../components/cards/UserCard";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { TransactionContext } from "../../contexts/TransactionContext";
-import {
-  FAKE_OTHER_USERS,
-  FAKE_TRANSACTIONS_FULL,
-  FAKEUSERS,
-} from "../../data/fakeData";
 import { AppCardSeparator } from "../../components/cards";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
@@ -37,21 +32,7 @@ function SelectUserScreen({ navigation }) {
     queryFn: () => fetchProfiles(profile.id),
   });
 
-  const userId = transaction.otherUser?.id;
-  const {
-    data: wallet,
-    status: walletStatus,
-    fetchStatus: walletFetchStatus,
-  } = useQuery({
-    queryKey: ["wallet", userId],
-    queryFn: () => fetchWallet(userId),
-    enabled: !!userId,
-  });
 
-  if (walletStatus === "success") {
-    console.log("Successfully loaded wallet data", wallet);
-    transaction.otherUserWallet = wallet;
-  }
 
   if (isPending) {
     console.log("Loading profiles data");
@@ -62,7 +43,7 @@ function SelectUserScreen({ navigation }) {
   }
 
   if (isSuccess) {
-    console.log("Successfully loaded profiles data", profiles);
+    console.log("Successfully loaded profiles data");
   }
 
   // Handle user card press
@@ -99,7 +80,7 @@ function SelectUserScreen({ navigation }) {
       </View>
       <FindUserBar
         style={styles.FindUserBar}
-        action={transaction.action.slice(0, 4).toLowerCase()}
+        action={transaction.action.slice(0, 3).toLowerCase()}
       />
       <FlashList
         estimatedItemSize={76}

@@ -198,7 +198,7 @@ function TestingScreen({ navigation }) {
   };
 
   const handleLogWebhooks = async () => {
-    const { data, error } = await supabase.functions.invoke("alchemy-test", {});
+    const { data, error } = await supabase.functions.invoke("alchemy-test");
     if (error) {
       console.error("Error logging webhooks:", error);
     } else {

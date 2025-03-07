@@ -126,9 +126,20 @@ Deno.serve(async (req) => {
             400
           );
         }
-        console.log("successful params check");
         const usdcContractAddress =
           "0xAe045DE5638162fa134807Cb558E15A3F5A7F853"; // USDC contract address
+
+        const usdcBalance = await provider.getBalance(
+          txRequest.from,
+          "latest",
+          usdcContractAddress
+        );
+
+        if (usdcBalance < BigInt(txRequest.value)) {
+          return createJsonResponse({ error: "Insufficient balance" }, 400);
+        }
+
+        console.log("successful params check");
         const transferTx = await provider.getTransferTx({
           from: txRequest.from,
           to: txRequest.to,

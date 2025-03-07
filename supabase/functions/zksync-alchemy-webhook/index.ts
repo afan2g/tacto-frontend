@@ -83,14 +83,6 @@ function isValidSignatureForStringBody(
   const digest = hmac.digest("hex");
   return signature === digest;
 }
-// interface Activity {
-//   fromAddress: string;
-//   toAddress: string;
-//   value: number;
-//   asset: string;
-//   category: string;
-//   hash: string;
-// }
 
 function parseTransactionDetails(activities: any[]) {
   // Find the main token transfer
