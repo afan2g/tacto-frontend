@@ -100,14 +100,45 @@ Deno.serve(async (req) => {
 
       case "sendTestTransactionUSDC": {
         console.log("sendTestTransactionUSDC");
-        const { signedTransaction } = params;
+        const { signedTransaction, txRequest, txInfo } = params;
         console.log("signedTransaction: ", signedTransaction);
         const txResponseDetailedOutput =
           await provider.sendRawTransactionWithDetailedOutput(
             signedTransaction
           );
+
+        const { data: transactionRecord, error: txInsertError } = await supabase
+          .from("transactions")
+          .insert({
+            from_user_id: user.id,
+            to_user_id: txInfo.toUserId,
+            from_address: txRequest.from,
+            to_address: txRequest.to,
+            amount: ethers.formatUnits(txRequest.value, 6), // Assuming USDC with 6 decimals
+            method_id: txInfo.method_id, // You'd get this from the request params
+            request_id: txInfo.request_id, // If applicable
+            hash: txResponseDetailedOutput.transactionHash,
+            status: "pending",
+            asset: "USDC",
+            fee: 0, // You don't know the exact fee yet
+          })
+          .select()
+          .single();
+
+        if (txInsertError) {
+          console.error("Failed to insert transaction record", txInsertError);
+          return createJsonResponse(
+            { error: "Failed to insert transaction record" },
+            500
+          );
+        }
         console.log("txResponseDetailedOutput: ", txResponseDetailedOutput);
-        return createJsonResponse(utils.toJSON(txResponseDetailedOutput));
+        return createJsonResponse(
+          utils.toJSON({
+            ...txResponseDetailedOutput,
+            transaction_id: transactionRecord.id,
+          })
+        );
       }
 
       case "getCompleteTransferTx": {
@@ -168,6 +199,7 @@ Deno.serve(async (req) => {
           customData,
         };
         console.log("completeTransferTx: ", completeTransferTx);
+
         return createJsonResponse(utils.toJSON(completeTransferTx));
       }
       default:

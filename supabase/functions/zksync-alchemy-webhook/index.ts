@@ -203,6 +203,28 @@ Deno.serve(async (req: Request) => {
         await sendPushNotifications(userIds, message);
       }
 
+      const { data: existingTx, error: findError } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("hash", mainTransfer.hash)
+        .maybeSingle();
+
+      if (existingTx) {
+        const { error: updateError } = await supabase
+          .from("transactions")
+          .update({
+            status: "confirmed",
+            fee: totalFees,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("hash", mainTransfer.hash);
+        if (updateError) {
+          console.error("Failed to update transaction record", updateError);
+        }
+      } else {
+        //this is a transaction sent from an external address not in the database
+        console.log("Inserting new transaction record");
+      }
       return new Response(
         JSON.stringify({ message: "Webhook processed successfully" }),
         {
