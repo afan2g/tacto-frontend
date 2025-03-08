@@ -7,13 +7,13 @@ import {
   ScrollView,
   Pressable,
   Text,
+  Alert,
 } from "react-native";
-import { Wallet, utils, EIP712Signer, Provider, types } from "zksync-ethers";
+import { Wallet, utils, EIP712Signer } from "zksync-ethers";
 import { ethers } from "ethers";
 import * as SecureStore from "expo-secure-store";
+import { FunctionsHttpError, FunctionsRelayError, FunctionsFetchError } from "@supabase/supabase-js";
 import { supabase } from "../../../lib/supabase";
-import { useQuery } from "@tanstack/react-query";
-import { fetchWallet } from "../../api";
 import { ChevronLeft } from "lucide-react-native";
 import { TextInput, useTheme } from "react-native-paper";
 import { AppButton, AppText, Screen } from "../../components/primitives";
@@ -23,7 +23,9 @@ import { colors, fonts } from "../../config";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
-import { set } from "zod";
+import { useData } from "../../contexts";
+
+const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function ConfirmTransactionScreen({ navigation }) {
   const { transaction, setTransaction } = useContext(TransactionContext);
@@ -32,36 +34,52 @@ function ConfirmTransactionScreen({ navigation }) {
   const [error, setError] = useState(null);
   const theme = useTheme();
   const memoRef = useRef(null);
+  const { wallet, profile } = useData();
+
   // Initialize useKeypadInput with transaction.amount
   const { value, handleKeyPress } = useKeypadInput(transaction.amount || "", {
     maxDecimalPlaces: 2,
     allowLeadingZero: false,
     maxValue: 999999.99,
   });
-  const otherUserId = transaction.otherUser?.id;
-  const { data: wallet, isLoading, error: walletError } = useQuery({
-    queryKey: ["wallet", otherUserId],
-    queryFn: () => fetchWallet(otherUserId),
-    enabled: !!otherUserId,
-  });
 
-  if (isLoading) {
-    console.log("Loading wallet data");
-  }
-  if (wallet) {
-    console.log("Wallet data loaded", wallet);
-  }
-  if (walletError) {
-    console.log("Error loading wallet data", walletError.message);
-  }
-  // Update transaction.amount whenever value changes
+  // Fetch recipient wallet address when recipient user changes
+  useEffect(() => {
+    if (!transaction.recipientUser) return;
+
+    const fetchWallet = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("wallets")
+          .select("address")
+          .eq("owner_id", transaction.recipientUser.id)
+          .single();
+
+        if (error) throw error;
+
+        setTransaction((prev) => ({
+          ...prev,
+          recipientAddress: data.address,
+          methodId: 0, // 0 for user, 1 for external
+        }));
+      } catch (err) {
+        console.error("Error fetching wallet:", err);
+        setError("Failed to load recipient wallet information");
+      }
+    };
+
+    fetchWallet();
+  }, [transaction.recipientUser, setTransaction]);
+
+  // Update transaction amount when value changes
   useEffect(() => {
     setTransaction((prev) => ({
       ...prev,
       amount: value,
     }));
-  }, [value]);
+  }, [value, setTransaction]);
 
+  // Handlers
   const handleInputChange = (memoValue) => {
     setTransaction((prev) => ({
       ...prev,
@@ -70,18 +88,14 @@ function ConfirmTransactionScreen({ navigation }) {
   };
 
   const handleUserPress = () => {
-    // Handle the user press here
-    console.log("User pressed:", transaction.otherUser);
-    navigation.navigate(routes.USERPROFILE, { user: transaction.otherUser });
+    navigation.navigate(routes.USERPROFILE, { user: transaction.recipientUser });
   };
 
   const handleAmountPress = () => {
     setShowKeypad(true);
-
-    Keyboard.dismiss(); // Hide the keyboard if it's open
+    Keyboard.dismiss();
   };
 
-  // Function to dismiss keypad and keyboard
   const dismissInputs = () => {
     if (showKeypad) {
       setShowKeypad(false);
@@ -89,91 +103,141 @@ function ConfirmTransactionScreen({ navigation }) {
     Keyboard.dismiss();
   };
 
-  const handleConfirm = async () => {
-    // Handle the confirm action here
-    console.log("Transaction confirmed:", transaction);
-    setLoading(true);
-    setError(null);
-    try {
-      // Perform the transaction here
-      const result = await performTransaction(transaction);
-      console.log("Transaction result:", result);
-
-    } catch (error) {
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-    // navigation.navigate('NextScreen'); // Uncomment and replace with your screen
-  };
-
+  // Transaction helpers
   const populateUSDCTransferZK = async (value, to) => {
-    const { data: tx, error } = await supabase.functions.invoke(
-      "ethereum-zksync",
-      {
-        body: {
-          action: "getCompleteTransferTx",
-          txRequest: {
-            from: wallet.address,
-            to: to,
-            value: ethers.parseUnits(value.toString(), 6).toString(),
-          },
-        },
-      }
-    );
-    if (error) {
-      console.error("Error creating transaction:", error);
-      return null;
-    }
-
-    console.log("tx: ", JSON.parse(tx));
-    return JSON.parse(tx);
-  };
-
-  const performTransaction = async () => {
     try {
-      // Get the wallet from secure storage
-      const secureWallet = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
-      const walletData = JSON.parse(secureWallet);
-
-      const wallet = Wallet.fromMnemonic(walletData.phrase);
-      // Create the transaction
-      const txRequest = await populateUSDCTransferZK(
-        transaction.amount,
-        transaction.otherUserWallet.address
-      );
-
-      if (!txRequest) {
-        throw new Error("Failed to create transaction");
-      }
-      console.log("Transaction to sign:", txRequest);
-      const signer = new EIP712Signer(wallet, txRequest.chainId);
-      txRequest.customData.customSignature = await signer.sign(txRequest);
-
-      const signedTx = utils.serializeEip712(txRequest);
-      console.log("Signed transaction:", signedTx);
-      // Send the signed transaction
-      const { data, error } = await supabase.functions.invoke(
+      const { data: tx, error } = await supabase.functions.invoke(
         "ethereum-zksync",
         {
           body: {
-            action: "sendTestTransactionUSDC",
-            signedTransaction: signedTx,
+            action: "getCompleteTransferTx",
+            txRequest: {
+              from: wallet.address,
+              to: to,
+              value: ethers.parseUnits(value.toString(), 6).toString(),
+            },
           },
         }
       );
 
       if (error) {
-        throw new Error(`Error sending transaction: ${error.message}`);
+        let errorMsg = "Failed to prepare transaction";
+
+        if (error instanceof FunctionsHttpError) {
+          const errorDetails = await error.context.json();
+          errorMsg = errorDetails.error || errorMsg;
+        } else if (error instanceof FunctionsRelayError) {
+          errorMsg = `Relay error: ${error.message}`;
+        } else if (error instanceof FunctionsFetchError) {
+          errorMsg = `Network error: ${error.message}`;
+        }
+
+        throw new Error(errorMsg);
       }
 
-      console.log("Transaction sent successfully:", data);
-      return data;
-    } catch (error) {
-      console.error("Transaction failed:", error);
-      throw error;
+      return JSON.parse(tx);
+    } catch (err) {
+      console.error("Error in populateUSDCTransferZK:", err);
+      throw err;
     }
   };
+
+  const performTransaction = async () => {
+    try {
+      // Get wallet from secure storage
+      const securePhrase = await SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`);
+      if (!securePhrase) throw new Error("Wallet not found");
+
+      const walletData = JSON.parse(securePhrase);
+      const secureWallet = Wallet.fromMnemonic(walletData.phrase);
+
+      // Prepare transaction
+      const txRequest = await populateUSDCTransferZK(
+        transaction.amount,
+        transaction.recipientAddress
+      );
+
+      if (!txRequest) {
+        throw new Error("Failed to create transaction");
+      }
+
+      // Sign transaction
+      const signer = new EIP712Signer(secureWallet, txRequest.chainId);
+      txRequest.customData.customSignature = await signer.sign(txRequest);
+      const signedTx = utils.serializeEip712(txRequest);
+
+      // Send transaction
+      const txInfo = {
+        toUserId: transaction.recipientUser?.id,
+        methodId: transaction.recipientUser ? 0 : 1, // 0 for user, 1 for external
+        memo: transaction.memo
+      };
+
+      const { data, error } = await supabase.functions.invoke(
+        "ethereum-zksync",
+        {
+          body: {
+            action: "broadcastTxUSDC",
+            signedTransaction: signedTx,
+            txRequest: txRequest,
+            txInfo: txInfo
+          },
+        }
+      );
+
+      if (error) {
+        let errorMsg = "Transaction failed";
+
+        if (error instanceof FunctionsHttpError) {
+          const errorDetails = await error.context.json();
+          errorMsg = errorDetails.error || errorMsg;
+        } else if (error instanceof FunctionsRelayError) {
+          errorMsg = `Relay error: ${error.message}`;
+        } else if (error instanceof FunctionsFetchError) {
+          errorMsg = `Network error: ${error.message}`;
+        }
+
+        throw new Error(errorMsg);
+      }
+
+      // Handle successful transaction
+      navigation.navigate(routes.TRANSACTION_SUCCESS, {
+        txData: data,
+        amount: transaction.amount,
+        recipient: transaction.recipientUser
+      });
+
+      return data;
+    } catch (err) {
+      console.error("Transaction failed:", err);
+      throw err;
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!transaction.amount || parseFloat(transaction.amount) <= 0) {
+      Alert.alert("Invalid Amount", "Please enter a valid amount greater than zero");
+      return;
+    }
+
+    if (!transaction.recipientAddress) {
+      Alert.alert("Invalid Recipient", "Recipient address is missing");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await performTransaction();
+    } catch (err) {
+      setError(err.message || "Transaction failed. Please try again.");
+      Alert.alert("Transaction Failed", err.message || "An error occurred while processing your transaction");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Pressable style={styles.container} onPress={dismissInputs}>
       <Screen style={styles.screen}>
@@ -186,16 +250,18 @@ function ConfirmTransactionScreen({ navigation }) {
           />
           <AppText style={styles.headerText}>{transaction.action}</AppText>
         </View>
+
         <ScrollView
           contentContainerStyle={styles.contentContainer}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <UserCardVertical
-            user={transaction.otherUser}
+            user={transaction.recipientUser}
             onPress={handleUserPress}
             scale={0.8}
           />
+
           <AppText
             style={[
               styles.amount,
@@ -205,6 +271,7 @@ function ConfirmTransactionScreen({ navigation }) {
           >
             ${value === "" ? "0" : value}
           </AppText>
+
           <View style={styles.inputContainer}>
             <TextInput
               {...theme.formInput}
@@ -241,6 +308,10 @@ function ConfirmTransactionScreen({ navigation }) {
               )}
             />
           </View>
+
+          {error && (
+            <AppText style={styles.errorText}>{error}</AppText>
+          )}
         </ScrollView>
 
         <View style={styles.bottomContainer}>
@@ -249,6 +320,8 @@ function ConfirmTransactionScreen({ navigation }) {
               onPress={handleConfirm}
               color={colors.yellow}
               title="Confirm"
+              loading={loading}
+              disabled={loading || !transaction.amount || !transaction.recipientAddress}
             />
           </View>
           {showKeypad && <AppKeypad onPress={handleKeyPress} />}
@@ -293,6 +366,12 @@ const styles = StyleSheet.create({
     fontSize: 48,
     color: colors.lightGray,
     marginVertical: 15,
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 10,
+    textAlign: 'center',
+    fontFamily: fonts.medium,
   },
   input: {
     borderColor: colors.fadedGray,

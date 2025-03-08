@@ -98,15 +98,23 @@ Deno.serve(async (req) => {
         );
       }
 
-      case "sendTestTransactionUSDC": {
-        console.log("sendTestTransactionUSDC");
+      case "broadcastTxTest": {
+        const { signedTransaction } = params;
+        console.log("signedTransaction: ", signedTransaction);
+        const txResponse = await provider.sendRawTransactionWithDetailedOutput(
+          signedTransaction
+        );
+        console.log("txResponse: ", txResponse);
+        return createJsonResponse(utils.toJSON(txResponse));
+      }
+      case "broadcastTxUSDC": {
+        console.log("broadcastTxUSDC");
         const { signedTransaction, txRequest, txInfo } = params;
         console.log("signedTransaction: ", signedTransaction);
         const txResponseDetailedOutput =
           await provider.sendRawTransactionWithDetailedOutput(
             signedTransaction
           );
-
         const { data: transactionRecord, error: txInsertError } = await supabase
           .from("transactions")
           .insert({
@@ -115,8 +123,8 @@ Deno.serve(async (req) => {
             from_address: txRequest.from,
             to_address: txRequest.to,
             amount: ethers.formatUnits(txRequest.value, 6), // Assuming USDC with 6 decimals
-            method_id: txInfo.method_id, // You'd get this from the request params
-            request_id: txInfo.request_id, // If applicable
+            method_id: txInfo.methodId, // You'd get this from the request params
+            request_id: txInfo.requestId, // If applicable
             hash: txResponseDetailedOutput.transactionHash,
             status: "pending",
             asset: "USDC",

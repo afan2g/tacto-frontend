@@ -6,7 +6,6 @@ import routes from "./routes";
 import {
   LandingScreen,
   SignUpComplete,
-  SignUpEmail,
   SignUpFullName,
   SignUpPassword,
   SignUpUsername,
@@ -16,6 +15,7 @@ import {
 import LoginNavigator from "./LoginNavigator";
 import { useAuthContext } from "../contexts/AuthContext";
 import SignUpScreen from "../screens/auth/SignUpScreen";
+import SignUpImportWallet from "../screens/auth/SignUpImportWallet";
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
@@ -59,6 +59,10 @@ function AppNavigator() {
             component={SignUpGenerateWallet}
           />
           <Stack.Screen
+            name={routes.SIGNUPIMPORTWALLET}
+            component={SignUpImportWallet}
+          />
+          <Stack.Screen
             name={routes.SIGNUPCOMPLETE}
             component={SignUpComplete}
           />
@@ -70,6 +74,10 @@ function AppNavigator() {
           <Stack.Screen
             name={routes.SIGNUPGENERATEWALLET}
             component={SignUpGenerateWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPIMPORTWALLET}
+            component={SignUpImportWallet}
           />
           <Stack.Screen
             name={routes.SIGNUPCOMPLETE}

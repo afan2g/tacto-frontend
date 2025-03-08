@@ -7,84 +7,181 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ethers } from "npm:ethers";
 import { utils } from "npm:zksync-ethers";
-import { Expo } from "npm:expo-server-sdk";
+import { Expo, ExpoPushMessage } from "npm:expo-server-sdk";
 import * as crypto from "node:crypto";
 
+// Define types for better code structure
+interface NotificationMessage {
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+}
+
+interface TransactionActivity {
+  category: string;
+  asset: string;
+  fromAddress: string;
+  toAddress: string;
+  value: number;
+  hash: string;
+}
+
+interface TransactionDetails {
+  mainTransfer: TransactionActivity | null;
+  totalFees: number;
+}
+
+interface Profile {
+  id: string;
+  username: string;
+  // Add other profile fields as needed
+}
+
+// Environment variables with proper fallbacks
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const alchemySigningKey = Deno.env.get("ALCHEMY_ZKSYNC_SIGNING_KEY");
+
+if (!supabaseUrl || !supabaseServiceKey || !alchemySigningKey) {
+  console.error("Required environment variables are missing");
+}
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const expo = new Expo({ accessToken: Deno.env.get("EXPO_ACCESS_TOKEN") });
 
+/**
+ * Sends push notifications to multiple users
+ * @param userIds Array of user IDs to send notifications to
+ * @param message Notification message details
+ */
 async function sendPushNotifications(
   userIds: string[],
-  message: {
-    title: string;
-    body: string;
-    data?: any;
-  }
-) {
-  const { data: tokens } = await supabase
-    .from("notification_tokens")
-    .select("push_token")
-    .in("user_id", userIds);
-
-  if (!tokens?.length) {
+  message: NotificationMessage
+): Promise<void> {
+  if (!userIds.length) {
     return;
   }
 
-  const messages = tokens.map(({ push_token }) => ({
-    to: push_token,
-    sound: "default",
-    title: message.title,
-    body: message.body,
-    data: message.data,
-  }));
+  try {
+    const { data: tokens, error } = await supabase
+      .from("notification_tokens")
+      .select("push_token")
+      .in("user_id", userIds);
 
-  const chunks = expo.chunkPushNotifications(messages);
-
-  for (const chunk of chunks) {
-    try {
-      await expo.sendPushNotificationsAsync(chunk);
-    } catch (error) {
-      console.error(error);
+    if (error) {
+      console.error("Error fetching notification tokens:", error);
+      return;
     }
+
+    if (!tokens?.length) {
+      return;
+    }
+
+    const messages: ExpoPushMessage[] = tokens.map(
+      ({ push_token }: { push_token: string }) => ({
+        to: push_token,
+        sound: "default",
+        title: message.title,
+        body: message.body,
+        data: message.data,
+      })
+    );
+
+    const chunks = expo.chunkPushNotifications(messages);
+
+    for (const chunk of chunks) {
+      try {
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        // Process ticket responses if needed
+        for (let i = 0; i < ticketChunk.length; i++) {
+          const ticket = ticketChunk[i];
+          if (ticket.status === "error") {
+            console.error(`Push notification error:`, ticket.message);
+          }
+        }
+      } catch (error) {
+        console.error("Error sending push notifications:", error);
+      }
+    }
+  } catch (error) {
+    console.error("Unexpected error in sendPushNotifications:", error);
   }
 }
 
-const getProfileFromAddress = async (address: string) => {
-  const checksummedAddress = ethers.getAddress(address);
-  const { data: user, error } = await supabase
-    .from("wallets")
-    .select("owner_id")
-    .eq("address", checksummedAddress)
-    .maybeSingle();
+/**
+ * Gets a user profile from an Ethereum address
+ * @param address Ethereum address to lookup
+ * @returns User profile or null if not found
+ */
+const getProfileFromAddress = async (
+  address: string
+): Promise<Profile | null> => {
+  try {
+    const checksummedAddress = ethers.getAddress(address);
 
-  if (error) {
+    // Combined query to get profile in one database call
+    const { data, error } = await supabase
+      .from("wallets")
+      .select(
+        `
+        owner_id,
+        profiles:owner_id(*)
+      `
+      )
+      .eq("address", checksummedAddress)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching wallet:", error);
+      return null;
+    }
+
+    if (!data || !data.profiles) {
+      return null;
+    }
+
+    return data.profiles as Profile;
+  } catch (error) {
+    console.error("Error in getProfileFromAddress:", error);
     return null;
   }
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user?.owner_id)
-    .maybeSingle();
-  if (profileError) {
-    return null;
-  }
-  return profile;
 };
 
+/**
+ * Validates the webhook signature from Alchemy
+ * @param body Raw request body
+ * @param signature Signature from request header
+ * @param signingKey Signing key from Alchemy dashboard
+ * @returns Whether the signature is valid
+ */
 function isValidSignatureForStringBody(
-  body: string, // must be raw string body, not json transformed version of the body
-  signature: string, // your "X-Alchemy-Signature" from header
-  signingKey: string // taken from dashboard for specific webhook
+  body: string,
+  signature: string,
+  signingKey: string
 ): boolean {
-  const hmac = crypto.createHmac("sha256", signingKey); // Create a HMAC SHA256 hash using the signing key
-  hmac.update(body, "utf8"); // Update the token hash with the request body using utf8
-  const digest = hmac.digest("hex");
-  return signature === digest;
+  try {
+    const hmac = crypto.createHmac("sha256", signingKey);
+    hmac.update(body, "utf8");
+    const digest = hmac.digest("hex");
+    return signature === digest;
+  } catch (error) {
+    console.error("Error validating signature:", error);
+    return false;
+  }
 }
 
-function parseTransactionDetails(activities: any[]) {
+/**
+ * Parses transaction details from Alchemy webhook data
+ * @param activities Array of transaction activities
+ * @returns Parsed transaction details
+ */
+function parseTransactionDetails(
+  activities: TransactionActivity[]
+): TransactionDetails {
+  if (!Array.isArray(activities) || activities.length === 0) {
+    return { mainTransfer: null, totalFees: 0 };
+  }
+
   // Find the main token transfer
   const mainTransfer = activities.find(
     (activity) =>
@@ -97,32 +194,18 @@ function parseTransactionDetails(activities: any[]) {
   if (!mainTransfer) {
     return { mainTransfer: null, totalFees: 0 };
   }
+
   // Calculate net ETH fee (amount sent to system contract minus amount returned)
   const ethFees = activities.filter((activity) => activity.asset === "ETH");
   let totalFees = 0;
-  console.log("calculating fees");
-  for (const activity of ethFees) {
-    console.log(
-      `to Address: ${activity.toAddress}; type: ${typeof activity.toAddress}`
-    );
-    console.log(
-      `from Address: ${
-        activity.fromAddress
-      }; type: ${typeof activity.fromAddress}`
-    );
 
-    console.log(`value: ${activity.value}; type: ${typeof activity.value}`);
+  for (const activity of ethFees) {
     if (activity.toAddress === utils.BOOTLOADER_FORMAL_ADDRESS) {
       totalFees += activity.value; // Fee paid to system
-      console.log(`Fee paid: ${activity.value}, current total: ${totalFees}`);
     } else if (activity.fromAddress === utils.BOOTLOADER_FORMAL_ADDRESS) {
       totalFees -= activity.value; // Refund from system
-      console.log(`Refund: ${activity.value}, current total: ${totalFees}`);
     }
   }
-
-  console.log(`Main transfer: ${JSON.stringify(mainTransfer, null, 2)}`);
-  console.log(`Net ETH fee: ${totalFees}`);
 
   return {
     mainTransfer,
@@ -130,59 +213,112 @@ function parseTransactionDetails(activities: any[]) {
   };
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "POST") {
-    try {
-      const rawBody = await req.text();
-      const payload = JSON.parse(rawBody);
+/**
+ * Processes a transaction and updates the database
+ * @param transactionDetails Parsed transaction details
+ * @returns Success status
+ */
+async function processTransaction(
+  transactionDetails: TransactionDetails
+): Promise<boolean> {
+  const { mainTransfer, totalFees } = transactionDetails;
 
-      // Verify signature
-      const signature = req.headers.get("X-Alchemy-Signature");
-      const signingKey = Deno.env.get("ALCHEMY_ZKSYNC_SIGNING_KEY")!;
+  if (!mainTransfer) {
+    return false;
+  }
 
-      if (
-        !signature ||
-        !isValidSignatureForStringBody(rawBody, signature, signingKey)
-      ) {
-        console.error("Invalid signature");
-        return new Response(
-          JSON.stringify({ message: "Webhook processed successfully" }),
-          {
-            headers: { "Content-Type": "application/json" },
-            status: 200,
-          }
-        );
+  try {
+    // Get user profiles in parallel
+    const [fromUser, toUser] = await Promise.all([
+      getProfileFromAddress(mainTransfer.fromAddress),
+      getProfileFromAddress(mainTransfer.toAddress),
+    ]);
+
+    if (!fromUser && !toUser) {
+      return false;
+    }
+
+    const { data: existingTx, error: findError } = await supabase
+      .from("transactions")
+      .select("*")
+      .eq("hash", mainTransfer.hash)
+      .maybeSingle();
+
+    if (findError) {
+      console.error("Error checking for existing transaction:", findError);
+      return false;
+    }
+
+    // If existing transaction is found, update it
+    if (existingTx) {
+      const { error: updateError } = await supabase
+        .from("transactions")
+        .update({
+          status: "confirmed",
+          fee: totalFees,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("hash", mainTransfer.hash);
+
+      if (updateError) {
+        console.error("Failed to update transaction record:", updateError);
+        return false;
       }
 
-      const { mainTransfer, totalFees } = parseTransactionDetails(
-        payload.event.activity
-      );
+      // Send notification if recipient is a known user
+      if (toUser) {
+        const senderName =
+          fromUser?.username ||
+          mainTransfer.fromAddress.slice(0, 6) +
+            "..." +
+            mainTransfer.fromAddress.slice(-4);
 
-      if (!mainTransfer) {
-        console.error("No main transfer found in transaction");
-        return new Response(
-          JSON.stringify({ message: "Webhook processed successfully" }),
-          {
-            headers: { "Content-Type": "application/json" },
-            status: 200,
-          }
-        );
+        await sendPushNotifications([toUser.id], {
+          title: "Payment Received",
+          body: `You received ${mainTransfer.value} ${mainTransfer.asset} from ${senderName}`,
+          data: {
+            type: existingTx.type,
+            hash: mainTransfer.hash,
+            token: mainTransfer.asset,
+            amount: mainTransfer.value,
+            fee: totalFees,
+            fromAddress: mainTransfer.fromAddress,
+            toAddress: mainTransfer.toAddress,
+          },
+        });
+      }
+    } else if (toUser) {
+      // This is a transaction sent from an external address to a known user
+      const { error: insertError } = await supabase
+        .from("transactions")
+        .insert({
+          to_user_id: toUser.id,
+          status: "confirmed",
+          hash: mainTransfer.hash,
+          from_address: mainTransfer.fromAddress,
+          to_address: mainTransfer.toAddress,
+          amount: mainTransfer.value,
+          asset: mainTransfer.asset,
+          fee: totalFees,
+          method_id: "5", // Consider making this dynamic
+          type: "transfer",
+        });
+
+      if (insertError) {
+        console.error("Failed to insert transaction record:", insertError);
+        return false;
       }
 
-      // Get user profiles
-      const [fromUser, toUser] = await Promise.all([
-        getProfileFromAddress(mainTransfer.fromAddress),
-        getProfileFromAddress(mainTransfer.toAddress),
-      ]);
+      // Format the sender address for display
+      const senderDisplay =
+        mainTransfer.fromAddress.slice(0, 6) +
+        "..." +
+        mainTransfer.fromAddress.slice(-4);
 
-      // Create notification message with net fee
-      const message = {
-        title: `${mainTransfer.asset} Transfer`,
-        body: `${fromUser?.username || mainTransfer.fromAddress} sent ${
-          mainTransfer.value
-        } ${mainTransfer.asset} to ${
-          toUser?.username || mainTransfer.toAddress
-        } (Fee: ${totalFees.toFixed(8)} ETH)`,
+      // Send notification to the receiver
+      await sendPushNotifications([toUser.id], {
+        title: "Payment Received",
+        body: `You received ${mainTransfer.value} ${mainTransfer.asset} from ${senderDisplay}`,
         data: {
           type: "transfer",
           hash: mainTransfer.hash,
@@ -192,63 +328,101 @@ Deno.serve(async (req: Request) => {
           fromAddress: mainTransfer.fromAddress,
           toAddress: mainTransfer.toAddress,
         },
-      };
-
-      // Send notification to involved users
-      const userIds = [fromUser?.id, toUser?.id].filter(
-        (id): id is string => !!id
-      );
-
-      if (userIds.length > 0) {
-        await sendPushNotifications(userIds, message);
-      }
-
-      const { data: existingTx, error: findError } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("hash", mainTransfer.hash)
-        .maybeSingle();
-
-      if (existingTx) {
-        const { error: updateError } = await supabase
-          .from("transactions")
-          .update({
-            status: "confirmed",
-            fee: totalFees,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("hash", mainTransfer.hash);
-        if (updateError) {
-          console.error("Failed to update transaction record", updateError);
-        }
-      } else {
-        //this is a transaction sent from an external address not in the database
-        console.log("Inserting new transaction record");
-      }
-      return new Response(
-        JSON.stringify({ message: "Webhook processed successfully" }),
-        {
-          headers: { "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
-    } catch (error) {
-      console.error("Error processing webhook:", error);
-      return new Response(
-        JSON.stringify({ message: "Webhook processed successfully" }),
-        {
-          headers: { "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
+      });
     }
+
+    return true;
+  } catch (error) {
+    console.error("Error processing transaction:", error);
+    return false;
+  }
+}
+
+Deno.serve(async (req: Request) => {
+  // Only allow POST requests
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      headers: { "Content-Type": "application/json" },
+      status: 405,
+    });
   }
 
-  return new Response(
-    JSON.stringify({ message: "Webhook processed successfully" }),
-    {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
+  try {
+    const rawBody = await req.text();
+
+    // Basic validation of request body
+    if (!rawBody) {
+      return new Response(JSON.stringify({ error: "Empty request body" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 400,
+      });
     }
-  );
+
+    let payload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // Verify signature
+    const signature = req.headers.get("X-Alchemy-Signature");
+    if (!signature || !alchemySigningKey) {
+      console.error("Missing signature or signing key");
+      // Return 200 to avoid webhook retries, but log the error
+      return new Response(JSON.stringify({ message: "Webhook processed" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (!isValidSignatureForStringBody(rawBody, signature, alchemySigningKey)) {
+      console.error("Invalid signature");
+      // Return 200 to avoid webhook retries, but log the error
+      return new Response(JSON.stringify({ message: "Webhook processed" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Validate webhook data structure
+    if (!payload.event?.activity || !Array.isArray(payload.event.activity)) {
+      console.error("Invalid webhook payload structure");
+      return new Response(JSON.stringify({ message: "Webhook processed" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    const transactionDetails = parseTransactionDetails(payload.event.activity);
+    const success = await processTransaction(transactionDetails);
+
+    // Always return 200 for webhook, but include processing status
+    return new Response(
+      JSON.stringify({
+        message: "Webhook processed successfully",
+        success,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    // Return 200 to prevent webhook retries, but include error info in logs
+    return new Response(
+      JSON.stringify({
+        message: "Webhook processed",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
+  }
 });

@@ -6,7 +6,8 @@ export default function TransactionProvider({ children }) {
   const [transaction, setTransaction] = useState({
     action: null,
     amount: null,
-    otherUser: null,
+    recipientUser: null,
+    recipientAddress: null,
     memo: null,
   });
   return (

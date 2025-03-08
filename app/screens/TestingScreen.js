@@ -2,8 +2,7 @@ import React, { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { AppText, Screen } from "../components/primitives";
-import { Pressable } from "react-native";
-import { storage } from "../../lib/storage";
+import { FunctionsHttpError } from "@supabase/functions-js";
 import * as SecureStore from "expo-secure-store";
 import { Wallet, utils, EIP712Signer, Provider, types } from "zksync-ethers";
 import { ethers } from "ethers";
@@ -11,7 +10,7 @@ import { useData } from "../contexts";
 import { colors, fonts } from "../config";
 import { supabase } from "../../lib/supabase";
 import routes from "../navigation/routes";
-import { util } from "zod";
+const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function TestingScreen({ navigation }) {
   const { profile, wallet, fetchUserData } = useData();
@@ -25,7 +24,7 @@ function TestingScreen({ navigation }) {
   const handleViewSecureStorage = async () => {
     console.log("Secure storage pressed!");
     const secureData = JSON.parse(
-      await SecureStore.getItemAsync("ENCRYPTED_WALLET")
+      await SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`)
     );
     console.log("Secure data: ", secureData);
     const secureWallet = ethers.HDNodeWallet.fromPhrase(
@@ -254,22 +253,24 @@ function TestingScreen({ navigation }) {
     }
   };
 
-  const populateUSDCTransferZK = async (value, to) => {
+  const populateUSDCTransferZK = async (from, to, value) => {
     const { data: tx, error } = await supabase.functions.invoke(
       "ethereum-zksync",
       {
         body: {
           action: "getCompleteTransferTx",
           txRequest: {
-            from: wallet.address,
+            from: from,
             to: to,
             value: ethers.parseUnits(value.toString(), 6).toString(),
           },
         },
       }
     );
-    if (error) {
-      console.error("Error creating transaction:", error);
+    if (error instanceof FunctionsHttpError) {
+      const errorMessage = await error.context.json();
+      console.error("Error creating transaction:", errorMessage);
+      console.error(`From: ${from}, To: ${to}, Value: ${value}`);
       return null;
     }
 
@@ -280,21 +281,24 @@ function TestingScreen({ navigation }) {
   const handleSend = async () => {
     try {
       // Get the wallet from secure storage
-      const secureWallet = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
-      const walletData = JSON.parse(secureWallet);
+      const securePhrase = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
+      const walletData = JSON.parse(securePhrase);
 
-      const wallet = Wallet.fromMnemonic(walletData.phrase);
+      const secureWallet = Wallet.fromMnemonic(walletData.phrase);
+
+      console.log("Secure wallet:", secureWallet);
       // Create the transaction
       const transaction = await populateUSDCTransferZK(
+        secureWallet.address,
+        "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
         0.0001,
-        "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6"
       );
 
       if (!transaction) {
         throw new Error("Failed to create transaction");
       }
       console.log("Transaction to sign:", transaction);
-      const signer = new EIP712Signer(wallet, transaction.chainId);
+      const signer = new EIP712Signer(secureWallet, transaction.chainId);
       transaction.customData.customSignature = await signer.sign(transaction);
 
       const signedTx = utils.serializeEip712(transaction);
@@ -304,7 +308,7 @@ function TestingScreen({ navigation }) {
         "ethereum-zksync",
         {
           body: {
-            action: "sendTestTransactionUSDC",
+            action: "broadcastTxTest",
             signedTransaction: signedTx,
           },
         }

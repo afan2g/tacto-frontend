@@ -9,7 +9,7 @@ import MnemonicTable from "../../components/MnemonicTable";
 import routes from "../../navigation/routes";
 import { AppButton } from "../../components/primitives";
 import { colors } from "../../config";
-const WALLET_STORAGE_KEY = "ENCRYPTED_WALLET";
+const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function SignUpGenerateWallet({ navigation }) {
   const [wallet, setWallet] = useState(null);
@@ -54,22 +54,14 @@ function SignUpGenerateWallet({ navigation }) {
 
       if (!session?.user) return;
 
-      // Check profile first
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      console.log("Profile check in wallet:", { profile, profileError });
-
       // Check if user has any wallets
       const { data: existingWallets, error: walletError } = await supabase
         .from("wallets")
         .select("*")
-        .eq("owner_id", session.user.id);
+        .eq("owner_id", session.user.id)
+        .maybeSingle();
 
-      console.log("Wallet check:", { existingWallets, walletError });
+      console.log("Wallet check in db:", { existingWallets, walletError });
 
       if (walletError && walletError.code !== "PGRST116") {
         throw walletError;
@@ -77,9 +69,24 @@ function SignUpGenerateWallet({ navigation }) {
 
       if (existingWallets && existingWallets.length > 0) {
         navigation.replace(routes.SIGNUPCOMPLETE);
+
+        // Create user-specific storage key
+        const userWalletKey = `${WALLET_STORAGE_KEY}_${session.user.id}`;
+
+        // Try to retrieve the wallet with the user-specific key
+        const storedWallet = await SecureStore.getItemAsync(userWalletKey);
+
+        if (storedWallet) {
+          console.log("Found existing wallet in secure storage");
+          navigation.replace(routes.SIGNUPCOMPLETE);
+        } else {
+          console.log("No wallet in secure storage");
+          setError("Failed to retrieve existing wallet from your device. You can recover your wallet by importing it.");
+          return;
+        }
         return;
       }
-
+      console.log("No existing wallet found. Generating new wallet.");
       generateWallet();
     } catch (error) {
       console.error("Error checking existing wallet:", error);
@@ -113,11 +120,13 @@ function SignUpGenerateWallet({ navigation }) {
         throw new Error("Authentication required");
       }
 
+      const userWalletKey = `${WALLET_STORAGE_KEY}_${session.user.id}`;
+
       // Save encrypted wallet to secure storage
       try {
         // Attempt to save to secure storage
         await SecureStore.setItemAsync(
-          WALLET_STORAGE_KEY,
+          userWalletKey,
           JSON.stringify({
             phrase: wallet.mnemonic.phrase,
             path: wallet.path || "m/44'/60'/0'/0/0",
@@ -168,8 +177,8 @@ function SignUpGenerateWallet({ navigation }) {
 
       if (walletError) throw walletError;
 
-      const { data: addToWebhookData, error: addToWebhookError } = await supabase.rpc("add_wallet_to_webhook", {
-        address: publicInfo.address
+      const { data: addToWebhookData, error: addToWebhookError } = await supabase.functions.invoke("add-wallet-to-webhook", {
+        body: { address: publicInfo.address }
       });
 
       if (addToWebhookError) throw addToWebhookError;
@@ -211,6 +220,7 @@ function SignUpGenerateWallet({ navigation }) {
           disabled={isStoring}
           color={colors.lightGray}
         />
+
         <AppButton
           style={styles.button}
           title={isStoring ? "Storing..." : "Store and Continue"}
@@ -219,6 +229,14 @@ function SignUpGenerateWallet({ navigation }) {
           color={colors.yellow}
           loading={isStoring}
         />
+        <AppButton
+          style={styles.button}
+          title="Import Wallet"
+          onPress={() => navigation.navigate(routes.SIGNUPIMPORTWALLET)}
+          disabled={isStoring}
+          color={colors.yellow}
+        />
+
       </View>
     </Screen>
   );

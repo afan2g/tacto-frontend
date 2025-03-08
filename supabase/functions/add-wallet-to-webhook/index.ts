@@ -12,6 +12,7 @@ const settings = {
   authToken: Deno.env.get("ALCHEMY_AUTH_TOKEN"), // Replace with your Alchemy API key.
   network: Network.ETH_SEPOLIA, // Replace with your network.
 };
+const WEBHOOK_ID = Deno.env.get("ZKSYNC_SEPOLIA_WEBHOOK_ID")!;
 
 const alchemy = new Alchemy(settings);
 const createJsonResponse = (data: any, status = 200) => {
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
       return createJsonResponse({ error: "Missing address" }, 400);
     }
 
-    await alchemy.notify.updateWebhook("wh_87yf9xiskybg3txg", {
+    await alchemy.notify.updateWebhook(WEBHOOK_ID, {
       addAddresses: [address],
     });
 
@@ -80,15 +81,3 @@ Deno.serve(async (req) => {
     return createJsonResponse({ error: "Internal server error" }, 500);
   }
 });
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/alchemy-test' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/

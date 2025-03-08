@@ -1,10 +1,8 @@
-import React, { useContext } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { View, StyleSheet } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
-import { useQuery } from "@tanstack/react-query";
 import { FlashList } from "@shopify/flash-list";
-import { fetchProfiles } from "../../api";
 import { AppText, Screen } from "../../components/primitives";
 import FindUserBar from "../../components/forms/FindUserBar";
 import UserCard from "../../components/cards/UserCard";
@@ -14,44 +12,39 @@ import { TransactionContext } from "../../contexts/TransactionContext";
 import { AppCardSeparator } from "../../components/cards";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
-import { useAuthContext, useData } from "../../contexts";
+import { useData } from "../../contexts";
+import { supabase } from "../../../lib/supabase";
 
 function SelectUserScreen({ navigation }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
-  // Access transaction and setTransaction from context
   const { transaction, setTransaction } = useContext(TransactionContext);
+  const [profiles, setProfiles] = useState([]);
   const { profile } = useData();
-  const {
-    data: profiles,
-    error,
-    isPending,
-    isError,
-    isSuccess,
-  } = useQuery({
-    queryKey: ["profiles", profile.id],
-    queryFn: () => fetchProfiles(profile.id),
-  });
 
 
+  // Fetch profiles data
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      // Fetch profiles data
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .neq("id", profile.id);
+      if (error) throw error;
+      setProfiles(profiles);
+    };
 
-  if (isPending) {
-    console.log("Loading profiles data");
-  }
+    fetchProfiles();
+  }, []);
 
-  if (isError) {
-    console.log("Error loading profiles data", error.message);
-  }
 
-  if (isSuccess) {
-    console.log("Successfully loaded profiles data");
-  }
 
   // Handle user card press
   const handleCardPress = (item) => {
     // Update the transaction with the selected user
     setTransaction((prev) => ({
       ...prev,
-      otherUser: { ...item },
+      recipientUser: { ...item },
     }));
     console.log("Selected user", item);
     // Navigate to the Confirm Transaction screen
