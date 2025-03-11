@@ -4,6 +4,15 @@ import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 import { Eye, EyeOff } from "lucide-react-native";
 
+
+function formatMoney(number, locale = 'en-US', currency = 'USD') {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(number);
+}
+
+
 function AccountBalanceCard({ balance, navigation, style }) {
   const [visible, setVisible] = useState(false);
 
@@ -21,7 +30,7 @@ function AccountBalanceCard({ balance, navigation, style }) {
       <AppText style={styles.balanceText}>Your balance:</AppText>
       <View style={styles.balanceVisibility}>
         <AppText style={styles.balance} onPress={handleBalancePress}>
-          ${visible ? balance : "\u2217".repeat(8) + "." + "\u2217".repeat(2)}
+          {visible ? formatMoney(balance) : "$" + "\u2217".repeat(8) + "." + "\u2217".repeat(2)}
         </AppText>
         {visible ? (
           <EyeOff

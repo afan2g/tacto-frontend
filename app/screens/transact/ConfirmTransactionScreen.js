@@ -37,7 +37,7 @@ function ConfirmTransactionScreen({ navigation }) {
   const { wallet, profile } = useData();
 
   // Initialize useKeypadInput with transaction.amount
-  const { value, handleKeyPress } = useKeypadInput(transaction.amount || "", {
+  const { value, handleKeyPress, resetValue } = useKeypadInput(transaction.amount || "", {
     maxDecimalPlaces: 2,
     allowLeadingZero: false,
     maxValue: 999999.99,
@@ -200,9 +200,12 @@ function ConfirmTransactionScreen({ navigation }) {
         throw new Error(errorMsg);
       }
 
+      const parsedData = JSON.parse(data);
+
+      resetValue();
       // Handle successful transaction
       navigation.navigate(routes.TRANSACTSUCCESS, {
-        txHash: data.transactionHash
+        txHash: parsedData.transactionHash,
       });
 
       return data;

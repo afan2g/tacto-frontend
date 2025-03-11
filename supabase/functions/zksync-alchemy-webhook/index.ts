@@ -6,10 +6,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ethers } from "npm:ethers";
-import { utils } from "npm:zksync-ethers";
+import { Provider, utils, types } from "npm:zksync-ethers";
 import { Expo, ExpoPushMessage } from "npm:expo-server-sdk";
 import * as crypto from "node:crypto";
 
+const ZKSYNC_USDC_CONTRACT_ADDRESS =
+  "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
+const provider = Provider.getDefaultProvider(types.Network.Sepolia);
 // Define types for better code structure
 interface NotificationMessage {
   title: string;
@@ -269,27 +272,113 @@ async function processTransaction(
 
       // Send notification if recipient is a known user
       if (toUser) {
+        //fromUser exists, toUser exists
         const senderName =
           fromUser?.username ||
           mainTransfer.fromAddress.slice(0, 6) +
             "..." +
             mainTransfer.fromAddress.slice(-4);
 
-        await sendPushNotifications([toUser.id], {
-          title: "Payment Received",
-          body: `You received ${mainTransfer.value} ${mainTransfer.asset} from ${senderName}`,
-          data: {
-            type: existingTx.type,
+        const [
+          pushNotificationResponse,
+          fromETHBalance,
+          fromUSDCBalance,
+          toETHBalance,
+          toUSDCBalance,
+        ] = await Promise.all([
+          sendPushNotifications([toUser.id], {
+            title: "Payment Received",
+            body: `You received ${mainTransfer.value} ${mainTransfer.asset} from ${senderName}`,
+            data: {
+              type: existingTx.type,
+              hash: mainTransfer.hash,
+              token: mainTransfer.asset,
+              amount: mainTransfer.value,
+              fee: totalFees,
+              fromAddress: mainTransfer.fromAddress,
+              toAddress: mainTransfer.toAddress,
+            },
+          }),
+          provider.getBalance(mainTransfer.fromAddress),
+          provider.getBalance(
+            mainTransfer.fromAddress,
+            "committed",
+            ZKSYNC_USDC_CONTRACT_ADDRESS
+          ),
+          provider.getBalance(mainTransfer.toAddress),
+          provider.getBalance(
+            mainTransfer.toAddress,
+            "committed",
+            ZKSYNC_USDC_CONTRACT_ADDRESS
+          ),
+        ]);
+
+        const { error: updateFromBalanceError } = await supabase
+          .from("wallets")
+          .update({
+            eth_balance: ethers.formatEther(fromETHBalance),
+            usdc_balance: ethers.formatUnits(fromUSDCBalance, 6),
+          })
+          .eq("address", ethers.getAddress(mainTransfer.fromAddress));
+
+        const { error: updateToBalanceError } = await supabase
+          .from("wallets")
+          .update({
+            eth_balance: ethers.formatEther(toETHBalance),
+            usdc_balance: ethers.formatUnits(toUSDCBalance, 6),
+          })
+          .eq("address", ethers.getAddress(mainTransfer.toAddress));
+
+        if (updateFromBalanceError || updateToBalanceError) {
+          console.error(
+            "Failed to update wallet balances:",
+            updateFromBalanceError,
+            updateToBalanceError
+          );
+          return false;
+        }
+      } else {
+        //fromUser exists, toUser doesnt exist
+        // This is a transaction sent from a known user to an external address
+        const { error: insertError } = await supabase
+          .from("transactions")
+          .insert({
+            from_user_id: fromUser?.id,
+            status: "confirmed",
             hash: mainTransfer.hash,
-            token: mainTransfer.asset,
+            from_address: ethers.getAddress(mainTransfer.fromAddress),
+            to_address: ethers.getAddress(mainTransfer.toAddress),
             amount: mainTransfer.value,
+            asset: mainTransfer.asset,
             fee: totalFees,
-            fromAddress: mainTransfer.fromAddress,
-            toAddress: mainTransfer.toAddress,
-          },
-        });
+            method_id: "5", // Consider making this dynamic
+            type: "transfer",
+          });
+
+        const [ethBalance, usdcBalance] = await Promise.all([
+          provider.getBalance(mainTransfer.fromAddress),
+          provider.getBalance(
+            mainTransfer.fromAddress,
+            "committed",
+            ZKSYNC_USDC_CONTRACT_ADDRESS
+          ),
+        ]);
+
+        const { error: updateBalanceError } = await supabase
+          .from("wallets")
+          .update({
+            eth_balance: ethers.formatEther(ethBalance),
+            usdc_balance: ethers.formatUnits(usdcBalance, 6),
+          })
+          .eq("address", ethers.getAddress(mainTransfer.fromAddress));
+
+        if (insertError || updateBalanceError) {
+          console.error("Failed to insert transaction record:", insertError);
+          return false;
+        }
       }
     } else if (toUser) {
+      //fromUser doesnt exist, toUser exists
       // This is a transaction sent from an external address to a known user
       const { error: insertError } = await supabase
         .from("transactions")
@@ -297,8 +386,8 @@ async function processTransaction(
           to_user_id: toUser.id,
           status: "confirmed",
           hash: mainTransfer.hash,
-          from_address: mainTransfer.fromAddress,
-          to_address: mainTransfer.toAddress,
+          from_address: ethers.getAddress(mainTransfer.fromAddress),
+          to_address: ethers.getAddress(mainTransfer.toAddress),
           amount: mainTransfer.value,
           asset: mainTransfer.asset,
           fee: totalFees,
@@ -317,6 +406,28 @@ async function processTransaction(
         "..." +
         mainTransfer.fromAddress.slice(-4);
 
+      //update the balance of the receiver
+      const [ethBalance, usdcBalance] = await Promise.all([
+        provider.getBalance(mainTransfer.toAddress),
+        provider.getBalance(
+          mainTransfer.toAddress,
+          "committed",
+          ZKSYNC_USDC_CONTRACT_ADDRESS
+        ),
+      ]);
+
+      const { error: updateBalanceError } = await supabase
+        .from("wallets")
+        .update({
+          eth_balance: ethers.formatEther(ethBalance),
+          usdc_balance: ethers.formatUnits(usdcBalance, 6),
+        })
+        .eq("address", ethers.getAddress(mainTransfer.toAddress));
+
+      if (updateBalanceError) {
+        console.error("Failed to update wallet balance:", updateBalanceError);
+        return false;
+      }
       // Send notification to the receiver
       await sendPushNotifications([toUser.id], {
         title: "Payment Received",

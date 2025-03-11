@@ -86,7 +86,7 @@ function AccountScreen({ navigation }) {
             <ActivityIndicator size="large" color={colors.yellow} />
           </View>
         )}
-        <AccountBalanceCard balance={FAKEPROFILE.balance} />
+        <AccountBalanceCard balance={wallet.usdc_balance} />
         <Button onPress={() => navigation.navigate(routes.TESTING)}>
           Go To Testing Screen
         </Button>

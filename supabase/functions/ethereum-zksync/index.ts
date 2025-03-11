@@ -8,10 +8,9 @@ import { ethers } from "npm:ethers";
 import { Provider, utils, types } from "npm:zksync-ethers";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// const provider = new Provider(
-//   Deno.env.get("ALCHEMY_ZKSYNC_SEPOLIA_RPC_URL"),
-//   300
-// );
+const ZKSYNC_USDC_CONTRACT_ADDRESS =
+  "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
+
 const provider = Provider.getDefaultProvider(types.Network.Sepolia);
 
 console.log("Hello from zksync test!");
@@ -90,7 +89,7 @@ Deno.serve(async (req) => {
         const usdcToken = await provider.getBalance(
           address,
           "latest",
-          "0xAe045DE5638162fa134807Cb558E15A3F5A7F853"
+          ZKSYNC_USDC_CONTRACT_ADDRESS
         );
         const decimals = 6;
         return createJsonResponse(
@@ -165,13 +164,11 @@ Deno.serve(async (req) => {
             400
           );
         }
-        const usdcContractAddress =
-          "0xAe045DE5638162fa134807Cb558E15A3F5A7F853"; // USDC contract address
 
         const usdcBalance = await provider.getBalance(
           txRequest.from,
           "latest",
-          usdcContractAddress
+          ZKSYNC_USDC_CONTRACT_ADDRESS
         );
 
         if (usdcBalance < BigInt(txRequest.value)) {
@@ -183,7 +180,7 @@ Deno.serve(async (req) => {
           from: txRequest.from,
           to: txRequest.to,
           amount: txRequest.value,
-          token: usdcContractAddress,
+          token: ZKSYNC_USDC_CONTRACT_ADDRESS,
         });
         console.log("transferTx: ", transferTx);
         const [fee, nonce] = await Promise.all([

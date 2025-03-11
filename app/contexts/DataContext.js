@@ -21,6 +21,8 @@ const sanitizeBoolean = (value) => {
   return null;
 };
 
+
+
 // Utility function to sanitize profile data
 const sanitizeProfileData = (profile) => {
   if (!profile) return null;
@@ -89,6 +91,24 @@ export function DataProvider({ children }) {
       subscription?.unsubscribe();
     };
   }, []);
+
+  //listen for supabase real time changes on wallets table and update balance
+  const channel = supabase
+    .channel('schema-db-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'wallets',
+        filter: 'owner_id=eq.' + profile.id
+      },
+      (payload) => {
+        console.log('Change received!', payload)
+        updateWallet(payload.new)
+      }
+    )
+    .subscribe()
 
   const fetchUserData = async () => {
     console.log("Fetching user data...");

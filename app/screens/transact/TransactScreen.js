@@ -1,6 +1,6 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { View, StyleSheet } from "react-native";
-
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { TransactionContext } from "../../contexts/TransactionContext";
@@ -9,10 +9,10 @@ import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
 
 function TransactScreen({ navigation }) {
-  const { transaction, setTransaction } = useContext(TransactionContext);
+  const { transaction, setTransaction, clearTransaction } = useContext(TransactionContext);
 
   // Use the custom hook with initial value and options
-  const { value, handleKeyPress } = useKeypadInput("", {
+  const { value, setValue, handleKeyPress, resetValue } = useKeypadInput("", {
     maxDecimalPlaces: 2,
     allowLeadingZero: false,
     maxValue: 999999.99,
@@ -24,7 +24,14 @@ function TransactScreen({ navigation }) {
       ...prev,
       amount: value,
     }));
-  }, [value]);
+  }, [value, setTransaction]);
+
+  useEffect(() => {
+    if (!transaction.amount) {
+      setValue("");
+    }
+  }, [transaction.amount, setValue]);
+
 
   const handleSend = () => {
     setTransaction((prev) => ({
