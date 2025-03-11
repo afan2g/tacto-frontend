@@ -11,7 +11,7 @@ import ConfirmTransactionScreen from "../screens/transact/ConfirmTransactionScre
 import TransactionProvider from "../contexts/TransactionContext";
 import TestingScreen from "../screens/TestingScreen";
 import NotificationsTest from "../testing/NotificationsTest";
-
+import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScreen";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -46,6 +46,10 @@ function RootNavigator() {
               <Stack.Screen
                 name={routes.TRANSACTCONFIRM}
                 component={ConfirmTransactionScreen}
+              />
+              <Stack.Screen
+                name={routes.TRANSACTSUCCESS}
+                component={TransactionSuccessScreen}
               />
             </Stack.Group>
             <Stack.Group screenOptions={{}}>

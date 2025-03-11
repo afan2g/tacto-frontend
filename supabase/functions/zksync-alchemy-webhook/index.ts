@@ -76,7 +76,7 @@ async function sendPushNotifications(
     if (!tokens?.length) {
       return;
     }
-
+    console.log("Sending push notifications to:", tokens);
     const messages: ExpoPushMessage[] = tokens.map(
       ({ push_token }: { push_token: string }) => ({
         to: push_token,
@@ -108,26 +108,15 @@ async function sendPushNotifications(
   }
 }
 
-/**
- * Gets a user profile from an Ethereum address
- * @param address Ethereum address to lookup
- * @returns User profile or null if not found
- */
 const getProfileFromAddress = async (
   address: string
 ): Promise<Profile | null> => {
   try {
     const checksummedAddress = ethers.getAddress(address);
 
-    // Combined query to get profile in one database call
     const { data, error } = await supabase
       .from("wallets")
-      .select(
-        `
-        owner_id,
-        profiles:owner_id(*)
-      `
-      )
+      .select("owner_id") // Manually alias the profiles table
       .eq("address", checksummedAddress)
       .maybeSingle();
 
@@ -135,12 +124,25 @@ const getProfileFromAddress = async (
       console.error("Error fetching wallet:", error);
       return null;
     }
-
-    if (!data || !data.profiles) {
+    if (!data) {
+      return null;
+    }
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", data.owner_id)
+      .maybeSingle();
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      return null;
+    }
+    if (!profileData) {
       return null;
     }
 
-    return data.profiles as Profile;
+    console.log("Profile found for address:", address);
+    console.log("Profile data:", profileData);
+    return profileData as Profile;
   } catch (error) {
     console.error("Error in getProfileFromAddress:", error);
     return null;
@@ -399,7 +401,7 @@ Deno.serve(async (req: Request) => {
 
     const transactionDetails = parseTransactionDetails(payload.event.activity);
     const success = await processTransaction(transactionDetails);
-
+    console.log("Transaction processed successfully:", success);
     // Always return 200 for webhook, but include processing status
     return new Response(
       JSON.stringify({

@@ -201,10 +201,8 @@ function ConfirmTransactionScreen({ navigation }) {
       }
 
       // Handle successful transaction
-      navigation.navigate(routes.TRANSACTION_SUCCESS, {
-        txData: data,
-        amount: transaction.amount,
-        recipient: transaction.recipientUser
+      navigation.navigate(routes.TRANSACTSUCCESS, {
+        txHash: data.transactionHash
       });
 
       return data;
@@ -322,6 +320,17 @@ function ConfirmTransactionScreen({ navigation }) {
               title="Confirm"
               loading={loading}
               disabled={loading || !transaction.amount || !transaction.recipientAddress}
+            />
+            <AppButton
+              onPress={() => {
+                navigation.navigate(routes.TRANSACTSUCCESS, {
+                  txHash: "0x1234567890abcdef"
+                })
+              }}
+              color={colors.red}
+              title="Skip"
+              loading={loading}
+              disabled={loading}
             />
           </View>
           {showKeypad && <AppKeypad onPress={handleKeyPress} />}
