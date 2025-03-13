@@ -12,6 +12,7 @@ import TransactionProvider from "../contexts/TransactionContext";
 import TestingScreen from "../screens/TestingScreen";
 import NotificationsTest from "../testing/NotificationsTest";
 import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScreen";
+import { DataProvider } from "../contexts";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -30,45 +31,47 @@ function RootNavigator() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["right", "left"]}>
-        <TransactionProvider>
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false,
-              animation: "fade_from_bottom",
-            }}
-          >
-            <Stack.Group>
-              <Stack.Screen name={routes.APPTABS} component={AppTabNavigator} />
+        <DataProvider>
+          <TransactionProvider>
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: false,
+                animation: "fade_from_bottom",
+              }}
+            >
+              <Stack.Group>
+                <Stack.Screen name={routes.APPTABS} component={AppTabNavigator} />
+                <Stack.Screen
+                  name={routes.TRANSACTSELECTUSER}
+                  component={SelectUserScreen}
+                />
+                <Stack.Screen
+                  name={routes.TRANSACTCONFIRM}
+                  component={ConfirmTransactionScreen}
+                />
+                <Stack.Screen
+                  name={routes.TRANSACTSUCCESS}
+                  component={TransactionSuccessScreen}
+                />
+              </Stack.Group>
+              <Stack.Group screenOptions={{}}>
+                <Stack.Screen
+                  name={routes.USERPROFILE}
+                  component={UserProfileScreen}
+                />
+                <Stack.Screen
+                  name={routes.TRANSACTIONDETAIL}
+                  component={TransactionDetailScreen}
+                />
+              </Stack.Group>
+              <Stack.Screen name={routes.TESTING} component={TestingScreen} />
               <Stack.Screen
-                name={routes.TRANSACTSELECTUSER}
-                component={SelectUserScreen}
+                name={routes.TESTNOTIFICATIONS}
+                component={NotificationsTest}
               />
-              <Stack.Screen
-                name={routes.TRANSACTCONFIRM}
-                component={ConfirmTransactionScreen}
-              />
-              <Stack.Screen
-                name={routes.TRANSACTSUCCESS}
-                component={TransactionSuccessScreen}
-              />
-            </Stack.Group>
-            <Stack.Group screenOptions={{}}>
-              <Stack.Screen
-                name={routes.USERPROFILE}
-                component={UserProfileScreen}
-              />
-              <Stack.Screen
-                name={routes.TRANSACTIONDETAIL}
-                component={TransactionDetailScreen}
-              />
-            </Stack.Group>
-            <Stack.Screen name={routes.TESTING} component={TestingScreen} />
-            <Stack.Screen
-              name={routes.TESTNOTIFICATIONS}
-              component={NotificationsTest}
-            />
-          </Stack.Navigator>
-        </TransactionProvider>
+            </Stack.Navigator>
+          </TransactionProvider>
+        </DataProvider>
       </SafeAreaView>
     </SafeAreaProvider>
   );

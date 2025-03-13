@@ -46,7 +46,6 @@ function SelectUserScreen({ navigation }) {
       ...prev,
       recipientUser: { ...item },
     }));
-    console.log("Selected user", item);
     // Navigate to the Confirm Transaction screen
     navigation.navigate(routes.TRANSACTCONFIRM);
   };

@@ -24,7 +24,7 @@ import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
-
+import { fetchTransactionRequest, broadcastTransaction } from "../../api";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function ConfirmTransactionScreen({ navigation }) {
@@ -103,112 +103,68 @@ function ConfirmTransactionScreen({ navigation }) {
     Keyboard.dismiss();
   };
 
-  // Transaction helpers
-  const populateUSDCTransferZK = async (value, to) => {
-    try {
-      const { data: tx, error } = await supabase.functions.invoke(
-        "ethereum-zksync",
-        {
-          body: {
-            action: "getCompleteTransferTx",
-            txRequest: {
-              from: wallet.address,
-              to: to,
-              value: ethers.parseUnits(value.toString(), 6).toString(),
-            },
-          },
-        }
-      );
-
-      if (error) {
-        let errorMsg = "Failed to prepare transaction";
-
-        if (error instanceof FunctionsHttpError) {
-          const errorDetails = await error.context.json();
-          errorMsg = errorDetails.error || errorMsg;
-        } else if (error instanceof FunctionsRelayError) {
-          errorMsg = `Relay error: ${error.message}`;
-        } else if (error instanceof FunctionsFetchError) {
-          errorMsg = `Network error: ${error.message}`;
-        }
-
-        throw new Error(errorMsg);
-      }
-
-      return JSON.parse(tx);
-    } catch (err) {
-      console.error("Error in populateUSDCTransferZK:", err);
-      throw err;
-    }
-  };
-
   const performTransaction = async () => {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error("Error getting session data:", sessionError);
+      throw new Error("Authentication failed: " + sessionError.message);
+    }
+    const userJWT = session.access_token;
     try {
-      // Get wallet from secure storage
-      const securePhrase = await SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`);
-      if (!securePhrase) throw new Error("Wallet not found");
+      // Prepare transaction
+      const [txRequest, securePhrase] = await Promise.all([
+        fetchTransactionRequest(
+          wallet.address,
+          transaction.recipientAddress,
+          transaction.amount,
+          userJWT
+        ),
+        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`)
+      ]);
+
+      const t0 = performance.now();
+      if (!txRequest) {
+        throw new Error("Failed to create transaction");
+      } else if (!securePhrase) {
+        throw new Error("Failed to retrieve wallet");
+      }
 
       const walletData = JSON.parse(securePhrase);
       const secureWallet = Wallet.fromMnemonic(walletData.phrase);
-
-      // Prepare transaction
-      const txRequest = await populateUSDCTransferZK(
-        transaction.amount,
-        transaction.recipientAddress
-      );
-
-      if (!txRequest) {
-        throw new Error("Failed to create transaction");
-      }
 
       // Sign transaction
       const signer = new EIP712Signer(secureWallet, txRequest.chainId);
       txRequest.customData.customSignature = await signer.sign(txRequest);
       const signedTx = utils.serializeEip712(txRequest);
 
-      // Send transaction
+
+      // Important fix: Make sure txInfo is a plain object with primitive values
+      // The object with prototype methods might be causing issues during JSON serialization
       const txInfo = {
-        toUserId: transaction.recipientUser?.id,
-        methodId: transaction.recipientUser ? 0 : 1, // 0 for user, 1 for external
-        memo: transaction.memo
+        toUserId: transaction.recipientUser?.id || "",  // Ensure it's never undefined
+        methodId: transaction.recipientUser ? "0" : "1", // Make sure methodId is a string
+        memo: transaction.memo || null
       };
 
-      const { data, error } = await supabase.functions.invoke(
-        "ethereum-zksync",
-        {
-          body: {
-            action: "broadcastTxUSDC",
-            signedTransaction: signedTx,
-            txRequest: txRequest,
-            txInfo: txInfo
-          },
-        }
-      );
 
-      if (error) {
-        let errorMsg = "Transaction failed";
-
-        if (error instanceof FunctionsHttpError) {
-          const errorDetails = await error.context.json();
-          errorMsg = errorDetails.error || errorMsg;
-        } else if (error instanceof FunctionsRelayError) {
-          errorMsg = `Relay error: ${error.message}`;
-        } else if (error instanceof FunctionsFetchError) {
-          errorMsg = `Network error: ${error.message}`;
-        }
-
-        throw new Error(errorMsg);
-      }
-
+      const data = await broadcastTransaction(signedTx, txRequest, txInfo, userJWT);
+      const t1 = performance.now();
+      console.log("Transaction time:", t1 - t0, "ms");
       const parsedData = JSON.parse(data);
 
       resetValue();
-      // Handle successful transaction
+
+      // Check for errors in the response
+      if (data.error) {
+        throw new Error(`Transaction failed: ${data.error}`);
+      }
+
+      // Use the received data for navigation, not parsedData which isn't defined
       navigation.navigate(routes.TRANSACTSUCCESS, {
         txHash: parsedData.transactionHash,
       });
 
-      return data;
+      return parsedData;
     } catch (err) {
       console.error("Transaction failed:", err);
       throw err;

@@ -23,8 +23,6 @@ export default function TransactionProvider({ children }) {
       methodId: null,
     });
 
-    // Debug line to immediately check the state
-    console.log("After clearing - should be null:", transaction);
   };
   return (
     <TransactionContext.Provider value={{ transaction, setTransaction, clearTransaction }}>

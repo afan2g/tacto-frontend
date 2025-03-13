@@ -415,7 +415,6 @@ async function processTransaction(
           ZKSYNC_USDC_CONTRACT_ADDRESS
         ),
       ]);
-
       const { error: updateBalanceError } = await supabase
         .from("wallets")
         .update({

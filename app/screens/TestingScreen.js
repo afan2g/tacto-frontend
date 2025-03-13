@@ -277,6 +277,38 @@ function TestingScreen({ navigation }) {
     console.log("tx: ", JSON.parse(tx));
     return JSON.parse(tx);
   };
+  const getTransferTransaction = async () => {
+    console.log("Getting transfer transaction...");
+    const workerUrl = "https://zksync.tacto.workers.dev/";
+    const { data: sessionData, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error("Error getting session data:", error);
+      return;
+    }
+    const userJWT = sessionData.session.access_token;
+    console.log("User JWT:", userJWT);
+
+    const value = 0.0001;
+    const response = await fetch(workerUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${userJWT}`
+      },
+      body: JSON.stringify({
+        action: "getCompleteTransferTx",
+        txRequest: {
+          from: wallet.address,
+          to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6", // Recipient's wallet address
+          value: ethers.parseUnits(value.toString(), 6).toString(),
+        }
+      })
+    });
+
+    const data = await response.json();
+    console.log("Transaction to sign:", data);
+    return data;
+  }
 
   const handleSend = async () => {
     try {
@@ -406,6 +438,9 @@ function TestingScreen({ navigation }) {
       </View>
       <Button onPress={populateUSDCTransferZK}>
         Create USDC Transaction on ZK Sync
+      </Button>
+      <Button onPress={getTransferTransaction}>
+        Create USDC Transaction on ZK Sync using CF
       </Button>
       <Button onPress={handleSend}>Send ZK Sync USDC Transaction</Button>
       <Button onPress={handleSignTransaction}>Sign Transaction</Button>

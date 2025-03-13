@@ -21,7 +21,7 @@ import { PaperProvider, MD3DarkTheme } from "react-native-paper";
 import AppNavigator from "./app/navigation/AppNavigator";
 import navigationTheme from "./app/navigation/navigationTheme";
 import useAuth from "./app/hooks/useAuth";
-import { AuthProvider, DataProvider, FormProvider } from "./app/contexts";
+import { AuthProvider, FormProvider, r } from "./app/contexts";
 import { colors } from "./app/config";
 import { theme } from "./app/themes/themes";
 export default function App() {
@@ -44,14 +44,12 @@ export default function App() {
                 <BottomSheetModalProvider>
                   <StatusBar style="auto" />
                   <View style={styles.container}>
-                    <DataProvider>
-                      <FormProvider>
-                        <AppNavigator
-                          session={session}
-                          needsWallet={needsWallet}
-                        />
-                      </FormProvider>
-                    </DataProvider>
+                    <FormProvider>
+                      <AppNavigator
+                        session={session}
+                        needsWallet={needsWallet}
+                      />
+                    </FormProvider>
                   </View>
                 </BottomSheetModalProvider>
               </GestureHandlerRootView>

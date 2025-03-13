@@ -149,9 +149,7 @@ Deno.serve(async (req) => {
       }
 
       case "getCompleteTransferTx": {
-        console.log("getCompleteTransferTx");
         const { txRequest } = params;
-        console.log("txRequest: ", txRequest);
         if (
           !txRequest ||
           !txRequest.from ||
@@ -165,35 +163,32 @@ Deno.serve(async (req) => {
           );
         }
 
-        const usdcBalance = await provider.getBalance(
-          txRequest.from,
-          "latest",
-          ZKSYNC_USDC_CONTRACT_ADDRESS
-        );
+        const [usdcBalance, ethBalance, nonce] = await Promise.all([
+          provider.getBalance(
+            txRequest.from,
+            "latest",
+            ZKSYNC_USDC_CONTRACT_ADDRESS
+          ),
+          provider.getBalance(txRequest.from, "latest"),
+          provider.getTransactionCount(txRequest.from),
+        ]);
 
         if (usdcBalance < BigInt(txRequest.value)) {
           return createJsonResponse({ error: "Insufficient balance" }, 400);
         }
 
-        console.log("successful params check");
         const transferTx = await provider.getTransferTx({
           from: txRequest.from,
           to: txRequest.to,
           amount: txRequest.value,
           token: ZKSYNC_USDC_CONTRACT_ADDRESS,
         });
-        console.log("transferTx: ", transferTx);
-        const [fee, nonce] = await Promise.all([
-          provider.estimateFee(transferTx),
-          provider.getTransactionCount(txRequest.from),
-        ]);
-        console.log("fee: ", fee);
-        console.log("nonce: ", nonce);
 
-        const customData = {
-          gasPerPubdata: fee.gasPerPubdataLimit,
-          factoryDeps: [],
-        };
+        console.log("transferTx: ", transferTx);
+
+        const fee = await provider.estimateFee(transferTx);
+
+        console.log("fee: ", fee);
         const completeTransferTx = {
           ...transferTx,
           ...fee,
@@ -201,10 +196,11 @@ Deno.serve(async (req) => {
           value: 0,
           type: utils.EIP712_TX_TYPE,
           chainId: 300,
-          customData,
+          customData: {
+            gasPerPubdata: fee.gasPerPubdataLimit,
+            factoryDeps: [],
+          },
         };
-        console.log("completeTransferTx: ", completeTransferTx);
-
         return createJsonResponse(utils.toJSON(completeTransferTx));
       }
       default:
