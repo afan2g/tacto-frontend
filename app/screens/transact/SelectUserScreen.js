@@ -21,7 +21,6 @@ function SelectUserScreen({ navigation }) {
   const [profiles, setProfiles] = useState([]);
   const { profile } = useData();
 
-
   // Fetch profiles data
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -66,7 +65,7 @@ function SelectUserScreen({ navigation }) {
         />
         <AppText style={styles.headerText}>
           {transaction.action}{" "}
-          <AppText style={styles.value}>${transaction.amount}</AppText>{" "}
+          <AppText style={styles.value}>{transaction.amount}</AppText>{" "}
           {transaction.action === "Sending" ? "to:" : "from:"}
         </AppText>
       </View>

@@ -10,12 +10,10 @@ import {
   Alert,
 } from "react-native";
 import { Wallet, utils, EIP712Signer } from "zksync-ethers";
-import { ethers } from "ethers";
 import * as SecureStore from "expo-secure-store";
-import { FunctionsHttpError, FunctionsRelayError, FunctionsFetchError } from "@supabase/supabase-js";
 import { supabase } from "../../../lib/supabase";
 import { ChevronLeft } from "lucide-react-native";
-import { TextInput, useTheme } from "react-native-paper";
+import { Button, TextInput, useTheme } from "react-native-paper";
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import { UserCardVertical } from "../../components/cards";
 import { TransactionContext } from "../../contexts/TransactionContext";
@@ -37,11 +35,8 @@ function ConfirmTransactionScreen({ navigation }) {
   const { wallet, profile } = useData();
 
   // Initialize useKeypadInput with transaction.amount
-  const { value, handleKeyPress, resetValue } = useKeypadInput(transaction.amount || "", {
-    maxDecimalPlaces: 2,
-    allowLeadingZero: false,
-    maxValue: 999999.99,
-  });
+  const { value, handleKeyPress, getDisplayAmount } = useKeypadInput(transaction.amount || "");
+
 
   // Fetch recipient wallet address when recipient user changes
   useEffect(() => {
@@ -195,6 +190,30 @@ function ConfirmTransactionScreen({ navigation }) {
     }
   };
 
+  const handleRequest = async () => {
+    if (!transaction.amount || parseFloat(transaction.amount) <= 0) {
+      Alert.alert("Invalid Amount", "Please enter a valid amount greater than zero");
+      return;
+    }
+
+    if (!transaction.requestee) {
+      Alert.alert("Invalid Requestee", "Requestee is missing");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await performTransaction();
+    } catch (err) {
+      setError(err.message || "Transaction failed. Please try again.");
+      Alert.alert("Transaction Failed", err.message || "An error occurred while processing your transaction");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <Pressable style={styles.container} onPress={dismissInputs}>
       <Screen style={styles.screen}>
@@ -219,16 +238,11 @@ function ConfirmTransactionScreen({ navigation }) {
             scale={0.8}
           />
 
-          <AppText
-            style={[
-              styles.amount,
-              (!value || value === "") && styles.placeholderValue,
-            ]}
-            onPress={handleAmountPress}
-          >
-            ${value === "" ? "0" : value}
-          </AppText>
-
+          <Pressable style={styles.amountContainer} onPress={handleAmountPress}>
+            <AppText style={styles.amount}>
+              {getDisplayAmount(styles.placeholderValue)}
+            </AppText>
+          </Pressable>
           <View style={styles.inputContainer}>
             <TextInput
               {...theme.formInput}
@@ -273,13 +287,20 @@ function ConfirmTransactionScreen({ navigation }) {
 
         <View style={styles.bottomContainer}>
           <View style={styles.buttonContainer}>
-            <AppButton
+            {transaction.action === "Sending" ? <AppButton
               onPress={handleConfirm}
               color={colors.yellow}
               title="Confirm"
               loading={loading}
               disabled={loading || !transaction.amount || !transaction.recipientAddress}
-            />
+            /> :
+              <AppButton
+                onPress={handleRequest}
+                color={colors.yellow}
+                title="Request"
+                loading={loading}
+                disabled={loading || !transaction.amount || !transaction.requestee}
+              />}
             <AppButton
               onPress={() => {
                 navigation.navigate(routes.TRANSACTSUCCESS, {
@@ -325,6 +346,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 5,
     flexGrow: 1,
+  },
+  amountContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   placeholderValue: {
     color: colors.softGray,

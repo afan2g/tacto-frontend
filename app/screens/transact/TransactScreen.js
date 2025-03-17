@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import RNHapticFeedback from "react-native-haptic-feedback";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { TransactionContext } from "../../contexts/TransactionContext";
@@ -13,12 +13,9 @@ function TransactScreen({ navigation }) {
   const { transaction, setTransaction, clearTransaction } = useContext(TransactionContext);
   const [error, setError] = useState(null);
   const { wallet } = useData();
+
   // Use the custom hook with initial value and options
-  const { value, setValue, handleKeyPress, resetValue } = useKeypadInput("", {
-    maxDecimalPlaces: 2,
-    allowLeadingZero: false,
-    maxValue: 999999.99,
-  });
+  const { value, setValue, handleKeyPress, getDisplayAmount } = useKeypadInput("");
 
   // Update transaction.amount whenever value changes
   useEffect(() => {
@@ -35,24 +32,27 @@ function TransactScreen({ navigation }) {
     }
   }, [transaction.amount, setValue]);
 
-
   const handleSend = () => {
     if (!value || value === "") {
       setError("Please enter an amount");
       RNHapticFeedback.trigger("notificationWarning", {
-        ignoreAndroidSystemSettings: false,
+        ignoreAndroidSystemSettings: true,
       })
       return;
     } else if (parseFloat(value) > parseFloat(wallet.usdc_balance)) {
       setError("Insufficient balance");
       RNHapticFeedback.trigger("notificationWarning", {
-        ignoreAndroidSystemSettings: false,
+        ignoreAndroidSystemSettings: true,
       });
       return;
     }
 
     setTransaction((prev) => ({
       ...prev,
+      amount: Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(parseFloat(value)),
       action: "Sending",
     }));
     navigation.navigate(routes.TRANSACTSELECTUSER);
@@ -62,12 +62,15 @@ function TransactScreen({ navigation }) {
     if (!value || value === "") {
       setError("Please enter an amount");
       RNHapticFeedback.trigger("notificationWarning", {
-        ignoreAndroidSystemSettings: false,
+        ignoreAndroidSystemSettings: true,
       })
       return;
     }
     setTransaction((prev) => ({
-      ...prev,
+      amount: Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(parseFloat(value)),
       action: "Requesting",
     }));
     navigation.navigate(routes.TRANSACTSELECTUSER);
@@ -75,11 +78,11 @@ function TransactScreen({ navigation }) {
 
   return (
     <Screen style={styles.screen}>
-      <AppText
-        style={[styles.text, (!value || value === "") && styles.placeholder]}
-      >
-        ${value === "" ? "0" : value}
-      </AppText>
+      <View style={styles.amountContainer}>
+        <AppText style={styles.text}>
+          {getDisplayAmount(styles.placeholder)}
+        </AppText>
+      </View>
       <AppText style={styles.error}>{error}</AppText>
       <View style={styles.input}>
         <View style={styles.sendReceiveContainer}>
@@ -110,15 +113,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  amountContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 140,
+  },
+  dollarSign: {
+    fontFamily: fonts.black,
+    fontSize: 50,
+    color: colors.lightGray,
+  },
   text: {
     fontFamily: fonts.black,
     fontSize: 50,
     color: colors.lightGray,
     textAlign: "center",
-    width: "100%",
-    marginTop: 140,
   },
   placeholder: {
+    fontFamily: fonts.black,
+    fontSize: 50,
     color: colors.softGray,
   },
   input: {
