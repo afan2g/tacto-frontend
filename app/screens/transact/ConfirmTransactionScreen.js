@@ -71,7 +71,7 @@ function ConfirmTransactionScreen({ navigation }) {
   useEffect(() => {
     setTransaction((prev) => ({
       ...prev,
-      amount: getFormattedAmountWithoutSymbol(value),
+      amount: value,
 
     }));
   }, [value, setTransaction]);
@@ -94,10 +94,16 @@ function ConfirmTransactionScreen({ navigation }) {
   };
 
   const dismissInputs = () => {
-    if (showKeypad) {
-      setShowKeypad(false);
-    }
+    dismissKeypad();
     Keyboard.dismiss();
+  };
+
+  const dismissKeypad = () => {
+    setShowKeypad(false);
+    setTransaction((prev) => ({
+      ...prev,
+      amount: getFormattedAmountWithoutSymbol(value),
+    }));
   };
 
   const performTransaction = async () => {
@@ -268,6 +274,7 @@ function ConfirmTransactionScreen({ navigation }) {
               }
               render={(innerProps) => (
                 <RNTextInput
+                  onPress={dismissKeypad}
                   {...innerProps}
                   style={[
                     innerProps.style,

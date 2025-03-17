@@ -17,6 +17,7 @@ export default Object.freeze({
   SIGNUPIMPORTWALLET: "SignupImportWallet",
   SIGNUPCOMPLETE: "SignupComplete",
   TRANSACTCONFIRM: "ConfirmTransaction",
+  TRANSACT: "Transact",
   TRANSACTHOME: "Transaction",
   TRANSACTIONDETAIL: "TransactionDetails",
   TRANSACTSELECTUSER: "TransactionSelectUser",
