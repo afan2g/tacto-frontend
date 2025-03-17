@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, Text, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
@@ -8,10 +8,12 @@ import { TransactionContext } from '../../contexts/TransactionContext';
 import { useKeypadInput } from '../../hooks/useKeypadInput';
 
 function TransactionSuccessScreen({ navigation, route }) {
-    const { txHash } = route.params;
-    const { transaction, setTransaction, clearTransaction } = useContext(TransactionContext);
-    // Don't clear on focus - this is causing the error
-    // We'll clear on navigation instead
+    const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null, txHash = null } = route.params || {};
+    const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId, txHash });
+
+    const clearTransaction = () => {
+        setTransaction({});
+    }
 
     useFocusEffect(
         useCallback(() => {

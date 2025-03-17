@@ -8,6 +8,7 @@ import {
   Pressable,
   Text,
   Alert,
+  BackHandler,
 } from "react-native";
 import { Wallet, utils, EIP712Signer } from "zksync-ethers";
 import * as SecureStore from "expo-secure-store";
@@ -24,10 +25,15 @@ import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
 import { fetchTransactionRequest, broadcastTransaction } from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
+import { set } from "zod";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
-function ConfirmTransactionScreen({ navigation }) {
-  const { transaction, setTransaction } = useContext(TransactionContext);
+function ConfirmTransactionScreen({ navigation, route }) {
+  // const { transaction, setTransaction } = useContext(TransactionContext);
+  const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
+  const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
+
+  console.log("route.params confirm", route.params);
   const [showKeypad, setShowKeypad] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,7 +44,15 @@ function ConfirmTransactionScreen({ navigation }) {
   // Initialize useKeypadInput with transaction.amount
   const { value, handleKeyPress, getDisplayAmount, resetValue } = useKeypadInput(transaction.amount || "");
   const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
-  console.log("confirm transaction screen. transaction value: ", value);
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      navigation.navigate(routes.TRANSACTSELECTUSER, { ...transaction, amount: getFormattedAmountWithoutSymbol(value) });
+      return true;
+    }
+    );
+    return () => subscription.remove();
+  }, []);
   // Fetch recipient wallet address when recipient user changes
   useEffect(() => {
     if (!transaction.recipientUser) return;
@@ -163,9 +177,12 @@ function ConfirmTransactionScreen({ navigation }) {
       }
 
       // Use the received data for navigation, not parsedData which isn't defined
-      navigation.navigate(routes.TRANSACTSUCCESS, {
+
+      setTransaction((prev) => ({
+        ...prev,
         txHash: parsedData.transactionHash,
-      });
+      }));
+      navigation.navigate(routes.TRANSACTSUCCESS, { ...transaction });
 
       return parsedData;
     } catch (err) {
@@ -229,7 +246,7 @@ function ConfirmTransactionScreen({ navigation }) {
           <ChevronLeft
             size={36}
             color={colors.lightGray}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.navigate(routes.TRANSACTSELECTUSER, { ...transaction, amount: getFormattedAmountWithoutSymbol(value) })}
             style={styles.backButton}
           />
           <AppText style={styles.headerText}>{transaction.action}</AppText>

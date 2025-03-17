@@ -13,6 +13,8 @@ import TestingScreen from "../screens/TestingScreen";
 import NotificationsTest from "../testing/NotificationsTest";
 import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScreen";
 import { DataProvider } from "../contexts";
+import TransactNavigator from "./TransactNavigator";
+import { TransactScreen } from "../screens/transact";
 const Stack = createNativeStackNavigator();
 
 const config = {

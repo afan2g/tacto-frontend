@@ -9,14 +9,17 @@ import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
+import { set } from "zod";
 
-function TransactScreen({ navigation }) {
-  const { transaction, setTransaction } = useContext(TransactionContext);
+function TransactScreen({ navigation, route }) {
+  // const { transaction, setTransaction } = useContext(TransactionContext);
+  const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
+  const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
   const [error, setError] = useState(null);
   const { wallet } = useData();
 
   // Use the custom hook with initial value and options
-  const { value, setValue, handleKeyPress, getDisplayAmount } = useKeypadInput("");
+  const { value, setValue, handleKeyPress, getDisplayAmount } = useKeypadInput(transaction.amount || "");
   const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
   // Update transaction.amount whenever value changes
   useEffect(() => {
@@ -33,12 +36,20 @@ function TransactScreen({ navigation }) {
     }
   }, [transaction.amount, setValue]);
 
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("blur", () => {
+      setTransaction({});
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const handleSend = () => {
     if (!value || value === "") {
       setError("Please enter an amount");
       RNHapticFeedback.trigger("notificationWarning", {
         ignoreAndroidSystemSettings: true,
-      })
+      });
       return;
     } else if (parseFloat(value) > parseFloat(wallet.usdc_balance)) {
       setError("Insufficient balance");
@@ -48,11 +59,12 @@ function TransactScreen({ navigation }) {
       return;
     }
 
-    setTransaction((prev) => ({
-      ...prev,
+    const updatedTransaction = {
+      ...transaction,
       action: "Sending",
-    }));
-    navigation.navigate(routes.TRANSACTSELECTUSER);
+    };
+    setTransaction(updatedTransaction);
+    navigation.navigate(routes.TRANSACTSELECTUSER, { ...updatedTransaction });
   };
 
   const handleRequest = () => {
@@ -67,7 +79,7 @@ function TransactScreen({ navigation }) {
       ...prev,
       action: "Requesting",
     }));
-    navigation.navigate(routes.TRANSACTSELECTUSER);
+    navigation.navigate(routes.TRANSACTSELECTUSER, { ...transaction });
   };
 
   return (

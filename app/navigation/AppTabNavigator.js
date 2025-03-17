@@ -30,6 +30,7 @@ function AppTabNavigator(props) {
         headerShown: false,
         tabBarShowLabel: true,
         popToTopOnBlur: true,
+        unmountOnBlur: true,
       }}
     >
       <Tab.Group>
@@ -50,6 +51,7 @@ function AppTabNavigator(props) {
               return <ReceiptText color={color} size={size} />;
             },
             tabBarLabel: "Activity",
+            unmountOnBlur: true,
           }}
         />
         <Tab.Screen
@@ -60,6 +62,7 @@ function AppTabNavigator(props) {
               return <ArrowDownUp color={color} size={size} />;
             },
             tabBarLabel: "T",
+            unmountOnBlur: true,
           }}
         />
         <Tab.Screen

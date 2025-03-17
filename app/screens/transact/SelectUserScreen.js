@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, BackHandler } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { FlashList } from "@shopify/flash-list";
@@ -16,9 +16,12 @@ import { useData } from "../../contexts";
 import { supabase } from "../../../lib/supabase";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 
-function SelectUserScreen({ navigation }) {
+function SelectUserScreen({ navigation, route }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
-  const { transaction, setTransaction } = useContext(TransactionContext);
+  // const { transaction, setTransaction } = useContext(TransactionContext);
+  const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
+  console.log("route.params", route.params);
+  const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
   const [profiles, setProfiles] = useState([]);
   const { profile } = useData();
 
@@ -40,15 +43,26 @@ function SelectUserScreen({ navigation }) {
     fetchProfiles();
   }, []);
 
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      navigation.navigate(routes.APPTABS, { screen: routes.TRANSACTHOME, params: { ...transaction, } });
+      return true;
+    }
+    );
+    return () => subscription.remove();
+  }, []);
   // Handle user card press
   const handleCardPress = (item) => {
     // Update the transaction with the selected user
-    setTransaction((prev) => ({
-      ...prev,
+
+    const updatedTransaction = {
+      ...transaction,
       recipientUser: { ...item },
-    }));
+    };
+    setTransaction(updatedTransaction);
     // Navigate to the Confirm Transaction screen
-    navigation.navigate(routes.TRANSACTCONFIRM);
+    navigation.navigate(routes.TRANSACTCONFIRM, { ...updatedTransaction });
   };
 
   const handleCardLongPress = (item) => {
@@ -66,7 +80,7 @@ function SelectUserScreen({ navigation }) {
         <ChevronLeft
           size={36}
           color={colors.lightGray}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate(routes.APPTABS, { screen: routes.TRANSACTHOME, params: { ...transaction, } })}
         />
         <AppText style={styles.headerText}>
           {transaction.action}{" "}
