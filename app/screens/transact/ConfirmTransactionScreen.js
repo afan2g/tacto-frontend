@@ -23,6 +23,7 @@ import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
 import { fetchTransactionRequest, broadcastTransaction } from "../../api";
+import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function ConfirmTransactionScreen({ navigation }) {
@@ -35,9 +36,9 @@ function ConfirmTransactionScreen({ navigation }) {
   const { wallet, profile } = useData();
 
   // Initialize useKeypadInput with transaction.amount
-  const { value, handleKeyPress, getDisplayAmount } = useKeypadInput(transaction.amount || "");
-
-
+  const { value, handleKeyPress, getDisplayAmount, resetValue } = useKeypadInput(transaction.amount || "");
+  const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
+  console.log("confirm transaction screen. transaction value: ", value);
   // Fetch recipient wallet address when recipient user changes
   useEffect(() => {
     if (!transaction.recipientUser) return;
@@ -70,7 +71,8 @@ function ConfirmTransactionScreen({ navigation }) {
   useEffect(() => {
     setTransaction((prev) => ({
       ...prev,
-      amount: value,
+      amount: getFormattedAmountWithoutSymbol(value),
+
     }));
   }, [value, setTransaction]);
 
@@ -240,7 +242,7 @@ function ConfirmTransactionScreen({ navigation }) {
 
           <Pressable style={styles.amountContainer} onPress={handleAmountPress}>
             <AppText style={styles.amount}>
-              {getDisplayAmount(styles.placeholderValue)}
+              {getDisplayAmount(transaction.amount, styles.placeholderValue)}
             </AppText>
           </Pressable>
           <View style={styles.inputContainer}>

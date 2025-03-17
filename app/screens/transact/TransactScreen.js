@@ -8,21 +8,22 @@ import { colors, fonts } from "../../config";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
+import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 
 function TransactScreen({ navigation }) {
-  const { transaction, setTransaction, clearTransaction } = useContext(TransactionContext);
+  const { transaction, setTransaction } = useContext(TransactionContext);
   const [error, setError] = useState(null);
   const { wallet } = useData();
 
   // Use the custom hook with initial value and options
   const { value, setValue, handleKeyPress, getDisplayAmount } = useKeypadInput("");
-
+  const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
   // Update transaction.amount whenever value changes
   useEffect(() => {
     setError(null);
     setTransaction((prev) => ({
       ...prev,
-      amount: value,
+      amount: getFormattedAmountWithoutSymbol(value),
     }));
   }, [value, setTransaction]);
 
@@ -49,10 +50,6 @@ function TransactScreen({ navigation }) {
 
     setTransaction((prev) => ({
       ...prev,
-      amount: Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(parseFloat(value)),
       action: "Sending",
     }));
     navigation.navigate(routes.TRANSACTSELECTUSER);
@@ -67,10 +64,7 @@ function TransactScreen({ navigation }) {
       return;
     }
     setTransaction((prev) => ({
-      amount: Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(parseFloat(value)),
+      ...prev,
       action: "Requesting",
     }));
     navigation.navigate(routes.TRANSACTSELECTUSER);
@@ -80,7 +74,7 @@ function TransactScreen({ navigation }) {
     <Screen style={styles.screen}>
       <View style={styles.amountContainer}>
         <AppText style={styles.text}>
-          {getDisplayAmount(styles.placeholder)}
+          {getDisplayAmount(value, styles.placeholder)}
         </AppText>
       </View>
       <AppText style={styles.error}>{error}</AppText>

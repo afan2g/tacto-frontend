@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RNHapticFeedback from "react-native-haptic-feedback";
-import { Text, Platform, Vibration } from "react-native";
-
+import { Platform, Vibration } from "react-native";
+import { useAmountFormatter } from "./useAmountFormatter";
 export const useKeypadInput = (
   initialValue = "",
   options = {
@@ -11,8 +11,20 @@ export const useKeypadInput = (
   }
 ) => {
   const [value, setValue] = useState(initialValue);
-  const [hasDecimal, setHasDecimal] = useState(false);
+  const [hasDecimal, setHasDecimal] = useState(initialValue ? initialValue.includes(".") : false);
   const [valid, setValid] = useState(true);
+
+  // Initialize the amount formatter with the same decimal place configuration
+  const { getDisplayAmount } = useAmountFormatter({
+    maxDecimalPlaces: options.maxDecimalPlaces
+  });
+
+  // Update hasDecimal whenever value changes from external sources
+  useEffect(() => {
+    if (value !== undefined && value !== null) {
+      setHasDecimal(String(value).includes('.'));
+    }
+  }, [value]);
 
   const triggerHapticFeedback = (isValid) => {
     if (isValid) {
@@ -114,66 +126,15 @@ export const useKeypadInput = (
     setValid(true);
   };
 
-  const getDisplayAmount = (placeholderStyle) => {
-    if (value === "") {
-      return <Text style={placeholderStyle}>$0</Text>;
-    }
 
-    const formatter = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-
-    // Check if the input has a decimal point
-    const hasDecimal = value.includes('.');
-
-    // For partial decimal input, we need special handling
-    if (hasDecimal) {
-      const parts = value.split('.');
-      const wholeNumber = parts[0];
-      const decimals = parts.length > 1 ? parts[1] : '';
-
-      // If we have incomplete decimals or just a decimal point, show placeholders
-      if (decimals.length < options.maxDecimalPlaces || decimals.length === 0) {
-        // Format just the whole number part without any decimals
-        const wholeFormatted = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(parseFloat(wholeNumber || '0'));
-
-        // If there are some decimals, format them normally
-        const decimalPart = decimals.length > 0
-          ? '.' + decimals
-          : '.'; // Just the decimal point if no digits after it
-
-        // Calculate how many placeholder zeros we need
-        const neededZeros = options.maxDecimalPlaces - decimals.length;
-        const placeholderZeros = neededZeros > 0 ? '0'.repeat(neededZeros) : '';
-
-        return (
-          <>
-            {wholeFormatted}{decimalPart}
-            <Text style={placeholderStyle}>{placeholderZeros}</Text>
-          </>
-        );
-      }
-    }
-
-    // For complete values with no placeholder needed, just use standard formatting
-    return formatter.format(parseFloat(value));
-  };
 
   return {
     value,
     setValue,
     handleKeyPress,
     resetValue,
-    hasDecimal,
-    valid,
     getDisplayAmount,
+    hasDecimal,
+    valid
   };
 };

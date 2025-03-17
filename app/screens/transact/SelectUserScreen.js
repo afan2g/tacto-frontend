@@ -14,12 +14,16 @@ import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
 import { useData } from "../../contexts";
 import { supabase } from "../../../lib/supabase";
+import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 
 function SelectUserScreen({ navigation }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
   const { transaction, setTransaction } = useContext(TransactionContext);
   const [profiles, setProfiles] = useState([]);
   const { profile } = useData();
+
+  // Use our amount formatter
+  const { getFormattedAmount } = useAmountFormatter();
 
   // Fetch profiles data
   useEffect(() => {
@@ -35,8 +39,6 @@ function SelectUserScreen({ navigation }) {
 
     fetchProfiles();
   }, []);
-
-
 
   // Handle user card press
   const handleCardPress = (item) => {
@@ -55,6 +57,9 @@ function SelectUserScreen({ navigation }) {
     openModal(item);
   };
 
+  // Format the amount for display
+  const formattedAmount = getFormattedAmount(transaction.amount);
+  console.log("formattedAmount", formattedAmount);
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -65,7 +70,7 @@ function SelectUserScreen({ navigation }) {
         />
         <AppText style={styles.headerText}>
           {transaction.action}{" "}
-          <AppText style={styles.value}>{transaction.amount}</AppText>{" "}
+          <AppText style={styles.value}>{formattedAmount}</AppText>{" "}
           {transaction.action === "Sending" ? "to:" : "from:"}
         </AppText>
       </View>
