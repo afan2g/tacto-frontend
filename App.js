@@ -1,3 +1,4 @@
+// App.js
 import { setupCrypto } from "./lib/setupCrypto";
 setupCrypto();
 import * as SystemUI from "expo-system-ui";
@@ -11,33 +12,36 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { View, StyleSheet, ActivityIndicator, Keyboard } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { StatusBar } from "expo-status-bar";
-import { PaperProvider, MD3DarkTheme } from "react-native-paper";
+import { PaperProvider } from "react-native-paper";
 
 import AppNavigator from "./app/navigation/AppNavigator";
 import navigationTheme from "./app/navigation/navigationTheme";
 import useAuth from "./app/hooks/useAuth";
-import { AuthProvider, FormProvider, r } from "./app/contexts";
+import { AuthProvider, FormProvider } from "./app/contexts";
 import { colors } from "./app/config";
 import { theme } from "./app/themes/themes";
+
+// Create a loading component
+const LoadingScreen = () => (
+  <View style={styles.loadingContainer}>
+    <ActivityIndicator size="large" color="#0000ff" />
+  </View>
+);
+
 export default function App() {
-  const { session, isLoading, needsWallet } = useAuth();
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
+  // Move authentication logic to App.js
+  const authData = useAuth();
+  const { isLoading } = authData;
 
   return (
     <QueryClientProvider client={queryClient}>
       <PaperProvider theme={theme}>
-        <AuthProvider>
+        <AuthProvider value={authData}>
           <NavigationContainer theme={navigationTheme}>
             <SafeAreaProvider>
               <GestureHandlerRootView style={styles.flex}>
@@ -45,10 +49,7 @@ export default function App() {
                   <StatusBar style="auto" />
                   <View style={styles.container}>
                     <FormProvider>
-                      <AppNavigator
-                        session={session}
-                        needsWallet={needsWallet}
-                      />
+                      {isLoading ? <LoadingScreen /> : <AppNavigator />}
                     </FormProvider>
                   </View>
                 </BottomSheetModalProvider>
@@ -62,6 +63,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -70,35 +74,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.blue,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F1F5F9",
-  },
-  pickerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
-    paddingLeft: 10,
-    paddingRight: 5,
-    borderRightWidth: 1,
-  },
-  flag: {
-    fontSize: 24,
-  },
-  dialCode: {
-    fontSize: 16,
-    color: "#64748B",
-    marginLeft: 8,
-  },
-  chevronDown: {
-    marginLeft: 5,
-  },
-  phoneInput: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-    paddingHorizontal: 10,
   },
 });

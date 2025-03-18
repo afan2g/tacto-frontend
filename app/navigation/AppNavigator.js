@@ -1,6 +1,6 @@
 // AppNavigator.js
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useEffect } from "react";
 import RootNavigator from "./RootNavigator";
 import routes from "./routes";
 import {
@@ -16,12 +16,87 @@ import LoginNavigator from "./LoginNavigator";
 import { useAuthContext } from "../contexts/AuthContext";
 import SignUpScreen from "../screens/auth/SignUpScreen";
 import SignUpImportWallet from "../screens/auth/SignUpImportWallet";
+
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
-  const { session, isLoading, needsWallet } = useAuthContext();
+  const { session, needsWallet } = useAuthContext();
 
-  if (isLoading) return null;
+  // Set up navigator based on auth state
+  const renderNavigator = () => {
+    // User is authenticated but needs wallet setup
+    if (session && needsWallet) {
+      console.log("rendering wallet setup stack");
+      return (
+        <Stack.Group>
+          <Stack.Screen
+            name={routes.SIGNUPGENERATEWALLET}
+            component={SignUpGenerateWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPIMPORTWALLET}
+            component={SignUpImportWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPCOMPLETE}
+            component={SignUpComplete}
+          />
+        </Stack.Group>
+      );
+    }
+
+    // Fully authenticated user
+    if (session) {
+      console.log("rendering authenticated stack");
+      return (
+        <Stack.Group>
+          <Stack.Screen
+            name={routes.ROOT}
+            component={RootNavigator}
+            options={{ gestureEnabled: false }}
+          />
+        </Stack.Group>
+      );
+    }
+
+    // Not authenticated
+    console.log("rendering non-authenticated stack");
+    return (
+      <Stack.Group screenOptions={{ animation: "none" }}>
+        <Stack.Screen name={routes.LANDING} component={LandingScreen} />
+        <Stack.Screen name={routes.LOGIN} component={LoginNavigator} />
+        <Stack.Screen
+          name={routes.SIGNUPUSERNAME}
+          component={SignUpUsername}
+        />
+        <Stack.Screen
+          name={routes.SIGNUPFULLNAME}
+          component={SignUpFullName}
+        />
+        <Stack.Screen
+          name={routes.SIGNUPIDENTIFIER}
+          component={SignUpScreen}
+        />
+        <Stack.Screen
+          name={routes.SIGNUPPASSWORD}
+          component={SignUpPassword}
+        />
+        <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
+        <Stack.Screen
+          name={routes.SIGNUPGENERATEWALLET}
+          component={SignUpGenerateWallet}
+        />
+        <Stack.Screen
+          name={routes.SIGNUPIMPORTWALLET}
+          component={SignUpImportWallet}
+        />
+        <Stack.Screen
+          name={routes.SIGNUPCOMPLETE}
+          component={SignUpComplete}
+        />
+      </Stack.Group>
+    );
+  };
 
   return (
     <Stack.Navigator
@@ -31,71 +106,9 @@ function AppNavigator() {
         animation: "slide_from_right",
       }}
     >
-      {!session ? (
-        // Non-authenticated stack
-        <Stack.Group screenOptions={{ animation: "none" }}>
-          {console.log("rendering non-authenticated stack")}
-          <Stack.Screen name={routes.LANDING} component={LandingScreen} />
-          <Stack.Screen name={routes.LOGIN} component={LoginNavigator} />
-          <Stack.Screen
-            name={routes.SIGNUPUSERNAME}
-            component={SignUpUsername}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPFULLNAME}
-            component={SignUpFullName}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPIDENTIFIER}
-            component={SignUpScreen}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPPASSWORD}
-            component={SignUpPassword}
-          />
-          <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
-          <Stack.Screen
-            name={routes.SIGNUPGENERATEWALLET}
-            component={SignUpGenerateWallet}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPIMPORTWALLET}
-            component={SignUpImportWallet}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPCOMPLETE}
-            component={SignUpComplete}
-          />
-        </Stack.Group>
-      ) : needsWallet ? (
-        // Wallet setup stack
-        <Stack.Group>
-          {console.log("rendering wallet setup stack")}
-          <Stack.Screen
-            name={routes.SIGNUPGENERATEWALLET}
-            component={SignUpGenerateWallet}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPIMPORTWALLET}
-            component={SignUpImportWallet}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPCOMPLETE}
-            component={SignUpComplete}
-          />
-        </Stack.Group>
-      ) : (
-        // Authenticated stack
-        <Stack.Group>
-          {console.log("rendering authenticated stack")}
-          <Stack.Screen
-            name={routes.ROOT}
-            component={RootNavigator}
-            options={{ gestureEnabled: false }}
-          />
-        </Stack.Group>
-      )}
+      {renderNavigator()}
     </Stack.Navigator>
   );
 }
+
 export default AppNavigator;
