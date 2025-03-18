@@ -16,6 +16,7 @@ const AppButton = ({
   disabled = false,
   accessibilityLabel,
   accessibilityHint,
+  icon = null,
 }) => {
   const buttonIsDisabled = disabled || loading;
 
@@ -39,13 +40,13 @@ const AppButton = ({
       testID="app-button"
     >
       <View style={styles.content}>
-        {loading && (
+        {loading ? (
           <ActivityIndicator
             color={loadingColor}
             style={styles.indicator}
             testID="button-loading-indicator"
           />
-        )}
+        ) : icon}
         <AppText
           style={[styles.text, textStyle, loading && styles.textWithIndicator]}
           numberOfLines={1}
@@ -81,7 +82,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 10,
     width: "100%",
-    minHeight: 48,
   },
   content: {
     flexDirection: "row",

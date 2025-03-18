@@ -7,7 +7,8 @@ import { AppButton, AppText, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
 import { OrSeparator } from "../../components/login";
 import routes from "../../navigation/routes";
-
+import GoogleIcon from "../../assets/icons/google/android/light/android_light_sq_na.svg";
+import AppleIcon from "../../assets/icons/apple/SVG/logo_black.svg";
 function LandingScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -59,20 +60,25 @@ function LandingScreen({ navigation }) {
         />
         <OrSeparator />
         <AppButton
-          color={colors.lightGray}
+          color="#fff"
           onPress={handleGoogleSignIn}
-          style={styles.button}
-          title={isLoading ? "Loading..." : "Continue With Google"}
+          style={[styles.button, { padding: 0, minHeight: 46 }]}
+          title={isLoading ? "Loading..." : "Continue with Google"}
           disabled={isLoading}
           loading={isLoading}
+          icon={<GoogleIcon width={44} height={44} />}
+          textStyle={{ fontSize: 19 }}
+
         />
         <AppButton
-          color={colors.lightGray}
+          color="#fff"
           onPress={() => console.log("apple")}
-          style={styles.button}
-          title={isLoading ? "Loading..." : "Continue With Apple"}
+          style={[styles.button, { padding: 0, minHeight: 46 }]}
+          title={isLoading ? "Loading..." : "Continue with Apple"}
           disabled={isLoading}
           loading={isLoading}
+          icon={<AppleIcon width={44} height={44} />}
+          textStyle={{ fontSize: 19 }}
         />
         <AppButton
           color={colors.lightGray}

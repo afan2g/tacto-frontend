@@ -16,6 +16,7 @@ import {
 } from "../data/fakeData";
 import useModal from "../hooks/useModal";
 import TransactionModal from "../components/modals/TransactionModal";
+import { useData } from "../contexts";
 
 const DATA = [
   {
@@ -29,49 +30,17 @@ const DATA = [
 ];
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
+  const { profile, wallet } = useData();
   const handlePress = (transaction) => {
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
-
   const handleLongPress = (transaction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     openModal(FAKE_TRANSACTIONS_FULL[0]);
   };
   return (
     <Screen style={styles.screen}>
-      <AccountBalanceCard balance={1002.33} style={styles.balanceCard} />
-      {/* <FlatList
-        ListHeaderComponent={() => (
-          <>
-            <View style={styles.pendingContainer}>
-              <AppText style={styles.header}>Pending</AppText>
-              {FAKE_TRANSACTIONS_PENDING.map((item) => (
-                <ActivityTransactionCard
-                  key={item.id}
-                  transaction={item}
-                  onPress={() => handlePress(item)}
-                  onLongPress={() => handleLongPress(item)}
-                  navigation={navigation}
-                />
-              ))}
-            </View>
-            <View style={styles.completedContainer}>
-              <AppText style={styles.header}>Completed</AppText>
-            </View>
-          </>
-        )}
-        data={FAKE_TRANSACTIONS_COMPLETED}
-        renderItem={({ item }) => (
-          <ActivityTransactionCard
-            transaction={item}
-            onPress={() => handlePress(item)}
-            onLongPress={() => handleLongPress(item)}
-            navigation={navigation}
-          />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        style={styles.flatList}
-      /> */}
+      <AccountBalanceCard balance={wallet.usdc_balance} style={styles.balanceCard} />
 
       <SectionList
         sections={DATA}
