@@ -18,6 +18,12 @@ const fetchTransactionRequest = async (from, to, amount, userJWT) => {
         })
     });
     const data = await response.json();
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to fetch transaction request");
+    }
+    console.log("Transaction Request:", data);
     return JSON.parse(data);
 }
 

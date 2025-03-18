@@ -33,7 +33,6 @@ function ConfirmTransactionScreen({ navigation, route }) {
   const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
   const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
 
-  console.log("route.params confirm", route.params);
   const [showKeypad, setShowKeypad] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -138,7 +137,6 @@ function ConfirmTransactionScreen({ navigation, route }) {
         ),
         SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`)
       ]);
-
       const t0 = performance.now();
       if (!txRequest) {
         throw new Error("Failed to create transaction");
@@ -146,6 +144,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
         throw new Error("Failed to retrieve wallet");
       }
 
+      console.log("Transaction request received. Current nonce:", txRequest.nonce);
       const walletData = JSON.parse(securePhrase);
       const secureWallet = Wallet.fromMnemonic(walletData.phrase);
 
@@ -221,7 +220,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
       return;
     }
 
-    if (!transaction.requestee) {
+    if (transaction.action === "Requesting" && !transaction.requestee) {
       Alert.alert("Invalid Requestee", "Requestee is missing");
       return;
     }
@@ -313,20 +312,14 @@ function ConfirmTransactionScreen({ navigation, route }) {
 
         <View style={styles.bottomContainer}>
           <View style={styles.buttonContainer}>
-            {transaction.action === "Sending" ? <AppButton
-              onPress={handleConfirm}
+
+            <AppButton
+              onPress={transaction.action === "Sending" ? handleConfirm : handleRequest}
               color={colors.yellow}
-              title="Confirm"
+              title={transaction.action === "Sending" ? "Send" : "Request"}
               loading={loading}
-              disabled={loading || !transaction.amount || !transaction.recipientAddress}
-            /> :
-              <AppButton
-                onPress={handleRequest}
-                color={colors.yellow}
-                title="Request"
-                loading={loading}
-                disabled={loading || !transaction.amount || !transaction.requestee}
-              />}
+              disabled={loading || !transaction.amount || (!transaction.requestee && transaction.action === "Requesting")}
+            />
             <AppButton
               onPress={() => {
                 navigation.navigate(routes.TRANSACTSUCCESS, {

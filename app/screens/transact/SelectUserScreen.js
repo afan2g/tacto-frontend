@@ -18,9 +18,7 @@ import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 
 function SelectUserScreen({ navigation, route }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
-  // const { transaction, setTransaction } = useContext(TransactionContext);
   const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
-  console.log("route.params", route.params);
   const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
   const [profiles, setProfiles] = useState([]);
   const { profile } = useData();
@@ -73,7 +71,6 @@ function SelectUserScreen({ navigation, route }) {
 
   // Format the amount for display
   const formattedAmount = getFormattedAmount(transaction.amount);
-  console.log("formattedAmount", formattedAmount);
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>

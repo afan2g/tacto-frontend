@@ -9,6 +9,7 @@ import { ethers } from "npm:ethers";
 import { Provider, utils, types } from "npm:zksync-ethers";
 import { Expo, ExpoPushMessage } from "npm:expo-server-sdk";
 import * as crypto from "node:crypto";
+import { availableMemory } from "node:process";
 
 const ZKSYNC_USDC_CONTRACT_ADDRESS =
   "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
@@ -259,6 +260,7 @@ async function processTransaction(
       const { error: updateError } = await supabase
         .from("transactions")
         .update({
+          amount: mainTransfer.value,
           status: "confirmed",
           fee: totalFees,
           updated_at: new Date().toISOString(),

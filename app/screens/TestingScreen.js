@@ -4,12 +4,12 @@ import { Button, Text } from "react-native-paper";
 import { AppText, Screen } from "../components/primitives";
 import { FunctionsHttpError } from "@supabase/functions-js";
 import * as SecureStore from "expo-secure-store";
-import { Wallet, utils, EIP712Signer, Provider, types } from "zksync-ethers";
 import { ethers } from "ethers";
 import { useData } from "../contexts";
 import { colors, fonts } from "../config";
 import { supabase } from "../../lib/supabase";
 import routes from "../navigation/routes";
+import { fetchAccountNonce, fetchTransactionRequest } from "../api";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function TestingScreen({ navigation }) {
@@ -253,135 +253,19 @@ function TestingScreen({ navigation }) {
     }
   };
 
-  const populateUSDCTransferZK = async (from, to, value) => {
-    const { data: tx, error } = await supabase.functions.invoke(
-      "ethereum-zksync",
-      {
-        body: {
-          action: "getCompleteTransferTx",
-          txRequest: {
-            from: from,
-            to: to,
-            value: ethers.parseUnits(value.toString(), 6).toString(),
-          },
-        },
-      }
-    );
-    if (error instanceof FunctionsHttpError) {
-      const errorMessage = await error.context.json();
-      console.error("Error creating transaction:", errorMessage);
-      console.error(`From: ${from}, To: ${to}, Value: ${value}`);
-      return null;
-    }
 
-    console.log("tx: ", JSON.parse(tx));
-    return JSON.parse(tx);
-  };
-  const getTransferTransaction = async () => {
-    console.log("Getting transfer transaction...");
-    const workerUrl = "https://zksync.tacto.workers.dev/";
-    const { data: sessionData, error } = await supabase.auth.getSession();
+  const getAccountNonce = async () => {
+    const address = wallet.address;
+    const { data: { session: { access_token: userJWT } }, error } = await supabase.auth.getSession();
     if (error) {
       console.error("Error getting session data:", error);
       return;
     }
-    const userJWT = sessionData.session.access_token;
-    console.log("User JWT:", userJWT);
-
-    const value = 0.0001;
-    const response = await fetch(workerUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${userJWT}`
-      },
-      body: JSON.stringify({
-        action: "getCompleteTransferTx",
-        txRequest: {
-          from: wallet.address,
-          to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6", // Recipient's wallet address
-          value: ethers.parseUnits(value.toString(), 6).toString(),
-        }
-      })
-    });
-
-    const data = await response.json();
-    console.log("Transaction to sign:", data);
-    return data;
-  }
-
-  const handleSend = async () => {
-    try {
-      // Get the wallet from secure storage
-      const securePhrase = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
-      const walletData = JSON.parse(securePhrase);
-
-      const secureWallet = Wallet.fromMnemonic(walletData.phrase);
-
-      console.log("Secure wallet:", secureWallet);
-      // Create the transaction
-      const transaction = await populateUSDCTransferZK(
-        secureWallet.address,
-        "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
-        0.0001,
-      );
-
-      if (!transaction) {
-        throw new Error("Failed to create transaction");
-      }
-      console.log("Transaction to sign:", transaction);
-      const signer = new EIP712Signer(secureWallet, transaction.chainId);
-      transaction.customData.customSignature = await signer.sign(transaction);
-
-      const signedTx = utils.serializeEip712(transaction);
-      console.log("Signed transaction:", signedTx);
-      // Send the signed transaction
-      const { data, error } = await supabase.functions.invoke(
-        "ethereum-zksync",
-        {
-          body: {
-            action: "broadcastTxTest",
-            signedTransaction: signedTx,
-          },
-        }
-      );
-
-      if (error) {
-        throw new Error(`Error sending transaction: ${error.message}`);
-      }
-
-      console.log("Transaction sent successfully:", data);
-      return data;
-    } catch (error) {
-      console.error("Transaction failed:", error);
-      throw error;
-    }
+    console.log(`getting account nonce for ${address}. User JWT: ${userJWT}`);
+    const nonce = await fetchAccountNonce(address, userJWT);
+    console.log("Nonce:", nonce);
   };
 
-  const handleLocalProvider = async () => {
-    const secureWallet = await SecureStore.getItemAsync("ENCRYPTED_WALLET");
-    const walletData = JSON.parse(secureWallet);
-    console.log("wallet: ", walletData);
-    const privateKey = ethers.HDNodeWallet.fromPhrase(
-      walletData.phrase
-    ).privateKey;
-    const zkProvider = Provider.getDefaultProvider(types.Network.Sepolia);
-    console.log("private key: ", privateKey);
-    console.log("provider: ", zkProvider);
-
-    const usdcContractAddress = "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
-
-    const signer = new Wallet(privateKey, zkProvider);
-    console.log("signer: ", signer);
-    const tx = signer.transfer({
-      to: "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6", // recipient address
-      amount: ethers.parseUnits("0.0001", 6), // amount in USDC
-      token: usdcContractAddress, // USDC token address
-    });
-    console.log("tx: ", tx);
-    const receipt = await tx.wait();
-    console.log("receipt: ", receipt);
-  };
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
@@ -436,20 +320,13 @@ function TestingScreen({ navigation }) {
         <Button onPress={retrieveNetwork}>View Current Network</Button>
         <Button onPress={retrieveNetworkZK}>View ZKSync Network</Button>
       </View>
-      <Button onPress={populateUSDCTransferZK}>
-        Create USDC Transaction on ZK Sync
-      </Button>
-      <Button onPress={getTransferTransaction}>
-        Create USDC Transaction on ZK Sync using CF
-      </Button>
-      <Button onPress={handleSend}>Send ZK Sync USDC Transaction</Button>
       <Button onPress={handleSignTransaction}>Sign Transaction</Button>
       <Button onPress={handleSendTransaction}>Send Transaction</Button>
       <Button onPress={handleLogWebhooks}>Log Webhooks</Button>
       <Button onPress={() => navigation.navigate(routes.TESTNOTIFICATIONS)}>
         Test Notifications
       </Button>
-      <Button onPress={handleLocalProvider}>Local Provider Test</Button>
+      <Button onPress={getAccountNonce}>Get Account Nonce</Button>
     </Screen>
   );
 }

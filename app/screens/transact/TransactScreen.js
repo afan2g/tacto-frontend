@@ -12,7 +12,6 @@ import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 import { set } from "zod";
 
 function TransactScreen({ navigation, route }) {
-  // const { transaction, setTransaction } = useContext(TransactionContext);
   const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
   const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
   const [error, setError] = useState(null);

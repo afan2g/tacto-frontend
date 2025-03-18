@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { storage } from "../../lib/storage";
 import { supabase } from "../../lib/supabase";
-
 const DataContext = createContext();
 
 const STORAGE_KEYS = {
