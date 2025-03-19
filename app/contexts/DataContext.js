@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { storage } from "../../lib/storage";
 import { supabase } from "../../lib/supabase";
+import { fetchCompletedTransactions } from "../api";
 const DataContext = createContext();
 
 const STORAGE_KEYS = {
   PROFILE: "profile",
   WALLET: "wallet",
+  COMPLETED_TRANSACTIONS: "completedTransactions",
 };
 
 // Utility function to sanitize boolean fields
@@ -67,6 +69,15 @@ export function DataProvider({ children }) {
     }
   });
 
+  const [completedTransactions, setCompletedTransactions] = useState(() => {
+    const storedCompletedTransactions = storage.getString(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
+    try {
+      return storedCompletedTransactions ? JSON.parse(storedCompletedTransactions) : null;
+    } catch (error) {
+      console.error("Error parsing stored completed transactions:", error);
+      return null;
+    }
+  });
   useEffect(() => {
     fetchUserData();
 
@@ -132,9 +143,10 @@ export function DataProvider({ children }) {
         console.log("User ID found:", userId);
       }
 
-      const [profileResponse, walletResponse] = await Promise.all([
+      const [profileResponse, walletResponse, completedTransactionsResponse] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("wallets").select("*").eq("owner_id", userId).single(),
+        fetchCompletedTransactions(userId),
       ]);
 
       if (profileResponse.error) {
@@ -151,6 +163,16 @@ export function DataProvider({ children }) {
         updateWallet(walletResponse.data);
         console.log("Wallet fetched:", walletResponse.data);
       }
+
+      if (completedTransactionsResponse.error) {
+        console.error("Error fetching completed transactions:", completedTransactionsResponse.error);
+      } else {
+        setCompletedTransactions(completedTransactionsResponse.data);
+        storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(completedTransactionsResponse.data));
+        console.log("Completed transactions fetched:", completedTransactionsResponse.data);
+        console.log("Count of completed transactions:", completedTransactionsResponse.count);
+      }
+
     } catch (error) {
       console.error("Error in fetchUserData:", error);
     }
@@ -179,6 +201,15 @@ export function DataProvider({ children }) {
     }
   };
 
+  const clearCompletedTransactions = () => {
+    try {
+      setCompletedTransactions(null);
+      storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
+    } catch (error) {
+      console.error("Error clearing completed transactions:", error);
+    }
+  };
+
   const clearData = () => {
     try {
       storage.clearAll();
@@ -194,10 +225,12 @@ export function DataProvider({ children }) {
       value={{
         profile,
         wallet,
+        completedTransactions,
         updateProfile,
         updateWallet,
         clearData,
         fetchUserData,
+        clearCompletedTransactions,
       }}
     >
       {children}

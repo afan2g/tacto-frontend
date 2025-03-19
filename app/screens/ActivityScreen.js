@@ -17,6 +17,7 @@ import {
 import useModal from "../hooks/useModal";
 import TransactionModal from "../components/modals/TransactionModal";
 import { useData } from "../contexts";
+import { FlashList } from "@shopify/flash-list";
 
 const DATA = [
   {
@@ -30,7 +31,7 @@ const DATA = [
 ];
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
-  const { profile, wallet } = useData();
+  const { profile, wallet, completedTransactions } = useData();
   const handlePress = (transaction) => {
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
@@ -42,8 +43,8 @@ function ActivityScreen({ navigation }) {
     <Screen style={styles.screen}>
       <AccountBalanceCard balance={wallet.usdc_balance} style={styles.balanceCard} />
 
-      <SectionList
-        sections={DATA}
+      {/* <SectionList
+        sections={completedTransactions}
         keyExtractor={(item, index) => item + index}
         renderItem={({ item }) => (
           <ActivityTransactionCard
@@ -62,6 +63,19 @@ function ActivityScreen({ navigation }) {
         transaction={selectedItem}
         visible={modalVisible}
         close={closeModal}
+      /> */}
+      <FlashList
+        data={completedTransactions}
+        renderItem={({ item }) => (
+          <ActivityTransactionCard
+            transaction={{ ...item, action: "send" }}
+            onPress={() => handlePress(item)}
+            onLongPress={() => handleLongPress(item)}
+            navigation={navigation}
+          />
+        )}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        keyExtractor={(item) => item.id}
       />
     </Screen>
   );

@@ -1,15 +1,14 @@
 const broadcastTransaction = async (signedTx, txRequest, txInfo, userJWT) => {
-    const workerUrl = "https://zksync.tacto.workers.dev/";
+    const workerUrl = "https://zksync.tacto.workers.dev";
 
     try {
-        const response = await fetch(workerUrl, {
+        const response = await fetch(`${workerUrl}/transactions/usdc`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${userJWT}`
             },
             body: JSON.stringify({
-                action: "broadcastTxUSDC",
                 signedTransaction: signedTx,
                 txRequest: txRequest,
                 txInfo: txInfo

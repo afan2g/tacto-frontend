@@ -5,20 +5,23 @@ import { AppText, AppButton } from "../primitives";
 import formatRelativeTime from "../../utils/formatRelativeTime";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
+import { useData } from "../../contexts";
 
 function ActivityTransactionCard({
   transaction,
-  onRemind,
-  onCancel,
-  onPay,
-  onDecline,
   onPress,
   onLongPress,
+  navigation,
+
 }) {
-  const { timestamp, amount, status, otherUser, action } = transaction;
+  const { profile } = useData();
+  const { updated_at, amount, status, from_user_id, to_user_id, from_user, to_user } = transaction;
+
+  const [otherUser, action] = profile.id === from_user_id ? [to_user, "send"] : [from_user, "receive"];
+
 
   const transactionStyles = {
-    completed: {
+    confirmed: {
       receive: {
         text: `+${amount}`,
         style: styles.completedReceiveText,
@@ -34,29 +37,37 @@ function ActivityTransactionCard({
         style: styles.pendingReceiveText,
         leftButtonText: "Remind",
         rightButtonText: "Cancel",
-        leftButtonHandler: onRemind,
-        rightButtonHandler: onCancel,
+        leftButtonHandler: handleRemind,
+        rightButtonHandler: handleCancel,
       },
       send: {
         text: `${amount}`,
         style: styles.pendingSendText,
         leftButtonText: "Pay",
         rightButtonText: "Decline",
-        leftButtonHandler: onPay,
-        rightButtonHandler: onDecline,
+        leftButtonHandler: handlePay,
+        rightButtonHandler: handleDecline,
       },
     },
   };
 
-  const displayConfig = transactionStyles[status][action];
-  const timestampDisplay =
-    status === "pending"
-      ? `${formatRelativeTime(timestamp)} ago`
-      : timestamp.toLocaleString("default", {
-          month: "short",
-          day: "numeric",
-        });
+  const handleRemind = () => {
+    console.log("Remind pressed");
+  };
 
+  const handleCancel = () => {
+    console.log("Cancel pressed");
+  };
+
+  const handlePay = () => {
+    console.log("Pay pressed");
+  };
+
+  const handleDecline = () => {
+    console.log("Decline pressed");
+  };
+  const displayConfig = transactionStyles[status][action];
+  const timestampDisplay = `${formatRelativeTime(updated_at)} ago`;
   return (
     <Pressable
       style={({ pressed }) => [

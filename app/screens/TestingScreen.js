@@ -13,12 +13,13 @@ import { fetchAccountNonce, fetchTransactionRequest } from "../api";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function TestingScreen({ navigation }) {
-  const { profile, wallet, fetchUserData } = useData();
+  const { profile, wallet, completedTransactions, clearCompletedTransactions, fetchUserData } = useData();
 
   const handleViewStorage = () => {
     console.log("Storage pressed!");
     console.log("storage profile: ", profile);
     console.log("storage wallet: ", wallet);
+    console.log("storage completedTransactions: ", completedTransactions);
   };
 
   const handleViewSecureStorage = async () => {
@@ -266,6 +267,14 @@ function TestingScreen({ navigation }) {
     console.log("Nonce:", nonce);
   };
 
+  const handleShowCompletedTransactions = () => {
+    console.log("Completed Transactions:", completedTransactions);
+  }
+
+  const handleClearCompletedTransactions = () => {
+    clearCompletedTransactions();
+  }
+
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
@@ -327,6 +336,8 @@ function TestingScreen({ navigation }) {
         Test Notifications
       </Button>
       <Button onPress={getAccountNonce}>Get Account Nonce</Button>
+      <Button onPress={handleShowCompletedTransactions}>Show Completed Transactions</Button>
+      <Button onPress={handleClearCompletedTransactions}>Clear Completed Transactions</Button>
     </Screen>
   );
 }

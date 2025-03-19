@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 const fetchTransactionRequest = async (from, to, amount, userJWT) => {
-    const workerUrl = "https://zksync.tacto.workers.dev/";
+    const workerUrl = "https://zksync.tacto.workers.dev";
 
-    const response = await fetch(workerUrl, {
+    const response = await fetch(`${workerUrl}/transactions/prepare`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

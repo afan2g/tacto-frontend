@@ -1,14 +1,13 @@
 async function fetchAccountNonce(address, userJWT) {
-    const workerUrl = "https://zksync.tacto.workers.dev/";
+    const workerUrl = "https://zksync.tacto.workers.dev";
 
-    const response = await fetch(workerUrl, {
+    const response = await fetch(`${workerUrl}/nonce-by-fetch`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${userJWT}`
         },
         body: JSON.stringify({
-            action: "getNonceByFetch",
             address: address
         })
     });
