@@ -38,7 +38,7 @@ function UserCard({
         <AppAvatar user={user} scale={scale} />
         <View style={styles.userNameContainer}>
           <AppText style={[scaleStyle.fullName, styles.fullName]}>
-            {user.full_name || user.fullName}
+            {user.full_name}
           </AppText>
           {displayText && (
             <AppText style={[scaleStyle.username, styles.username]}>

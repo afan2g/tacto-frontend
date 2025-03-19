@@ -7,11 +7,11 @@ function CollapsedHeader({ user }) {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: user.profilePicUrl }}
+        source={{ uri: user.avatar_url }}
         style={styles.image}
         resizeMode="contain"
       />
-      <AppText style={styles.text}>{user.fullName}</AppText>
+      <AppText style={styles.text}>{user.full_name}</AppText>
     </View>
   );
 }

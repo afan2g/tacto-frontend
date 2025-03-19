@@ -12,8 +12,8 @@ function TransactionDetailReply({ reply }) {
   return (
     <View style={styles.container}>
       <View style={styles.replyHeader}>
-        <Image source={{ uri: user.profilePicUrl }} style={styles.avatar} />
-        <AppText style={styles.user}>{user.fullName}</AppText>
+        <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
+        <AppText style={styles.user}>{user.full_name}</AppText>
       </View>
       <AppText style={styles.replyText}>{text}</AppText>
       <View style={styles.bottomContainer}>

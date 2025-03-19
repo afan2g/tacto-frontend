@@ -34,7 +34,6 @@ function SignUpComplete({ navigation }) {
 
       setProfile({
         ...profileData,
-        profilePicUrl: profileData.avatar_url, // Map avatar_url to profilePicUrl for AppAvatar
       });
 
       if (!profileData.avatar_url) {
@@ -90,7 +89,6 @@ function SignUpComplete({ navigation }) {
       if (updatedProfile) {
         setProfile({
           ...updatedProfile,
-          profilePicUrl: updatedProfile.avatar_url,
         });
       }
     } catch (error) {
@@ -101,7 +99,7 @@ function SignUpComplete({ navigation }) {
   };
 
   const handleRefreshAvatar = async () => {
-    if (profile && !profile.profilePicUrl) {
+    if (profile && !profile.avatar_url) {
       await generateServerAvatar(profile.id, profile.full_name);
     }
   };
@@ -139,7 +137,7 @@ function SignUpComplete({ navigation }) {
         {profile && <AppAvatar user={profile} scale={1.5} />}
       </View>
 
-      {profile && !profile.profilePicUrl && (
+      {profile && !profile.avatar_url && (
         <AppButton
           color={colors.lightGray}
           onPress={handleRefreshAvatar}

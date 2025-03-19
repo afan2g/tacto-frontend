@@ -18,22 +18,21 @@ function ActivityTransactionCard({
   const { updated_at, amount, status, from_user_id, to_user_id, from_user, to_user } = transaction;
 
   const [otherUser, action] = profile.id === from_user_id ? [to_user, "send"] : [from_user, "receive"];
-
-
+  const formattedAmount = amount % 1 === 0 ? amount : amount.toFixed(2);
   const transactionStyles = {
     confirmed: {
       receive: {
-        text: `+${amount}`,
+        text: `+$${formattedAmount}`,
         style: styles.completedReceiveText,
       },
       send: {
-        text: `-${amount}`,
+        text: `-$${formattedAmount}`,
         style: styles.completedSendText,
       },
     },
     pending: {
       receive: {
-        text: `${amount}`,
+        text: `$${formattedAmount}`,
         style: styles.pendingReceiveText,
         leftButtonText: "Remind",
         rightButtonText: "Cancel",
@@ -41,7 +40,7 @@ function ActivityTransactionCard({
         rightButtonHandler: handleCancel,
       },
       send: {
-        text: `${amount}`,
+        text: `$${formattedAmount}`,
         style: styles.pendingSendText,
         leftButtonText: "Pay",
         rightButtonText: "Decline",
@@ -123,6 +122,7 @@ const styles = StyleSheet.create({
   amountText: {
     fontFamily: fonts.bold,
     fontSize: 20,
+    paddingRight: 20,
   },
   completedReceiveText: {
     color: colors.green,

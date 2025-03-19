@@ -26,13 +26,9 @@ function AppAvatar({ user, scale = 1 }) {
       <View style={[scaleStyle, styles.profilePic, styles.placeholderAvatar]}>
         <AppText style={styles.placeholderText}>
           {user.full_name
-            ?.split(" ")
+            .split(" ")
             .map((name) => name?.[0] || "")
-            .join("") ||
-            user.fullName
-              ?.split(" ")
-              .map((name) => name?.[0] || "")
-              .join("")}
+            .join("")}
         </AppText>
       </View>
     );

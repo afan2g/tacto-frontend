@@ -47,6 +47,9 @@ const sanitizeProfileData = (profile) => {
 };
 
 export function DataProvider({ children }) {
+  const [transactionsPage, setTransactionsPage] = useState(0);
+  const [transactionsHasMore, setTransactionsHasMore] = useState(true);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [profile, setProfile] = useState(() => {
     const storedProfile = storage.getString(STORAGE_KEYS.PROFILE);
     try {
@@ -117,6 +120,7 @@ export function DataProvider({ children }) {
           (payload) => {
             console.log('Change received!', payload)
             updateWallet(payload.new)
+            refreshTransactions()
           }
         )
         .subscribe()
@@ -142,11 +146,11 @@ export function DataProvider({ children }) {
       } else {
         console.log("User ID found:", userId);
       }
-
+      const pageSize = 10;
       const [profileResponse, walletResponse, completedTransactionsResponse] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("wallets").select("*").eq("owner_id", userId).single(),
-        fetchCompletedTransactions(userId),
+        fetchCompletedTransactions(userId, { page: transactionsPage, pageSize }),
       ]);
 
       if (profileResponse.error) {
@@ -155,6 +159,8 @@ export function DataProvider({ children }) {
         const sanitizedProfile = sanitizeProfileData(profileResponse.data);
         updateProfile(sanitizedProfile);
         console.log("Profile fetched:", sanitizedProfile);
+        console.log("storage size: ", storage.size);
+
       }
 
       if (walletResponse.error && walletResponse.error.code !== "PGRST116") {
@@ -162,16 +168,30 @@ export function DataProvider({ children }) {
       } else if (walletResponse.data) {
         updateWallet(walletResponse.data);
         console.log("Wallet fetched:", walletResponse.data);
+        console.log("storage size: ", storage.size);
+
       }
 
+      // In the fetchUserData function, modify the transactions part:
       if (completedTransactionsResponse.error) {
         console.error("Error fetching completed transactions:", completedTransactionsResponse.error);
       } else {
+        // Clear existing transactions in storage
+        storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
+
         setCompletedTransactions(completedTransactionsResponse.data);
-        storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(completedTransactionsResponse.data));
-        console.log("Completed transactions fetched:", completedTransactionsResponse.data);
-        console.log("Count of completed transactions:", completedTransactionsResponse.count);
+        setTransactionsPage(0);
+        setTransactionsHasMore(completedTransactionsResponse.data.length === pageSize);
+
+        // Only store if we have data
+        if (completedTransactionsResponse.data && completedTransactionsResponse.data.length > 0) {
+          storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(completedTransactionsResponse.data));
+        }
+
+        console.log("Count of completed transactions:", completedTransactionsResponse.data.length);
       }
+
+      console.log("storage size: ", storage.size);
 
     } catch (error) {
       console.error("Error in fetchUserData:", error);
@@ -201,24 +221,104 @@ export function DataProvider({ children }) {
     }
   };
 
-  const clearCompletedTransactions = () => {
+  const refreshTransactions = async () => {
+    if (!profile?.id) return;
+
     try {
-      setCompletedTransactions(null);
+      console.log("Refreshing transactions...");
+      const pageSize = 10;
+      const response = await fetchCompletedTransactions(profile.id, {
+        page: 0,
+        pageSize
+      });
+
+      if (response.error) {
+        console.error("Error refreshing transactions:", response.error);
+        return;
+      }
+
+      // Clear existing transactions in storage before setting new ones
       storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
+
+      setCompletedTransactions(response.data);
+      setTransactionsPage(0);
+      setTransactionsHasMore(response.data.length === pageSize);
+
+      // Only store if we have data
+      if (response.data && response.data.length > 0) {
+        storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(response.data));
+      }
+
+      console.log("Transactions refreshed successfully");
+      console.log("storage size: ", storage.size);
     } catch (error) {
-      console.error("Error clearing completed transactions:", error);
+      console.error("Error in refreshTransactions:", error);
+    }
+  };
+  const loadMoreTransactions = async () => {
+    if (!profile?.id || isLoadingTransactions || !transactionsHasMore) return;
+
+    try {
+      setIsLoadingTransactions(true);
+      const nextPage = transactionsPage + 1;
+      const pageSize = 10;
+
+      const response = await fetchCompletedTransactions(profile.id, {
+        page: nextPage,
+        pageSize
+      });
+
+      if (response.error) {
+        console.error("Error fetching more transactions:", response.error);
+        return;
+      }
+
+      if (response.data.length > 0) {
+        // Create the updated list first
+        const updatedList = completedTransactions ?
+          [...completedTransactions, ...response.data] :
+          [...response.data];
+
+        // Then update state with the combined list
+        setCompletedTransactions(updatedList);
+        setTransactionsPage(nextPage);
+        setTransactionsHasMore(response.data.length === pageSize);
+
+        // Clear existing data and set the new combined list
+        storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
+        storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(updatedList));
+      } else {
+        setTransactionsHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error in loadMoreTransactions:", error);
+    } finally {
+      setIsLoadingTransactions(false);
+      console.log("completed loading more transactions");
+      console.log("storage size: ", storage.size);
     }
   };
 
   const clearData = () => {
     try {
+      console.log(`storage size before clearing: ${storage.size}`);
       storage.clearAll();
+      console.log(`storage size after clearing: ${storage.size}`);
       setProfile(null);
       setWallet(null);
+      setCompletedTransactions(null);
+      setTransactionsPage(0);
+      setTransactionsHasMore(true);
+      setIsLoadingTransactions(false);
+
     } catch (error) {
       console.error("Error clearing data:", error);
     }
   };
+
+  const pullToRefreshTransactions = async () => {
+    await refreshTransactions();
+  }
 
   return (
     <DataContext.Provider
@@ -226,11 +326,15 @@ export function DataProvider({ children }) {
         profile,
         wallet,
         completedTransactions,
+        transactionsHasMore,
+        isLoadingTransactions,
         updateProfile,
         updateWallet,
         clearData,
         fetchUserData,
-        clearCompletedTransactions,
+        loadMoreTransactions,
+        refreshTransactions,
+        pullToRefreshTransactions,
       }}
     >
       {children}

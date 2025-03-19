@@ -15,11 +15,11 @@ function TransactionDetailScreen({ navigation, route, transaction, ...props }) {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <AppText style={styles.header}>
-          {from.fullName} paid {to.fullName}{" "}
+          {from.full_name} paid {to.full_name}{" "}
           <AppText style={styles.amount}>${amount}</AppText>
         </AppText>
         <AvatarList
-          avatars={[from.profilePicUrl, to.profilePicUrl]}
+          avatars={[from.avatar_url, to.avatar_url]}
           style={styles.avatars}
         />
         <View style={styles.textContainer}>

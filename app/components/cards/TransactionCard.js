@@ -51,17 +51,17 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
       <View style={styles.topContainer}>
         <View style={styles.actionContainer}>
           <AvatarList
-            avatars={[from.profilePicUrl, to.profilePicUrl]}
+            avatars={[from.avatar_url, to.avatar_url]}
             size={32}
             style={styles.avatarList}
           />
           <View style={styles.usersContainer}>
             <AppText style={styles.users} onPress={() => handleUserPress(from)}>
-              {from.fullName}
+              {from.full_name}
             </AppText>
             <AppText style={styles.sent}> paid </AppText>
             <AppText style={styles.users} onPress={() => handleUserPress(to)}>
-              {to.fullName}
+              {to.full_name}
             </AppText>
           </View>
         </View>
