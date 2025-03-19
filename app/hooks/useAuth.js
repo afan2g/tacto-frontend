@@ -41,7 +41,7 @@ const useAuth = () => {
         setIsLoading(false);
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error fetching profile in useauth:", error);
       if (isMounted.current) {
         setSession(null);
 

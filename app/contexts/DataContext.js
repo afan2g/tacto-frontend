@@ -138,7 +138,7 @@ export function DataProvider({ children }) {
       ]);
 
       if (profileResponse.error) {
-        console.error("Error fetching profile:", profileResponse.error);
+        console.error("Error fetching profile in data context:", profileResponse.error);
       } else {
         const sanitizedProfile = sanitizeProfileData(profileResponse.data);
         updateProfile(sanitizedProfile);

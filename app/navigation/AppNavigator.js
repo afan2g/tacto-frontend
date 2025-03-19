@@ -28,7 +28,7 @@ function AppNavigator() {
     if (session && needsWallet) {
       console.log("rendering wallet setup stack");
       return (
-        <Stack.Group>
+        <Stack.Group screenOptions={{ animation: "slide_from_right" }}>
           <Stack.Screen
             name={routes.SIGNUPGENERATEWALLET}
             component={SignUpGenerateWallet}
@@ -65,35 +65,38 @@ function AppNavigator() {
       <Stack.Group screenOptions={{ animation: "none" }}>
         <Stack.Screen name={routes.LANDING} component={LandingScreen} />
         <Stack.Screen name={routes.LOGIN} component={LoginNavigator} />
-        <Stack.Screen
-          name={routes.SIGNUPUSERNAME}
-          component={SignUpUsername}
-        />
-        <Stack.Screen
-          name={routes.SIGNUPFULLNAME}
-          component={SignUpFullName}
-        />
-        <Stack.Screen
-          name={routes.SIGNUPIDENTIFIER}
-          component={SignUpScreen}
-        />
-        <Stack.Screen
-          name={routes.SIGNUPPASSWORD}
-          component={SignUpPassword}
-        />
-        <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
-        <Stack.Screen
-          name={routes.SIGNUPGENERATEWALLET}
-          component={SignUpGenerateWallet}
-        />
-        <Stack.Screen
-          name={routes.SIGNUPIMPORTWALLET}
-          component={SignUpImportWallet}
-        />
-        <Stack.Screen
-          name={routes.SIGNUPCOMPLETE}
-          component={SignUpComplete}
-        />
+        <Stack.Group screenOptions={{ animation: "slide_from_right" }}>
+          <Stack.Screen
+            name={routes.SIGNUPUSERNAME}
+            component={SignUpUsername}
+            options={{ animation: "none" }}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPFULLNAME}
+            component={SignUpFullName}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPIDENTIFIER}
+            component={SignUpScreen}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPPASSWORD}
+            component={SignUpPassword}
+          />
+          <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
+          <Stack.Screen
+            name={routes.SIGNUPGENERATEWALLET}
+            component={SignUpGenerateWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPIMPORTWALLET}
+            component={SignUpImportWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPCOMPLETE}
+            component={SignUpComplete}
+          />
+        </Stack.Group>
       </Stack.Group>
     );
   };
@@ -103,7 +106,7 @@ function AppNavigator() {
       screenOptions={{
         headerShown: false,
         presentation: "card",
-        animation: "slide_from_right",
+        animation: "none",
       }}
     >
       {renderNavigator()}
