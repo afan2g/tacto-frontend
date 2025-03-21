@@ -3,7 +3,7 @@ async function declinePaymentRequest(paymentRequestId, userJWT) {
     const workerUrl = "https://zksync.tacto.workers.dev";
 
     try {
-        const response = await fetch(`${workerUrl}/transactions/request/decline-request`, {
+        const response = await fetch(`${workerUrl}/transactions/request/decline`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

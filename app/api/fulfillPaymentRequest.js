@@ -2,7 +2,7 @@ async function fulfillPaymentRequest(paymentRequestId, txRequest, signedTx, user
     const workerUrl = "https://zksync.tacto.workers.dev";
     console.log("Fulfilling payment request:", paymentRequestId, txRequest, signedTx, userJWT);
     try {
-        const response = await fetch(`${workerUrl}/transactions/request/fulfill-request`, {
+        const response = await fetch(`${workerUrl}/transactions/request/fulfill`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

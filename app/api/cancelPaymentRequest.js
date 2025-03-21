@@ -3,7 +3,7 @@ async function cancelPaymentRequest(paymentRequestId, userJWT) {
     const workerUrl = "https://zksync.tacto.workers.dev";
 
     try {
-        const response = await fetch(`${workerUrl}/transactions/request/cancel-request`, {
+        const response = await fetch(`${workerUrl}/transactions/request/cancel`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

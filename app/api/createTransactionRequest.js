@@ -2,7 +2,7 @@ const createTransactionRequest = async (transaction, userJWT) => {
     const workerUrl = "https://zksync.tacto.workers.dev";
 
     try {
-        const response = await fetch(`${workerUrl}/transactions/request/create-request`, {
+        const response = await fetch(`${workerUrl}/transactions/request/create`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
