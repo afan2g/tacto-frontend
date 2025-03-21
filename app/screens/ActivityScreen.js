@@ -59,6 +59,11 @@ function ActivityScreen({ navigation }) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     openModal({ ...FAKE_TRANSACTIONS_FULL[0], identifier: transaction.id });
   };
+
+  const handleRemove = (transaction) => {
+    const updatedTransactions = transactions.filter((t) => t.id !== transaction.id);
+    setTransactions(updatedTransactions);
+  };
   return (
     <Screen style={styles.screen}>
       <AccountBalanceCard balance={wallet.usdc_balance} style={styles.balanceCard} />
@@ -76,6 +81,7 @@ function ActivityScreen({ navigation }) {
                 onPress={() => handlePress(item)}
                 onLongPress={() => handleLongPress(item)}
                 navigation={navigation}
+                onDelete={() => handleRemove(item)}
               />
             )
           }

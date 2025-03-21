@@ -6,7 +6,7 @@ import formatRelativeTime from "../../utils/formatRelativeTime";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 import { useData } from "../../contexts";
-import { fetchTransactionRequest, declinePaymentRequest, fulfillPaymentRequest } from "../../api"
+import { fetchTransactionRequest, declinePaymentRequest, fulfillPaymentRequest, cancelPaymentRequest } from "../../api"
 import * as SecureStore from "expo-secure-store";
 import { EIP712Signer, Wallet, utils } from "zksync-ethers";
 import routes from "../../navigation/routes";
@@ -18,6 +18,7 @@ function ActivityTransactionCard({
   onPress,
   onLongPress,
   navigation,
+  onDelete
 }) {
   const { profile, wallet } = useData();
   const { amount, status } = transaction;
@@ -104,6 +105,22 @@ function ActivityTransactionCard({
 
   const handleCancel = async () => {
     console.log("Cancel pressed");
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error("Error getting session data:", sessionError);
+        throw new Error("Authentication failed: " + sessionError.message);
+      }
+      const userJWT = session.access_token;
+      onDelete();
+      const data = await cancelPaymentRequest(transaction.id, userJWT);
+      if (data.error) {
+        throw new Error(`Transaction failed: ${data.error}`);
+      }
+      console.log("Transaction cancelled:", data);
+    } catch (error) {
+      console.error("Error in handleCancel:", error);
+    }
   };
 
   const handlePay = async () => {
@@ -123,6 +140,7 @@ function ActivityTransactionCard({
         throw new Error("Authentication failed: " + sessionError.message);
       }
       const userJWT = session.access_token;
+      onDelete();
       const data = await declinePaymentRequest(transaction.id, userJWT);
       if (data.error) {
         throw new Error(`Transaction failed: ${data.error}`);

@@ -170,6 +170,7 @@ export function DataProvider({ children }) {
           },
           (payload) => {
             console.log('New request received!', payload)
+            refreshPaymentRequests()
           }
         )
         .on(
@@ -182,6 +183,7 @@ export function DataProvider({ children }) {
           },
           (payload) => {
             console.log('New request received!', payload)
+            refreshPaymentRequests()
           }
         )
         .subscribe()

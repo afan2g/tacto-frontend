@@ -8,3 +8,4 @@ export { default as createTransactionRequest } from "./createTransactionRequest"
 export { default as fetchPaymentRequests } from "./fetchPaymentRequests";
 export { default as fulfillPaymentRequest } from "./fulfillPaymentRequest";
 export { default as declinePaymentRequest } from "./declinePaymentRequest";
+export { default as cancelPaymentRequest } from "./cancelPaymentRequest";
