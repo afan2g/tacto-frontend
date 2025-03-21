@@ -32,7 +32,7 @@ const DATA = [
 ];
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
-  const { profile, wallet, completedTransactions, transactionsHasMore, loadMoreTransactions, isLoadingTransactions, pullToRefreshTransactions } = useData();
+  const { profile, wallet, completedTransactions, transactionsHasMore, loadMoreTransactions, isLoadingTransactions, pullToRefreshTransactions, paymentRequests, isLoadingPaymentRequests, refreshPaymentRequests } = useData();
   const [refreshing, setRefreshing] = React.useState(false);
   const handlePress = (transaction) => {
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
@@ -70,7 +70,7 @@ function ActivityScreen({ navigation }) {
         data={completedTransactions}
         renderItem={({ item }) => (
           <ActivityTransactionCard
-            transaction={{ ...item, action: "send" }}
+            transaction={{ ...item, }}
             onPress={() => handlePress(item)}
             onLongPress={() => handleLongPress(item)}
             navigation={navigation}
@@ -94,6 +94,28 @@ function ActivityScreen({ navigation }) {
         ListFooterComponent={isLoadingTransactions ? <ActivityIndicator animating={isLoadingTransactions} color={colors.purplePop} /> : (!transactionsHasMore && <AppText style={styles.activityEndText}>End of transactions</AppText>)}
         ListFooterComponentStyle={styles.activityEnd}
       />
+      {/* <FlashList
+        data={paymentRequests}
+        renderItem={({ item }) => (
+          <ActivityTransactionCard
+            transaction={{ ...item }}
+            onPress={() => handlePress(item)}
+            onLongPress={() => handleLongPress(item)}
+            navigation={navigation}
+          />
+        )}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        keyExtractor={(item) => item.id}
+        estimatedItemSize={96}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => {
+          setRefreshing(true);
+          await refreshPaymentRequests();
+          setRefreshing(false);
+        }} />}
+
+        ListFooterComponent={<AppText style={styles.activityEndText}>End of requests</AppText>}
+        ListFooterComponentStyle={styles.activityEnd}
+      /> */}
     </Screen>
   );
 }

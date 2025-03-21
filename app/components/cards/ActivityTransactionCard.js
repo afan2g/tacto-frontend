@@ -12,12 +12,17 @@ function ActivityTransactionCard({
   onPress,
   onLongPress,
   navigation,
-
 }) {
   const { profile } = useData();
-  const { updated_at, amount, status, from_user_id, to_user_id, from_user, to_user } = transaction;
-
-  const [otherUser, action] = profile.id === from_user_id ? [to_user, "send"] : [from_user, "receive"];
+  const { amount, status } = transaction;
+  let time, from_user, to_user;
+  if (transaction.status === "confirmed") {
+    ({ updated_at: time, from_user, to_user } = transaction);
+  } else {
+    ({ created_at: time, requester: from_user, requestee: to_user } = transaction);
+    console.log(time, amount, status, from_user, to_user);
+  }
+  const [otherUser, action] = profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
   const formattedAmount = amount % 1 === 0 ? amount : amount.toFixed(2);
   const transactionStyles = {
     confirmed: {
@@ -31,7 +36,7 @@ function ActivityTransactionCard({
       },
     },
     pending: {
-      receive: {
+      send: {
         text: `$${formattedAmount}`,
         style: styles.pendingReceiveText,
         leftButtonText: "Remind",
@@ -39,7 +44,7 @@ function ActivityTransactionCard({
         leftButtonHandler: handleRemind,
         rightButtonHandler: handleCancel,
       },
-      send: {
+      receive: {
         text: `$${formattedAmount}`,
         style: styles.pendingSendText,
         leftButtonText: "Pay",
@@ -66,7 +71,7 @@ function ActivityTransactionCard({
     console.log("Decline pressed");
   };
   const displayConfig = transactionStyles[status][action];
-  const timestampDisplay = `${formatRelativeTime(updated_at)} ago`;
+  const timestampDisplay = `${formatRelativeTime(time)} ago`;
   return (
     <Pressable
       style={({ pressed }) => [
@@ -89,13 +94,13 @@ function ActivityTransactionCard({
             title={displayConfig.leftButtonText}
             style={[styles.button, styles.leftButton]}
             textStyle={styles.buttonText}
-            onPress={displayConfig.leftButtonHandler}
+            onPress={() => displayConfig.leftButtonHandler}
           />
           <AppButton
             title={displayConfig.rightButtonText}
             style={[styles.button, styles.rightButton]}
             textStyle={styles.buttonText}
-            onPress={displayConfig.rightButtonHandler}
+            onPress={() => displayConfig.rightButtonHandler}
           />
         </View>
       )}

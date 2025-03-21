@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { storage } from "../../lib/storage";
 import { supabase } from "../../lib/supabase";
-import { fetchCompletedTransactions } from "../api";
+import { fetchCompletedTransactions, fetchPaymentRequests } from "../api";
 const DataContext = createContext();
 
 const STORAGE_KEYS = {
   PROFILE: "profile",
   WALLET: "wallet",
   COMPLETED_TRANSACTIONS: "completedTransactions",
+  PAYMENT_REQUESTS: "paymentRequests",
 };
 
 // Utility function to sanitize boolean fields
@@ -50,6 +51,7 @@ export function DataProvider({ children }) {
   const [transactionsPage, setTransactionsPage] = useState(0);
   const [transactionsHasMore, setTransactionsHasMore] = useState(true);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [isLoadingPaymentRequests, setIsLoadingPaymentRequests] = useState(false);
   const [profile, setProfile] = useState(() => {
     const storedProfile = storage.getString(STORAGE_KEYS.PROFILE);
     try {
@@ -78,6 +80,16 @@ export function DataProvider({ children }) {
       return storedCompletedTransactions ? JSON.parse(storedCompletedTransactions) : null;
     } catch (error) {
       console.error("Error parsing stored completed transactions:", error);
+      return null;
+    }
+  });
+
+  const [paymentRequests, setPaymentRequests] = useState(() => {
+    const storedPaymentRequests = storage.getString(STORAGE_KEYS.PAYMENT_REQUESTS);
+    try {
+      return storedPaymentRequests ? JSON.parse(storedPaymentRequests) : null;
+    } catch (error) {
+      console.error("Error parsing stored payment requests:", error);
       return null;
     }
   });
@@ -115,11 +127,36 @@ export function DataProvider({ children }) {
             event: 'UPDATE',
             schema: 'public',
             table: 'wallets',
-            filter: 'owner_id=eq.' + profile.id
+            filter: `owner_id=eq.${profile.id}`
           },
           (payload) => {
             console.log('Wallet update received!', payload)
             updateWallet(payload.new)
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'transactions',
+            filter: `from_user_id=eq.${profile.id}`
+          },
+          (payload) => {
+            console.log('New transaction received!', payload)
+            refreshTransactions()
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'transactions',
+            filter: `to_user_id=eq.${profile.id}`
+          },
+          (payload) => {
+            console.log('New transaction received!', payload)
             refreshTransactions()
           }
         )
@@ -129,7 +166,19 @@ export function DataProvider({ children }) {
             event: 'INSERT',
             schema: 'public',
             table: 'payment_requests',
-            filter: 'requestee_id=eq.' + profile.id
+            filter: `requester_id=eq.${profile.id}`
+          },
+          (payload) => {
+            console.log('New request received!', payload)
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'payment_requests',
+            filter: `requestee_id=eq.${profile.id}`
           },
           (payload) => {
             console.log('New request received!', payload)
@@ -159,10 +208,11 @@ export function DataProvider({ children }) {
         console.log("User ID found:", userId);
       }
       const pageSize = 10;
-      const [profileResponse, walletResponse, completedTransactionsResponse] = await Promise.all([
+      const [profileResponse, walletResponse, completedTransactionsResponse, paymentRequestsResponse] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("wallets").select("*").eq("owner_id", userId).single(),
         fetchCompletedTransactions(userId, { page: transactionsPage, pageSize }),
+        fetchPaymentRequests(userId),
       ]);
 
       if (profileResponse.error) {
@@ -204,6 +254,20 @@ export function DataProvider({ children }) {
       }
 
       console.log("storage size: ", storage.size);
+
+      if (paymentRequestsResponse.error) {
+        console.error("Error fetching payment requests:", paymentRequestsResponse.error);
+      } else {
+        setPaymentRequests(paymentRequestsResponse.data);
+
+        // Only store if we have data
+        if (paymentRequestsResponse.data && paymentRequestsResponse.data.length > 0) {
+          storage.set(STORAGE_KEYS.PAYMENT_REQUESTS, JSON.stringify(paymentRequestsResponse.data));
+        }
+
+        console.log("Count of payment requests:", paymentRequestsResponse.data.length);
+        console.log("Payment requests fetched:", paymentRequestsResponse.data[0]);
+      }
 
     } catch (error) {
       console.error("Error in fetchUserData:", error);
@@ -310,6 +374,43 @@ export function DataProvider({ children }) {
       console.log("storage size: ", storage.size);
     }
   };
+  const pullToRefreshTransactions = async () => {
+    await refreshTransactions();
+  }
+
+  const refreshPaymentRequests = async () => {
+    if (!profile?.id) return;
+
+    try {
+      console.log("Refreshing payment requests...");
+      setIsLoadingPaymentRequests(true);
+      const response = await fetchPaymentRequests(profile.id);
+
+      if (response.error) {
+        console.error("Error refreshing payment requests:", response.error);
+        return;
+      }
+
+      // Clear existing payment requests in storage before setting new ones
+      storage.delete(STORAGE_KEYS.PAYMENT_REQUESTS);
+
+      setPaymentRequests(response.data);
+
+      // Only store if we have data
+      if (response.data && response.data.length > 0) {
+        storage.set(STORAGE_KEYS.PAYMENT_REQUESTS, JSON.stringify(response.data));
+      }
+
+      console.log("Payment requests refreshed successfully");
+      console.log("storage size: ", storage.size);
+    } catch (error) {
+      console.error("Error in refreshPaymentRequests:", error);
+    } finally {
+      setIsLoadingPaymentRequests(false);
+    }
+  }
+
+
 
   const clearData = () => {
     try {
@@ -328,9 +429,6 @@ export function DataProvider({ children }) {
     }
   };
 
-  const pullToRefreshTransactions = async () => {
-    await refreshTransactions();
-  }
 
   return (
     <DataContext.Provider
@@ -340,6 +438,8 @@ export function DataProvider({ children }) {
         completedTransactions,
         transactionsHasMore,
         isLoadingTransactions,
+        paymentRequests,
+        isLoadingPaymentRequests,
         updateProfile,
         updateWallet,
         clearData,
@@ -347,6 +447,7 @@ export function DataProvider({ children }) {
         loadMoreTransactions,
         refreshTransactions,
         pullToRefreshTransactions,
+        refreshPaymentRequests,
       }}
     >
       {children}
