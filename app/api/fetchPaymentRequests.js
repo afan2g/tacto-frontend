@@ -6,15 +6,40 @@ async function fetchPaymentRequests(user_id) {
         .from("payment_requests")
         .select(
             `
-                *,
-                requester:profiles!requester_id(id, full_name, username, avatar_url),
-                requestee:profiles!requestee_id(id, full_name, username, avatar_url)
-              `, { count: "exact" }
+        id,
+        amount,
+        status,
+        created_at,
+        message,
+        requester:profiles!requester_id (
+          id,
+          full_name,
+          username,
+          avatar_url,
+          wallets (
+            id,
+            address,
+            is_primary
+          )
+        ),
+        requestee:profiles!requestee_id (
+          id,
+          full_name,
+          username,
+          avatar_url,
+          wallets (
+            id,
+            address,
+            is_primary
+          )
+        )
+      `,
+            { count: "exact" }
         )
         .or(`requester_id.eq.${user_id},requestee_id.eq.${user_id}`)
         .eq("status", "pending")
         .gt("amount", 0)
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: false });
 
     return response;
 }

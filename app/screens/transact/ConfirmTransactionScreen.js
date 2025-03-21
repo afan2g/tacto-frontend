@@ -25,8 +25,6 @@ import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
 import { fetchTransactionRequest, broadcastTransaction, createTransactionRequest } from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
-import { set } from "zod";
-const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function ConfirmTransactionScreen({ navigation, route }) {
   // const { transaction, setTransaction } = useContext(TransactionContext);

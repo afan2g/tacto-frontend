@@ -6,6 +6,12 @@ import formatRelativeTime from "../../utils/formatRelativeTime";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 import { useData } from "../../contexts";
+import { fetchTransactionRequest, broadcastTransaction } from "../../api/index"
+import * as SecureStore from "expo-secure-store";
+import { EIP712Signer, Wallet, utils } from "zksync-ethers";
+import routes from "../../navigation/routes";
+import { supabase } from "../../../lib/supabase";
+const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function ActivityTransactionCard({
   transaction,
@@ -13,7 +19,7 @@ function ActivityTransactionCard({
   onLongPress,
   navigation,
 }) {
-  const { profile } = useData();
+  const { profile, wallet } = useData();
   const { amount, status } = transaction;
   let time, from_user, to_user;
   if (transaction.status === "confirmed") {
@@ -25,19 +31,87 @@ function ActivityTransactionCard({
   const formattedAmount = amount % 1 === 0 ? amount : amount.toFixed(2);
 
 
-  const handleRemind = () => {
+  const performTransaction = async () => {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error("Error getting session data:", sessionError);
+      throw new Error("Authentication failed: " + sessionError.message);
+    }
+    const userJWT = session.access_token;
+    try {
+      // Prepare transaction
+      const [txRequest, securePhrase] = await Promise.all([
+        fetchTransactionRequest(
+          wallet.address,
+          otherUser.wallets[0].address,
+          amount,
+          userJWT
+        ),
+        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`)
+      ]);
+      const t0 = performance.now();
+      if (!txRequest) {
+        throw new Error("Failed to create transaction");
+      } else if (!securePhrase) {
+        throw new Error("Failed to retrieve wallet");
+      }
+
+      console.log("Transaction request received. Current nonce:", txRequest.nonce);
+      const walletData = JSON.parse(securePhrase);
+      const secureWallet = Wallet.fromMnemonic(walletData.phrase);
+
+      // Sign transaction
+      const signer = new EIP712Signer(secureWallet, txRequest.chainId);
+      txRequest.customData.customSignature = await signer.sign(txRequest);
+      const signedTx = utils.serializeEip712(txRequest);
+
+
+      // Important fix: Make sure txInfo is a plain object with primitive values
+      // The object with prototype methods might be causing issues during JSON serialization
+      const txInfo = {
+        toUserId: otherUser.id,
+        methodId: 3,
+        memo: transaction.message || null
+      };
+
+
+      const data = await broadcastTransaction(signedTx, txRequest, txInfo, userJWT);
+      const t1 = performance.now();
+      console.log("Transaction time:", t1 - t0, "ms");
+      const parsedData = JSON.parse(data);
+
+
+      // Check for errors in the response
+      if (data.error) {
+        throw new Error(`Transaction failed: ${data.error}`);
+      }
+
+
+      navigation.navigate(routes.TRANSACTSUCCESS, { action: "fulfill request", amount, recipientUser: otherUser, recipientAddress: otherUser.wallets[0].address, memo: transaction.message, methodId: 3, txHash: parsedData.txHash });
+
+      return parsedData;
+    } catch (err) {
+      console.error("Transaction failed:", err);
+      throw err;
+    }
+  };
+  const handleRemind = async () => {
     console.log("Remind pressed");
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     console.log("Cancel pressed");
   };
 
-  const handlePay = () => {
+  const handlePay = async () => {
     console.log("Pay pressed");
-  };
-
-  const handleDecline = () => {
+    try {
+      await performTransaction();
+    } catch (error) {
+      console.error("Error in handlePay:", error);
+    };
+  }
+  const handleDecline = async () => {
     console.log("Decline pressed");
   };
 
