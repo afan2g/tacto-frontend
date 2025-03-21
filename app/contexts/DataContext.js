@@ -118,9 +118,21 @@ export function DataProvider({ children }) {
             filter: 'owner_id=eq.' + profile.id
           },
           (payload) => {
-            console.log('Change received!', payload)
+            console.log('Wallet update received!', payload)
             updateWallet(payload.new)
             refreshTransactions()
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'payment_requests',
+            filter: 'requestee_id=eq.' + profile.id
+          },
+          (payload) => {
+            console.log('New request received!', payload)
           }
         )
         .subscribe()

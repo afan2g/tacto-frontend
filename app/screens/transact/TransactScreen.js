@@ -74,11 +74,12 @@ function TransactScreen({ navigation, route }) {
       })
       return;
     }
-    setTransaction((prev) => ({
-      ...prev,
+    const updatedTransaction = {
+      ...transaction,
       action: "Requesting",
-    }));
-    navigation.navigate(routes.TRANSACTSELECTUSER, { ...transaction });
+    };
+    setTransaction(updatedTransaction);
+    navigation.navigate(routes.TRANSACTSELECTUSER, { ...updatedTransaction });
   };
 
   return (

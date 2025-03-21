@@ -1,35 +1,31 @@
-const broadcastTransaction = async (signedTx, txRequest, txInfo, userJWT) => {
+const createTransactionRequest = async (transaction, userJWT) => {
     const workerUrl = "https://zksync.tacto.workers.dev";
 
     try {
-        const response = await fetch(`${workerUrl}/transactions/send/broadcast-usdc`, {
+        const response = await fetch(`${workerUrl}/transactions/request/create-request`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${userJWT}`
             },
             body: JSON.stringify({
-                signedTransaction: signedTx,
-                txRequest: txRequest,
-                txInfo: txInfo
+                paymentRequest: transaction
             })
         });
 
         const data = await response.json();
-
         if (!response.ok || (response.status >= 400 && response.status < 500)) {
-            console.error("Transaction broadcast failed:", data);
-            throw new Error(data.error || "Transaction broadcast failed");
+            console.error("Transaction request failed:", data);
+            throw new Error(data.error || "Transaction request failed");
         } else if (response.status >= 500) {
             console.error("Server error:", data);
             throw new Error("Server error");
         }
-
-        return data;
+        console.log("Transaction Request:", data);
     } catch (error) {
-        console.error("Error in broadcastTransaction:", error);
+        console.error("Error in createTransactionRequest:", error);
         throw error;
     }
 }
 
-export default broadcastTransaction;
+export default createTransactionRequest;

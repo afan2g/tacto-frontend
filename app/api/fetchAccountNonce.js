@@ -13,9 +13,12 @@ async function fetchAccountNonce(address, userJWT) {
     });
 
     const data = await response.json();
-    if (!response.ok) {
+    if (!response.ok || (response.status >= 400 && response.status < 500)) {
         const data = await response.json();
         throw new Error(data.error || "Failed to fetch account nonce");
+    } else if (response.status >= 500) {
+        console.error("Server error:", data);
+        throw new Error("Server error");
     }
 
     return data;

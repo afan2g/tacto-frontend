@@ -23,7 +23,7 @@ import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
-import { fetchTransactionRequest, broadcastTransaction } from "../../api";
+import { fetchTransactionRequest, broadcastTransaction, createTransactionRequest } from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 import { set } from "zod";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
@@ -215,12 +215,13 @@ function ConfirmTransactionScreen({ navigation, route }) {
   };
 
   const handleRequest = async () => {
+    console.log("Requesting transaction:", transaction);
     if (!transaction.amount || parseFloat(transaction.amount) <= 0) {
       Alert.alert("Invalid Amount", "Please enter a valid amount greater than zero");
       return;
     }
 
-    if (transaction.action === "Requesting" && !transaction.requestee) {
+    if (transaction.action === "Requesting" && !transaction.recipientUser) {
       Alert.alert("Invalid Requestee", "Requestee is missing");
       return;
     }
@@ -228,8 +229,18 @@ function ConfirmTransactionScreen({ navigation, route }) {
     setLoading(true);
     setError(null);
 
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error("Error getting session data:", sessionError);
+      throw new Error("Authentication failed: " + sessionError.message);
+    }
+    const userJWT = session.access_token;
+
     try {
-      await performTransaction();
+      await createTransactionRequest(transaction, userJWT);
+      //TODO: update pending transactions
+
+      navigation.navigate(routes.TRANSACTSUCCESS, { ...transaction });
     } catch (err) {
       setError(err.message || "Transaction failed. Please try again.");
       Alert.alert("Transaction Failed", err.message || "An error occurred while processing your transaction");
@@ -318,7 +329,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
               color={colors.yellow}
               title={transaction.action === "Sending" ? "Send" : "Request"}
               loading={loading}
-              disabled={loading || !transaction.amount || (!transaction.requestee && transaction.action === "Requesting")}
+              disabled={loading || !transaction.amount || (!transaction.recipientUser && transaction.action === "Requesting")}
             />
             <AppButton
               onPress={() => {
