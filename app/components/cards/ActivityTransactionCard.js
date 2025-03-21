@@ -20,10 +20,28 @@ function ActivityTransactionCard({
     ({ updated_at: time, from_user, to_user } = transaction);
   } else {
     ({ created_at: time, requester: from_user, requestee: to_user } = transaction);
-    console.log(time, amount, status, from_user, to_user);
   }
   const [otherUser, action] = profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
   const formattedAmount = amount % 1 === 0 ? amount : amount.toFixed(2);
+
+
+  const handleRemind = () => {
+    console.log("Remind pressed");
+  };
+
+  const handleCancel = () => {
+    console.log("Cancel pressed");
+  };
+
+  const handlePay = () => {
+    console.log("Pay pressed");
+  };
+
+  const handleDecline = () => {
+    console.log("Decline pressed");
+  };
+
+
   const transactionStyles = {
     confirmed: {
       receive: {
@@ -55,21 +73,7 @@ function ActivityTransactionCard({
     },
   };
 
-  const handleRemind = () => {
-    console.log("Remind pressed");
-  };
 
-  const handleCancel = () => {
-    console.log("Cancel pressed");
-  };
-
-  const handlePay = () => {
-    console.log("Pay pressed");
-  };
-
-  const handleDecline = () => {
-    console.log("Decline pressed");
-  };
   const displayConfig = transactionStyles[status][action];
   const timestampDisplay = `${formatRelativeTime(time)} ago`;
   return (
@@ -94,13 +98,13 @@ function ActivityTransactionCard({
             title={displayConfig.leftButtonText}
             style={[styles.button, styles.leftButton]}
             textStyle={styles.buttonText}
-            onPress={() => displayConfig.leftButtonHandler}
+            onPress={displayConfig.leftButtonHandler}
           />
           <AppButton
             title={displayConfig.rightButtonText}
             style={[styles.button, styles.rightButton]}
             textStyle={styles.buttonText}
-            onPress={() => displayConfig.rightButtonHandler}
+            onPress={displayConfig.rightButtonHandler}
           />
         </View>
       )}

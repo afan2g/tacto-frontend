@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet, FlatList, SectionList, RefreshControl } from "react-native";
 import * as Haptics from "expo-haptics";
 
@@ -34,6 +34,24 @@ function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const { profile, wallet, completedTransactions, transactionsHasMore, loadMoreTransactions, isLoadingTransactions, pullToRefreshTransactions, paymentRequests, isLoadingPaymentRequests, refreshPaymentRequests } = useData();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [stickyHeaderIndices, setStickyHeaderIndices] = React.useState([0, paymentRequests.length + 1]);
+  const [transactions, setTransactions] = React.useState([
+    "Requests",
+    ...paymentRequests,
+    "Completed",
+    ...completedTransactions,
+  ]);
+  useEffect(() => {
+    setTransactions([
+      "Requests",
+      ...paymentRequests,
+      "Completed",
+      ...completedTransactions,
+    ]);
+
+    setStickyHeaderIndices([0, paymentRequests.length + 1]);
+  }, [completedTransactions, paymentRequests]);
+
   const handlePress = (transaction) => {
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
@@ -44,46 +62,39 @@ function ActivityScreen({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <AccountBalanceCard balance={wallet.usdc_balance} style={styles.balanceCard} />
-
-      {/* <SectionList
-        sections={completedTransactions}
-        keyExtractor={(item, index) => item + index}
-        renderItem={({ item }) => (
-          <ActivityTransactionCard
-            transaction={item}
-            onPress={() => handlePress(item)}
-            onLongPress={() => handleLongPress(item)}
-            navigation={navigation}
-          />
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderSectionHeader={({ section: { title } }) => (
-          <AppText style={styles.header}>{title}</AppText>
-        )}
-      />
-      <TransactionModal
-        transaction={selectedItem}
-        visible={modalVisible}
-        close={closeModal}
-      /> */}
       <FlashList
-        data={completedTransactions}
-        renderItem={({ item }) => (
-          <ActivityTransactionCard
-            transaction={{ ...item, }}
-            onPress={() => handlePress(item)}
-            onLongPress={() => handleLongPress(item)}
-            navigation={navigation}
-          />
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        keyExtractor={(item) => item.id}
-        estimatedItemSize={96}
+        data={transactions}
+        renderItem={({ item }) => {
+          if (typeof item === "string") {
+            // Rendering header
+            return <View style={{ backgroundColor: colors.black, zIndex: 1 }}><AppText style={styles.header}>{item}</AppText></View>;
+          } else {
+            // Render item
+            return (
+              <ActivityTransactionCard
+                transaction={item}
+                onPress={() => handlePress(item)}
+                onLongPress={() => handleLongPress(item)}
+                navigation={navigation}
+              />
+            )
+          }
+        }}
+        stickyHeaderIndices={stickyHeaderIndices}
+        getItemType={(item) => {
+          // To achieve better performance, specify the type based on the item
+          return typeof item === "string" ? "sectionHeader" : "row";
+        }}
+        estimatedItemSize={100}
+        keyExtractor={(item) => typeof item === "string" ? item : item.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => {
           setRefreshing(true);
+          await refreshPaymentRequests();
           await pullToRefreshTransactions();
           setRefreshing(false);
-        }} />}
+        }}
+        />}
+        stickyHeaderHiddenOnScroll={false}
         onEndReached={() => {
           console.log("End reached");
           if (transactionsHasMore && !isLoadingTransactions) {
@@ -94,27 +105,11 @@ function ActivityScreen({ navigation }) {
         ListFooterComponent={isLoadingTransactions ? <ActivityIndicator animating={isLoadingTransactions} color={colors.purplePop} /> : (!transactionsHasMore && <AppText style={styles.activityEndText}>End of transactions</AppText>)}
         ListFooterComponentStyle={styles.activityEnd}
       />
-      {/* <FlashList
-        data={paymentRequests}
-        renderItem={({ item }) => (
-          <ActivityTransactionCard
-            transaction={{ ...item }}
-            onPress={() => handlePress(item)}
-            onLongPress={() => handleLongPress(item)}
-            navigation={navigation}
-          />
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        keyExtractor={(item) => item.id}
-        estimatedItemSize={96}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => {
-          setRefreshing(true);
-          await refreshPaymentRequests();
-          setRefreshing(false);
-        }} />}
-
-        ListFooterComponent={<AppText style={styles.activityEndText}>End of requests</AppText>}
-        ListFooterComponentStyle={styles.activityEnd}
+      {/*
+      <TransactionModal
+        transaction={selectedItem}
+        visible={modalVisible}
+        close={closeModal}
       /> */}
     </Screen>
   );
@@ -133,8 +128,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blueShade10,
   },
   header: {
-    borderBottomColor: colors.lightGray,
-    borderBottomWidth: 1,
     paddingBottom: 10,
     fontSize: 24,
     fontFamily: fonts.bold,
