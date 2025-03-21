@@ -57,7 +57,7 @@ function ActivityScreen({ navigation }) {
   };
   const handleLongPress = (transaction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    openModal(FAKE_TRANSACTIONS_FULL[0]);
+    openModal({ ...FAKE_TRANSACTIONS_FULL[0], identifier: transaction.id });
   };
   return (
     <Screen style={styles.screen}>
@@ -105,12 +105,12 @@ function ActivityScreen({ navigation }) {
         ListFooterComponent={isLoadingTransactions ? <ActivityIndicator animating={isLoadingTransactions} color={colors.purplePop} /> : (!transactionsHasMore && <AppText style={styles.activityEndText}>End of transactions</AppText>)}
         ListFooterComponentStyle={styles.activityEnd}
       />
-      {/*
+
       <TransactionModal
         transaction={selectedItem}
         visible={modalVisible}
         close={closeModal}
-      /> */}
+      />
     </Screen>
   );
 }

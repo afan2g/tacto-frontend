@@ -26,8 +26,8 @@ import { useData } from "../../contexts";
 import { fetchTransactionRequest, broadcastTransaction, createTransactionRequest } from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 
+const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 function ConfirmTransactionScreen({ navigation, route }) {
-  // const { transaction, setTransaction } = useContext(TransactionContext);
   const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
   const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
 

@@ -163,7 +163,7 @@ export function DataProvider({ children }) {
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
             table: 'payment_requests',
             filter: `requester_id=eq.${profile.id}`
@@ -175,7 +175,7 @@ export function DataProvider({ children }) {
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
             table: 'payment_requests',
             filter: `requestee_id=eq.${profile.id}`

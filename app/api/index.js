@@ -6,3 +6,5 @@ export { default as fetchAccountNonce } from "./fetchAccountNonce";
 export { default as fetchCompletedTransactions } from "./fetchCompletedTransactions";
 export { default as createTransactionRequest } from "./createTransactionRequest";
 export { default as fetchPaymentRequests } from "./fetchPaymentRequests";
+export { default as fulfillPaymentRequest } from "./fulfillPaymentRequest";
+export { default as declinePaymentRequest } from "./declinePaymentRequest";

@@ -9,7 +9,6 @@ import { ethers } from "npm:ethers";
 import { Provider, utils, types } from "npm:zksync-ethers";
 import { Expo, ExpoPushMessage } from "npm:expo-server-sdk";
 import * as crypto from "node:crypto";
-import { availableMemory } from "node:process";
 
 const ZKSYNC_USDC_CONTRACT_ADDRESS =
   "0xAe045DE5638162fa134807Cb558E15A3F5A7F853";
@@ -281,6 +280,23 @@ async function processTransaction(
             "..." +
             mainTransfer.fromAddress.slice(-4);
 
+        let title, body;
+
+        if (existingTx.request_id) {
+          title = "Payment Fulfilled";
+          body = `${senderName} fulfilled your request of $${
+            mainTransfer.value % 1 == 0
+              ? mainTransfer.value.toFixed(0)
+              : mainTransfer.value.toFixed(2)
+          }`;
+        } else {
+          title = "Payment Received";
+          body = `${senderName} sent you a payment of $${
+            mainTransfer.value % 1 == 0
+              ? mainTransfer.value.toFixed(0)
+              : mainTransfer.value.toFixed(2)
+          }`;
+        }
         const [
           pushNotificationResponse,
           fromETHBalance,
@@ -289,8 +305,8 @@ async function processTransaction(
           toUSDCBalance,
         ] = await Promise.all([
           sendPushNotifications([toUser.id], {
-            title: "Payment Received",
-            body: `You received ${mainTransfer.value} ${mainTransfer.asset} from ${senderName}`,
+            title: title,
+            body: body,
             data: {
               type: existingTx.type,
               hash: mainTransfer.hash,

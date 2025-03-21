@@ -6,7 +6,7 @@ import formatRelativeTime from "../../utils/formatRelativeTime";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 import { useData } from "../../contexts";
-import { fetchTransactionRequest, broadcastTransaction } from "../../api/index"
+import { fetchTransactionRequest, declinePaymentRequest, fulfillPaymentRequest } from "../../api"
 import * as SecureStore from "expo-secure-store";
 import { EIP712Signer, Wallet, utils } from "zksync-ethers";
 import routes from "../../navigation/routes";
@@ -38,7 +38,10 @@ function ActivityTransactionCard({
       throw new Error("Authentication failed: " + sessionError.message);
     }
     const userJWT = session.access_token;
+
+    console.log("Performing transaction. Amount: ", amount, "Recipient:", otherUser.wallets[0].address);
     try {
+
       // Prepare transaction
       const [txRequest, securePhrase] = await Promise.all([
         fetchTransactionRequest(
@@ -75,7 +78,7 @@ function ActivityTransactionCard({
       };
 
 
-      const data = await broadcastTransaction(signedTx, txRequest, txInfo, userJWT);
+      const data = await fulfillPaymentRequest(transaction.id, txRequest, signedTx, userJWT);
       const t1 = performance.now();
       console.log("Transaction time:", t1 - t0, "ms");
       const parsedData = JSON.parse(data);
@@ -113,6 +116,22 @@ function ActivityTransactionCard({
   }
   const handleDecline = async () => {
     console.log("Decline pressed");
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error("Error getting session data:", sessionError);
+        throw new Error("Authentication failed: " + sessionError.message);
+      }
+      const userJWT = session.access_token;
+      const data = await declinePaymentRequest(transaction.id, userJWT);
+      if (data.error) {
+        throw new Error(`Transaction failed: ${data.error}`);
+      }
+      console.log("Transaction declined:", data);
+    } catch (error) {
+      console.error("Error in handleDecline:", error);
+    }
+
   };
 
 
