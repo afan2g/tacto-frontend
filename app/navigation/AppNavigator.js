@@ -20,11 +20,28 @@ import SignUpImportWallet from "../screens/auth/SignUpImportWallet";
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
-  const { session, needsWallet } = useAuthContext();
+  const { session, needsWallet, secureWalletState } = useAuthContext();
 
   // Set up navigator based on auth state
   const renderNavigator = () => {
-    // User is authenticated but needs wallet setup
+    // User is authenticated but needs a new wallet setup due to missing SecureStore access
+    if (session && secureWalletState === "missing") {
+      console.log("rendering wallet recovery stack");
+      return (
+        <Stack.Group screenOptions={{ animation: "slide_from_right" }}>
+          <Stack.Screen
+            name={routes.SIGNUPIMPORTWALLET}
+            component={SignUpImportWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPGENERATEWALLET}
+            component={SignUpGenerateWallet}
+          />
+        </Stack.Group>
+      );
+    }
+
+    // User is authenticated but needs initial wallet setup
     if (session && needsWallet) {
       console.log("rendering wallet setup stack");
       return (
@@ -46,7 +63,7 @@ function AppNavigator() {
     }
 
     // Fully authenticated user
-    if (session) {
+    if (session && secureWalletState === "present") {
       console.log("rendering authenticated stack");
       return (
         <Stack.Group>
@@ -58,6 +75,7 @@ function AppNavigator() {
         </Stack.Group>
       );
     }
+
 
     // Not authenticated
     console.log("rendering non-authenticated stack");

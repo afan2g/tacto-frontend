@@ -41,8 +41,8 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <PaperProvider theme={theme}>
-        <AuthProvider value={authData}>
-          <NavigationContainer theme={navigationTheme}>
+        <NavigationContainer theme={navigationTheme}>
+          <AuthProvider value={authData}>
             <SafeAreaProvider>
               <GestureHandlerRootView style={styles.flex}>
                 <BottomSheetModalProvider>
@@ -55,8 +55,8 @@ export default function App() {
                 </BottomSheetModalProvider>
               </GestureHandlerRootView>
             </SafeAreaProvider>
-          </NavigationContainer>
-        </AuthProvider>
+          </AuthProvider>
+        </NavigationContainer>
       </PaperProvider>
     </QueryClientProvider>
   );

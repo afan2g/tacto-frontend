@@ -1,11 +1,12 @@
 // useAuth.js
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../lib/supabase";
-
+import { checkWalletAccess } from "../utils/checkWalletAccess";
 const useAuth = () => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [needsWallet, setNeedsWallet] = useState(false);
+  const [secureWalletState, setSecureWalletState] = useState("none");
   const initialSessionChecked = useRef(false);
   const isMounted = useRef(true);
 
@@ -17,6 +18,7 @@ const useAuth = () => {
       if (!userSession?.user) {
         setSession(null);
         setNeedsWallet(false);
+        setSecureWalletState("none");
 
         if (!initialSessionChecked.current) {
           initialSessionChecked.current = true;
@@ -31,10 +33,19 @@ const useAuth = () => {
         .eq("id", userSession.user.id)
         .single();
 
+      // Check for SecureStore wallet access
+      const { hasWallet, error: secureWalletError } = await checkWalletAccess(userSession.user.id);
+
       if (!isMounted.current) return;
 
       setSession(userSession);
       setNeedsWallet(!profile?.onboarding_complete);
+      if (secureWalletError === "Call to function 'ExpoSecureStore.getValueWithKeyAsync' has been rejected.") {
+        console.warn("SecureStore access rejected");
+        setSecureWalletState("rejected");
+      } else {
+        setSecureWalletState((!hasWallet && profile?.onboarding_complete) ? "none" : "present");
+      }
 
       if (!initialSessionChecked.current) {
         initialSessionChecked.current = true;
@@ -105,11 +116,23 @@ const useAuth = () => {
         setNeedsWallet(false);
         initialSessionChecked.current = true;
         setIsLoading(false);
-      } else if (["SIGNED_IN", "TOKEN_REFRESHED", "INITIAL_SESSION"].includes(event)) {
+        setSecureWalletState("none");
+
+      } else if (event === "SIGNED_IN") {
         // For sign in events, use setTimeout to avoid deadlock as per Supabase docs
-        setTimeout(() => {
-          fetchProfileAndUpdateState(userSession);
-        }, 0);
+        console.warn("AUTH SIGNED_IN");
+        if (!session || userSession.user?.id !== session.user?.id) {
+          console.warn("AUTH SIGNED_IN - no existing session");
+          setTimeout(() => {
+            fetchProfileAndUpdateState(userSession);
+          }, 0);
+        }
+      } else if (event === "INITIAL_SESSION") {
+        // console.warn("AUTH INITIAL_SESSION");
+        setSession(userSession);
+      } else if (event === "TOKEN_REFRESHED") {
+        // console.warn("AUTH TOKEN_REFRESHED");
+        setSession(userSession);
       }
     });
 
@@ -121,7 +144,7 @@ const useAuth = () => {
     };
   }, []);
 
-  return { session, isLoading, needsWallet };
+  return { session, isLoading, needsWallet, secureWalletState };
 };
 
 export default useAuth;

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, FlatList, SectionList, RefreshControl } from "react-native";
+import { View, StyleSheet, RefreshControl } from "react-native";
 import * as Haptics from "expo-haptics";
+import { FlashList } from "@shopify/flash-list";
 
 import { AppText, Screen } from "../components/primitives";
 import { colors, fonts } from "../config";
@@ -9,61 +10,100 @@ import {
   AccountBalanceCard,
   ActivityTransactionCard,
 } from "../components/cards";
-import {
-  FAKE_TRANSACTIONS_COMPLETED,
-  FAKE_TRANSACTIONS_FULL,
-  FAKE_TRANSACTIONS_PENDING,
-} from "../data/fakeData";
+
 import useModal from "../hooks/useModal";
 import TransactionModal from "../components/modals/TransactionModal";
 import { useData } from "../contexts";
-import { FlashList } from "@shopify/flash-list";
 import { ActivityIndicator } from "react-native-paper";
 
-const DATA = [
-  {
-    title: "Pending",
-    data: FAKE_TRANSACTIONS_PENDING,
-  },
-  {
-    title: "Completed",
-    data: FAKE_TRANSACTIONS_COMPLETED,
-  },
-];
+
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
-  const { profile, wallet, completedTransactions, transactionsHasMore, loadMoreTransactions, isLoadingTransactions, pullToRefreshTransactions, paymentRequests, isLoadingPaymentRequests, refreshPaymentRequests } = useData();
+  const {
+    profile,
+    wallet,
+    completedTransactions,
+    transactionsHasMore,
+    loadMoreTransactions,
+    isLoadingTransactions,
+    pullToRefreshTransactions,
+    paymentRequests,
+    isLoadingPaymentRequests,
+    refreshPaymentRequests,
+    transactionsPage,
+  } = useData();
   const [refreshing, setRefreshing] = React.useState(false);
   const [stickyHeaderIndices, setStickyHeaderIndices] = React.useState([0, paymentRequests.length + 1]);
-  const [transactions, setTransactions] = React.useState([
-    "Requests",
-    ...paymentRequests,
-    "Completed",
-    ...completedTransactions,
-  ]);
+  const [transactions, setTransactions] = React.useState([]);
+  const isInitialLoading = !completedTransactions || !paymentRequests;
   useEffect(() => {
-    setTransactions([
-      "Requests",
-      ...paymentRequests,
-      "Completed",
-      ...completedTransactions,
-    ]);
-
-    setStickyHeaderIndices([0, paymentRequests.length + 1]);
+    if (completedTransactions && paymentRequests) {
+      setTransactions([
+        "Requests",
+        ...paymentRequests,
+        "Completed",
+        ...completedTransactions,
+      ]);
+      setStickyHeaderIndices([0, paymentRequests.length + 1]);
+    }
   }, [completedTransactions, paymentRequests]);
-
   const handlePress = (transaction) => {
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
   const handleLongPress = (transaction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    openModal({ ...FAKE_TRANSACTIONS_FULL[0], identifier: transaction.id });
+    openModal({ transaction });
   };
 
   const handleRemove = (transaction) => {
     const updatedTransactions = transactions.filter((t) => t.id !== transaction.id);
     setTransactions(updatedTransactions);
   };
+
+  const handleRefresh = async () => {
+    if (refreshing) return; // Prevent double refresh
+
+    setRefreshing(true);
+    try {
+      // Execute these in parallel
+      await Promise.all([
+        refreshPaymentRequests(),
+        pullToRefreshTransactions()
+      ]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleEndReached = () => {
+    console.log("End reached", {
+      transactionsHasMore,
+      isLoadingTransactions,
+      refreshing,
+      currentPage: transactionsPage // Add this line to debug
+    });
+
+    if (transactionsHasMore && !isLoadingTransactions && !refreshing) {
+      loadMoreTransactions();
+    }
+  };
+
+  if (isInitialLoading) {
+    return (
+      <Screen style={styles.screen}>
+        <AccountBalanceCard
+          balance={wallet?.usdc_balance || 0}
+          style={styles.balanceCard}
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator animating={true} color={colors.purplePop} size="large" />
+          <AppText style={styles.loadingText}>Loading transactions...</AppText>
+        </View>
+      </Screen>
+    );
+  }
   return (
     <Screen style={styles.screen}>
       <AccountBalanceCard balance={wallet.usdc_balance} style={styles.balanceCard} />
@@ -93,22 +133,20 @@ function ActivityScreen({ navigation }) {
         }}
         estimatedItemSize={100}
         keyExtractor={(item) => typeof item === "string" ? item : item.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => {
-          setRefreshing(true);
-          await refreshPaymentRequests();
-          await pullToRefreshTransactions();
-          setRefreshing(false);
-        }}
-        />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
         stickyHeaderHiddenOnScroll={false}
-        onEndReached={() => {
-          console.log("End reached");
-          if (transactionsHasMore && !isLoadingTransactions) {
-            loadMoreTransactions();
-          }
-        }}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={isLoadingTransactions ? <ActivityIndicator animating={isLoadingTransactions} color={colors.purplePop} /> : (!transactionsHasMore && <AppText style={styles.activityEndText}>End of transactions</AppText>)}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.2}
+        ListFooterComponent={
+          isLoadingTransactions ?
+            <ActivityIndicator animating={isLoadingTransactions} color={colors.purplePop} /> :
+            (!transactionsHasMore && <AppText style={styles.activityEndText}>End of transactions</AppText>)
+        }
         ListFooterComponentStyle={styles.activityEnd}
       />
 
@@ -127,6 +165,16 @@ const styles = StyleSheet.create({
   },
   balanceCard: {
     borderBottomColor: colors.fadedGray,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: colors.lightGray,
+    fontFamily: fonts.medium,
   },
   separator: {
     height: 2,

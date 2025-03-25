@@ -17,8 +17,8 @@ async function declinePaymentRequest(paymentRequestId, userJWT) {
         const data = await response.json();
 
         if (!response.ok || (response.status >= 400 && response.status < 500)) {
-            console.error("Transaction broadcast failed:", data);
-            throw new Error(data.error || "Transaction broadcast failed");
+            console.error("Transaction decline failed:", data);
+            throw new Error(data.error || "Transaction decline failed");
         } else if (response.status >= 500) {
             console.error("Server error:", data);
             throw new Error("Server error");

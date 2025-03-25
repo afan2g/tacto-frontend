@@ -275,6 +275,16 @@ function TestingScreen({ navigation }) {
     clearCompletedTransactions();
   }
 
+  const handleRefreshSession = async () => {
+    console.log("Refreshing session...");
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) {
+      console.error("Error refreshing session:", error);
+    } else {
+      console.log("Session refreshed:", data);
+    }
+  }
+
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
@@ -338,6 +348,7 @@ function TestingScreen({ navigation }) {
       <Button onPress={getAccountNonce}>Get Account Nonce</Button>
       <Button onPress={handleShowCompletedTransactions}>Show Completed Transactions</Button>
       <Button onPress={handleClearCompletedTransactions}>Clear Completed Transactions</Button>
+      <Button onPress={handleRefreshSession}>Refresh Session</Button>
     </Screen>
   );
 }

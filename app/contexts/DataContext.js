@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { storage } from "../../lib/storage";
 import { supabase } from "../../lib/supabase";
 import { fetchCompletedTransactions, fetchPaymentRequests } from "../api";
+import { useAuthContext } from "./AuthContext";
 const DataContext = createContext();
 
 const STORAGE_KEYS = {
@@ -48,6 +49,7 @@ const sanitizeProfileData = (profile) => {
 };
 
 export function DataProvider({ children }) {
+  const { session } = useAuthContext();
   const [transactionsPage, setTransactionsPage] = useState(0);
   const [transactionsHasMore, setTransactionsHasMore] = useState(true);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
@@ -99,13 +101,13 @@ export function DataProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        event === "SIGNED_IN" ||
-        event === "TOKEN_REFRESHED" ||
-        event === "INITIAL_SESSION"
-      ) {
-        fetchUserData();
-      } else if (event === "SIGNED_OUT") {
+
+      if (event === "SIGNED_IN") {
+        setTimeout(async () => {
+          await fetchUserData();
+        }, 0)
+      }
+      else if (event === "SIGNED_OUT") {
         clearData();
       }
     });
@@ -198,9 +200,6 @@ export function DataProvider({ children }) {
   const fetchUserData = async () => {
     console.log("Fetching user data...");
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
       const userId = session?.user?.id;
       if (!userId) {
         console.error("No user ID found in session.");
@@ -304,7 +303,9 @@ export function DataProvider({ children }) {
 
     try {
       console.log("Refreshing transactions...");
+      setIsLoadingTransactions(true);
       const pageSize = 10;
+
       const response = await fetchCompletedTransactions(profile.id, {
         page: 0,
         pageSize
@@ -318,6 +319,7 @@ export function DataProvider({ children }) {
       // Clear existing transactions in storage before setting new ones
       storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
 
+      // Reset pagination state
       setCompletedTransactions(response.data);
       setTransactionsPage(0);
       setTransactionsHasMore(response.data.length === pageSize);
@@ -328,9 +330,10 @@ export function DataProvider({ children }) {
       }
 
       console.log("Transactions refreshed successfully");
-      console.log("storage size: ", storage.size);
     } catch (error) {
       console.error("Error in refreshTransactions:", error);
+    } finally {
+      setIsLoadingTransactions(false);
     }
   };
   const loadMoreTransactions = async () => {
@@ -442,6 +445,7 @@ export function DataProvider({ children }) {
         isLoadingTransactions,
         paymentRequests,
         isLoadingPaymentRequests,
+        transactionsPage,
         updateProfile,
         updateWallet,
         clearData,

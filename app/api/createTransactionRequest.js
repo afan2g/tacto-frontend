@@ -1,6 +1,6 @@
 const createTransactionRequest = async (transaction, userJWT) => {
     const workerUrl = "https://zksync.tacto.workers.dev";
-
+    console.log("Creating transaction request:", transaction);
     try {
         const response = await fetch(`${workerUrl}/transactions/request/create`, {
             method: "POST",

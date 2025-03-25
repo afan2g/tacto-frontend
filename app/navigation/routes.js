@@ -27,4 +27,6 @@ export default Object.freeze({
   ROOT: "Root",
   TESTING: "Testing",
   TESTNOTIFICATIONS: "TestNotifications",
+  RECOVERWALLET: "RecoverWallet",
+  NEWWALLET: "NewWallet",
 });

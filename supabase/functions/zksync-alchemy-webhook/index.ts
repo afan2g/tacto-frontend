@@ -370,7 +370,6 @@ async function processTransaction(
             asset: mainTransfer.asset,
             fee: totalFees,
             method_id: "5", // Consider making this dynamic
-            type: "transfer",
           });
 
         const [ethBalance, usdcBalance] = await Promise.all([
@@ -410,7 +409,6 @@ async function processTransaction(
           asset: mainTransfer.asset,
           fee: totalFees,
           method_id: "5", // Consider making this dynamic
-          type: "transfer",
         });
 
       if (insertError) {

@@ -1,9 +1,8 @@
-async function cancelPaymentRequest(paymentRequestId, userJWT) {
-    console.log("Cancel pressed");
+async function remindPaymentRequest(paymentRequestId, userJWT) {
     const workerUrl = "https://zksync.tacto.workers.dev";
 
     try {
-        const response = await fetch(`${workerUrl}/transactions/request/cancel`, {
+        const response = await fetch(`${workerUrl}/transactions/request/remind`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -15,20 +14,18 @@ async function cancelPaymentRequest(paymentRequestId, userJWT) {
         });
 
         const data = await response.json();
-
         if (!response.ok || (response.status >= 400 && response.status < 500)) {
-            console.error("Transaction cancel failed:", data);
-            throw new Error(data.error || "Transaction cancel failed");
+            console.error("Payment reminder failed:", data);
+            throw new Error(data.error || "Payment reminder failed");
         } else if (response.status >= 500) {
             console.error("Server error:", data);
             throw new Error("Server error");
         }
-
-        return data;
+        console.log("Payment Reminder:", data);
     } catch (error) {
-        console.error("Error in cancelPaymentRequest:", error);
+        console.error("Error in remindPaymentRequest:", error);
         throw error;
     }
 }
 
-export default cancelPaymentRequest;
+export default remindPaymentRequest;

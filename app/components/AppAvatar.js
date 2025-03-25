@@ -6,7 +6,7 @@ import { SvgUri } from "react-native-svg";
 import { Image } from "react-native";
 
 function AppAvatar({ user, scale = 1 }) {
-  const [url, setUrl] = useState(user.avatar_url);
+  const [url, setUrl] = useState(user.avatar_url || null);
 
   useEffect(() => {
     if (user.avatar_url) {
