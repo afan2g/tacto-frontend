@@ -24,8 +24,7 @@ import {
 import routes from "../../navigation/routes";
 import SSOOptions from "../../components/login/SSOOptions";
 import ErrorMessage from "../../components/forms/ErrorMessage";
-import { Eye } from "lucide-react-native";
-
+import { clientValidation } from "../../validation/clientValidation";
 function LoginScreen({ navigation }) {
   const passwordRef = useRef(null);
   const [loginForm, setLoginForm] = useState({
@@ -66,12 +65,50 @@ function LoginScreen({ navigation }) {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginForm.identifier,
-        password: loginForm.password,
-      });
+      if (!loginForm.identifier) {
+        setErrors((prev) => ({
+          ...prev,
+          identifier: "Please enter your username, email, or phone #",
+        }));
+      }
+      if (!loginForm.password) {
+        setErrors((prev) => ({
+          ...prev,
+          password: "Please enter your password",
+        }));
+      }
 
-      if (error) throw error;
+      const { success: emailSuccess, error: emailError } =
+        clientValidation.email(loginForm.identifier);
+      const { success: phoneSuccess, error: phoneError } =
+        clientValidation.phone(loginForm.identifier);
+      const { success: passwordSuccess, error: passwordError } =
+        clientValidation.password(loginForm.password);
+      if (!emailSuccess && !phoneSuccess) {
+        setErrors((prev) => ({
+          ...prev,
+          identifier: emailError || phoneError,
+        }));
+      }
+      if (!passwordSuccess) {
+        setErrors((prev) => ({ ...prev, password: passwordError }));
+      }
+
+      if (emailSuccess) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: loginForm.identifier,
+          password: loginForm.password,
+        });
+        if (error) throw error;
+      } else if (phoneSuccess) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          phone: `+1${loginForm.identifier}`,
+          password: loginForm.password,
+        });
+        if (error) throw error;
+      } else {
+        throw new Error("Invalid email or phone number");
+      }
 
       await new Promise((resolve) => setTimeout(resolve, 500));
       // Session update will handle navigation
@@ -114,7 +151,7 @@ function LoginScreen({ navigation }) {
                   style={[theme.formInput.style, { marginBottom: 5 }]}
                   label={
                     <Text style={{ fontFamily: fonts.bold }}>
-                      Username, email, or phone #
+                      Email or phone #
                     </Text>
                   }
                   autoCapitalize="none"
@@ -127,7 +164,9 @@ function LoginScreen({ navigation }) {
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   value={loginForm.identifier}
                 />
-                {errors.username && <ErrorMessage error={errors.username} />}
+                {errors.identifier && (
+                  <ErrorMessage error={errors.identifier} />
+                )}
 
                 <TextInput
                   {...theme.formInput}

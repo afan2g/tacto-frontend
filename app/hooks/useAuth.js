@@ -34,17 +34,24 @@ const useAuth = () => {
         .single();
 
       // Check for SecureStore wallet access
-      const { hasWallet, error: secureWalletError } = await checkWalletAccess(userSession.user.id);
+      const { hasWallet, error: secureWalletError } = await checkWalletAccess(
+        userSession.user.id
+      );
 
       if (!isMounted.current) return;
 
       setSession(userSession);
       setNeedsWallet(!profile?.onboarding_complete);
-      if (secureWalletError === "Call to function 'ExpoSecureStore.getValueWithKeyAsync' has been rejected.") {
+      if (
+        secureWalletError ===
+        "Call to function 'ExpoSecureStore.getValueWithKeyAsync' has been rejected."
+      ) {
         console.warn("SecureStore access rejected");
         setSecureWalletState("rejected");
       } else {
-        setSecureWalletState((!hasWallet && profile?.onboarding_complete) ? "none" : "present");
+        setSecureWalletState(
+          !hasWallet && profile?.onboarding_complete ? "none" : "present"
+        );
       }
 
       if (!initialSessionChecked.current) {
@@ -105,7 +112,9 @@ const useAuth = () => {
     checkSession();
 
     // Listen for auth state changes - WITHOUT using async in the callback
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, userSession) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, userSession) => {
       console.log("Auth event:", event);
 
       if (!isMounted.current) return;
@@ -117,7 +126,6 @@ const useAuth = () => {
         initialSessionChecked.current = true;
         setIsLoading(false);
         setSecureWalletState("none");
-
       } else if (event === "SIGNED_IN") {
         // For sign in events, use setTimeout to avoid deadlock as per Supabase docs
         console.warn("AUTH SIGNED_IN");
@@ -131,8 +139,15 @@ const useAuth = () => {
         // console.warn("AUTH INITIAL_SESSION");
         setSession(userSession);
       } else if (event === "TOKEN_REFRESHED") {
-        // console.warn("AUTH TOKEN_REFRESHED");
+        console.warn("AUTH TOKEN_REFRESHED");
+        console.log("old session:", session);
+        console.log("new session:", userSession);
         setSession(userSession);
+        if (!session || userSession.user?.id !== session.user?.id) {
+          setTimeout(() => {
+            fetchProfileAndUpdateState(userSession);
+          }, 0);
+        }
       }
     });
 

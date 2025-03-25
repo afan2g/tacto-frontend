@@ -18,19 +18,21 @@ function TransactionModal({ transaction, visible, close }) {
   // transaction = FAKE_TRANSACTIONS_FULL[0];
 
   const {
-    from,
-    to,
+    from_user: from,
+    to_user: to,
     amount,
-    score,
-    commentCount,
+    score = 0,
+    commentCount = 0,
     memo,
-    completed_at,
-    created_at,
     status,
-    type,
-    identifier,
+    method_id: type,
+    id: identifier,
   } = transaction;
-
+  console.log(transaction);
+  const shortId = identifier.slice(0, 8).toUpperCase();
+  console.log("id shortened", shortId);
+  const created_at = new Date(transaction.created_at);
+  const completed_at = new Date(transaction.updated_at);
   return (
     <Modal
       animationType="slide"
@@ -98,7 +100,9 @@ function TransactionModal({ transaction, visible, close }) {
                   <AppText style={[styles.detailText, styles.labelText]}>
                     Amount:
                   </AppText>
-                  <AppText style={styles.detailValue}>{amount}</AppText>
+                  <AppText style={styles.detailValue}>
+                    ${amount.toFixed(2)}
+                  </AppText>
                 </View>
                 <View style={styles.detailRow}>
                   <AppText style={[styles.detailText, styles.labelText]}>
@@ -120,7 +124,7 @@ function TransactionModal({ transaction, visible, close }) {
                   <AppText style={[styles.detailText, styles.labelText]}>
                     Identifier:
                   </AppText>
-                  <AppText style={styles.detailValue}>{identifier}</AppText>
+                  <AppText style={styles.detailValue}>{shortId}</AppText>
                 </View>
               </View>
             </View>

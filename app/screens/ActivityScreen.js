@@ -15,8 +15,11 @@ import useModal from "../hooks/useModal";
 import TransactionModal from "../components/modals/TransactionModal";
 import { useData } from "../contexts";
 import { ActivityIndicator } from "react-native-paper";
-
-
+import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
+import {
+  FAKE_TRANSACTIONS_COMPLETED,
+  FAKE_TRANSACTIONS_FULL,
+} from "../data/fakeData";
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const {
@@ -33,9 +36,15 @@ function ActivityScreen({ navigation }) {
     transactionsPage,
   } = useData();
   const [refreshing, setRefreshing] = React.useState(false);
-  const [stickyHeaderIndices, setStickyHeaderIndices] = React.useState([0, paymentRequests.length + 1]);
+  const [stickyHeaderIndices, setStickyHeaderIndices] = React.useState([
+    0,
+    paymentRequests.length + 1,
+  ]);
   const [transactions, setTransactions] = React.useState([]);
   const isInitialLoading = !completedTransactions || !paymentRequests;
+  const [bottomSheetItem, setBottomSheetItem] = React.useState(null);
+  const [bottomSheetVisible, setBottomSheetVisible] = React.useState(false);
+  const transactionSheetRef = React.useRef(null);
   useEffect(() => {
     if (completedTransactions && paymentRequests) {
       setTransactions([
@@ -48,15 +57,19 @@ function ActivityScreen({ navigation }) {
     }
   }, [completedTransactions, paymentRequests]);
   const handlePress = (transaction) => {
-    navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
+    // navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
+    setBottomSheetItem(transaction);
+    handleBottomSheet();
   };
   const handleLongPress = (transaction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    openModal({ transaction });
+    openModal(transaction);
   };
 
   const handleRemove = (transaction) => {
-    const updatedTransactions = transactions.filter((t) => t.id !== transaction.id);
+    const updatedTransactions = transactions.filter(
+      (t) => t.id !== transaction.id
+    );
     setTransactions(updatedTransactions);
   };
 
@@ -68,7 +81,7 @@ function ActivityScreen({ navigation }) {
       // Execute these in parallel
       await Promise.all([
         refreshPaymentRequests(),
-        pullToRefreshTransactions()
+        pullToRefreshTransactions(),
       ]);
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -82,11 +95,19 @@ function ActivityScreen({ navigation }) {
       transactionsHasMore,
       isLoadingTransactions,
       refreshing,
-      currentPage: transactionsPage // Add this line to debug
+      currentPage: transactionsPage, // Add this line to debug
     });
 
     if (transactionsHasMore && !isLoadingTransactions && !refreshing) {
       loadMoreTransactions();
+    }
+  };
+
+  const handleBottomSheet = () => {
+    if (bottomSheetVisible) {
+      transactionSheetRef.current?.dismiss();
+    } else {
+      transactionSheetRef.current?.present();
     }
   };
 
@@ -98,7 +119,11 @@ function ActivityScreen({ navigation }) {
           style={styles.balanceCard}
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator animating={true} color={colors.purplePop} size="large" />
+          <ActivityIndicator
+            animating={true}
+            color={colors.purplePop}
+            size="large"
+          />
           <AppText style={styles.loadingText}>Loading transactions...</AppText>
         </View>
       </Screen>
@@ -106,13 +131,20 @@ function ActivityScreen({ navigation }) {
   }
   return (
     <Screen style={styles.screen}>
-      <AccountBalanceCard balance={wallet.usdc_balance} style={styles.balanceCard} />
+      <AccountBalanceCard
+        balance={wallet.usdc_balance}
+        style={styles.balanceCard}
+      />
       <FlashList
         data={transactions}
         renderItem={({ item }) => {
           if (typeof item === "string") {
             // Rendering header
-            return <View style={{ backgroundColor: colors.black, zIndex: 1 }}><AppText style={styles.header}>{item}</AppText></View>;
+            return (
+              <View style={{ backgroundColor: colors.black, zIndex: 1 }}>
+                <AppText style={styles.header}>{item}</AppText>
+              </View>
+            );
           } else {
             // Render item
             return (
@@ -123,7 +155,7 @@ function ActivityScreen({ navigation }) {
                 navigation={navigation}
                 onDelete={() => handleRemove(item)}
               />
-            )
+            );
           }
         }}
         stickyHeaderIndices={stickyHeaderIndices}
@@ -132,20 +164,26 @@ function ActivityScreen({ navigation }) {
           return typeof item === "string" ? "sectionHeader" : "row";
         }}
         estimatedItemSize={100}
-        keyExtractor={(item) => typeof item === "string" ? item : item.id}
+        keyExtractor={(item) => (typeof item === "string" ? item : item.id)}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         stickyHeaderHiddenOnScroll={false}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.2}
         ListFooterComponent={
-          isLoadingTransactions ?
-            <ActivityIndicator animating={isLoadingTransactions} color={colors.purplePop} /> :
-            (!transactionsHasMore && <AppText style={styles.activityEndText}>End of transactions</AppText>)
+          isLoadingTransactions ? (
+            <ActivityIndicator
+              animating={isLoadingTransactions}
+              color={colors.purplePop}
+            />
+          ) : (
+            !transactionsHasMore && (
+              <AppText style={styles.activityEndText}>
+                End of transactions
+              </AppText>
+            )
+          )
         }
         ListFooterComponentStyle={styles.activityEnd}
       />
@@ -154,6 +192,10 @@ function ActivityScreen({ navigation }) {
         transaction={selectedItem}
         visible={modalVisible}
         close={closeModal}
+      />
+      <TransactionBottomSheet
+        ref={transactionSheetRef}
+        transaction={bottomSheetItem}
       />
     </Screen>
   );
@@ -168,8 +210,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 10,

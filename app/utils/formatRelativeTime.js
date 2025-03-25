@@ -7,11 +7,11 @@ const formatRelativeTime = (dateString) => {
   const diffInDays = Math.floor(diffInHours / 24);
 
   if (diffInMinutes < 60) {
-    return `${diffInMinutes}m`;
+    return `${diffInMinutes}m ago`;
   } else if (diffInHours < 24) {
-    return `${diffInHours}h`;
+    return `${diffInHours}h ago`;
   } else {
-    return `${diffInDays}d`;
+    return date.toLocaleDateString();
   }
 };
 

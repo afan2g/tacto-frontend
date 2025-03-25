@@ -53,7 +53,8 @@ export function DataProvider({ children }) {
   const [transactionsPage, setTransactionsPage] = useState(0);
   const [transactionsHasMore, setTransactionsHasMore] = useState(true);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
-  const [isLoadingPaymentRequests, setIsLoadingPaymentRequests] = useState(false);
+  const [isLoadingPaymentRequests, setIsLoadingPaymentRequests] =
+    useState(false);
   const [profile, setProfile] = useState(() => {
     const storedProfile = storage.getString(STORAGE_KEYS.PROFILE);
     try {
@@ -77,9 +78,13 @@ export function DataProvider({ children }) {
   });
 
   const [completedTransactions, setCompletedTransactions] = useState(() => {
-    const storedCompletedTransactions = storage.getString(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
+    const storedCompletedTransactions = storage.getString(
+      STORAGE_KEYS.COMPLETED_TRANSACTIONS
+    );
     try {
-      return storedCompletedTransactions ? JSON.parse(storedCompletedTransactions) : null;
+      return storedCompletedTransactions
+        ? JSON.parse(storedCompletedTransactions)
+        : null;
     } catch (error) {
       console.error("Error parsing stored completed transactions:", error);
       return null;
@@ -87,7 +92,9 @@ export function DataProvider({ children }) {
   });
 
   const [paymentRequests, setPaymentRequests] = useState(() => {
-    const storedPaymentRequests = storage.getString(STORAGE_KEYS.PAYMENT_REQUESTS);
+    const storedPaymentRequests = storage.getString(
+      STORAGE_KEYS.PAYMENT_REQUESTS
+    );
     try {
       return storedPaymentRequests ? JSON.parse(storedPaymentRequests) : null;
     } catch (error) {
@@ -101,13 +108,11 @@ export function DataProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-
       if (event === "SIGNED_IN") {
         setTimeout(async () => {
           await fetchUserData();
-        }, 0)
-      }
-      else if (event === "SIGNED_OUT") {
+        }, 0);
+      } else if (event === "SIGNED_OUT") {
         clearData();
       }
     });
@@ -122,73 +127,73 @@ export function DataProvider({ children }) {
     // Check if profile exists and has an id before setting up the channel
     if (profile && profile.id) {
       const channel = supabase
-        .channel('schema-db-changes')
+        .channel("schema-db-changes")
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'wallets',
-            filter: `owner_id=eq.${profile.id}`
+            event: "UPDATE",
+            schema: "public",
+            table: "wallets",
+            filter: `owner_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log('Wallet update received!', payload)
-            updateWallet(payload.new)
+            console.log("Wallet update received!", payload);
+            updateWallet(payload.new);
           }
         )
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'transactions',
-            filter: `from_user_id=eq.${profile.id}`
+            event: "INSERT",
+            schema: "public",
+            table: "transactions",
+            filter: `from_user_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log('New transaction received!', payload)
-            refreshTransactions()
+            console.log("New transaction received!", payload);
+            refreshTransactions();
           }
         )
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'transactions',
-            filter: `to_user_id=eq.${profile.id}`
+            event: "INSERT",
+            schema: "public",
+            table: "transactions",
+            filter: `to_user_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log('New transaction received!', payload)
-            refreshTransactions()
+            console.log("New transaction received!", payload);
+            refreshTransactions();
           }
         )
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'payment_requests',
-            filter: `requester_id=eq.${profile.id}`
+            event: "*",
+            schema: "public",
+            table: "payment_requests",
+            filter: `requester_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log('New request received!', payload)
-            refreshPaymentRequests()
+            console.log("New request received!", payload);
+            refreshPaymentRequests();
           }
         )
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'payment_requests',
-            filter: `requestee_id=eq.${profile.id}`
+            event: "*",
+            schema: "public",
+            table: "payment_requests",
+            filter: `requestee_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log('New request received!', payload)
-            refreshPaymentRequests()
+            console.log("New request received!", payload);
+            refreshPaymentRequests();
           }
         )
-        .subscribe()
+        .subscribe();
 
       // Return cleanup function
       return () => {
@@ -209,21 +214,31 @@ export function DataProvider({ children }) {
         console.log("User ID found:", userId);
       }
       const pageSize = 10;
-      const [profileResponse, walletResponse, completedTransactionsResponse, paymentRequestsResponse] = await Promise.all([
+      const [
+        profileResponse,
+        walletResponse,
+        completedTransactionsResponse,
+        paymentRequestsResponse,
+      ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("wallets").select("*").eq("owner_id", userId).single(),
-        fetchCompletedTransactions(userId, { page: transactionsPage, pageSize }),
+        fetchCompletedTransactions(userId, {
+          page: transactionsPage,
+          pageSize,
+        }),
         fetchPaymentRequests(userId),
       ]);
 
       if (profileResponse.error) {
-        console.error("Error fetching profile in data context:", profileResponse.error);
+        console.error(
+          "Error fetching profile in data context:",
+          profileResponse.error
+        );
       } else {
         const sanitizedProfile = sanitizeProfileData(profileResponse.data);
         updateProfile(sanitizedProfile);
         console.log("Profile fetched:", sanitizedProfile);
         console.log("storage size: ", storage.size);
-
       }
 
       if (walletResponse.error && walletResponse.error.code !== "PGRST116") {
@@ -232,44 +247,71 @@ export function DataProvider({ children }) {
         updateWallet(walletResponse.data);
         console.log("Wallet fetched:", walletResponse.data);
         console.log("storage size: ", storage.size);
-
       }
 
       // In the fetchUserData function, modify the transactions part:
       if (completedTransactionsResponse.error) {
-        console.error("Error fetching completed transactions:", completedTransactionsResponse.error);
+        console.error(
+          "Error fetching completed transactions:",
+          completedTransactionsResponse.error
+        );
       } else {
         // Clear existing transactions in storage
         storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
 
         setCompletedTransactions(completedTransactionsResponse.data);
         setTransactionsPage(0);
-        setTransactionsHasMore(completedTransactionsResponse.data.length === pageSize);
+        setTransactionsHasMore(
+          completedTransactionsResponse.data.length === pageSize
+        );
 
         // Only store if we have data
-        if (completedTransactionsResponse.data && completedTransactionsResponse.data.length > 0) {
-          storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(completedTransactionsResponse.data));
+        if (
+          completedTransactionsResponse.data &&
+          completedTransactionsResponse.data.length > 0
+        ) {
+          storage.set(
+            STORAGE_KEYS.COMPLETED_TRANSACTIONS,
+            JSON.stringify(completedTransactionsResponse.data)
+          );
         }
 
-        console.log("Count of completed transactions:", completedTransactionsResponse.data.length);
+        console.log(
+          "Count of completed transactions:",
+          completedTransactionsResponse.data.length
+        );
       }
 
       console.log("storage size: ", storage.size);
 
       if (paymentRequestsResponse.error) {
-        console.error("Error fetching payment requests:", paymentRequestsResponse.error);
+        console.error(
+          "Error fetching payment requests:",
+          paymentRequestsResponse.error
+        );
       } else {
         setPaymentRequests(paymentRequestsResponse.data);
 
         // Only store if we have data
-        if (paymentRequestsResponse.data && paymentRequestsResponse.data.length > 0) {
-          storage.set(STORAGE_KEYS.PAYMENT_REQUESTS, JSON.stringify(paymentRequestsResponse.data));
+        if (
+          paymentRequestsResponse.data &&
+          paymentRequestsResponse.data.length > 0
+        ) {
+          storage.set(
+            STORAGE_KEYS.PAYMENT_REQUESTS,
+            JSON.stringify(paymentRequestsResponse.data)
+          );
         }
 
-        console.log("Count of payment requests:", paymentRequestsResponse.data.length);
-        console.log("Payment requests fetched:", paymentRequestsResponse.data[0]);
+        console.log(
+          "Count of payment requests:",
+          paymentRequestsResponse.data.length
+        );
+        console.log(
+          "Payment requests fetched:",
+          paymentRequestsResponse.data[0]
+        );
       }
-
     } catch (error) {
       console.error("Error in fetchUserData:", error);
     }
@@ -308,7 +350,7 @@ export function DataProvider({ children }) {
 
       const response = await fetchCompletedTransactions(profile.id, {
         page: 0,
-        pageSize
+        pageSize,
       });
 
       if (response.error) {
@@ -326,7 +368,10 @@ export function DataProvider({ children }) {
 
       // Only store if we have data
       if (response.data && response.data.length > 0) {
-        storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(response.data));
+        storage.set(
+          STORAGE_KEYS.COMPLETED_TRANSACTIONS,
+          JSON.stringify(response.data)
+        );
       }
 
       console.log("Transactions refreshed successfully");
@@ -346,7 +391,7 @@ export function DataProvider({ children }) {
 
       const response = await fetchCompletedTransactions(profile.id, {
         page: nextPage,
-        pageSize
+        pageSize,
       });
 
       if (response.error) {
@@ -356,9 +401,9 @@ export function DataProvider({ children }) {
 
       if (response.data.length > 0) {
         // Create the updated list first
-        const updatedList = completedTransactions ?
-          [...completedTransactions, ...response.data] :
-          [...response.data];
+        const updatedList = completedTransactions
+          ? [...completedTransactions, ...response.data]
+          : [...response.data];
 
         // Then update state with the combined list
         setCompletedTransactions(updatedList);
@@ -367,7 +412,10 @@ export function DataProvider({ children }) {
 
         // Clear existing data and set the new combined list
         storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
-        storage.set(STORAGE_KEYS.COMPLETED_TRANSACTIONS, JSON.stringify(updatedList));
+        storage.set(
+          STORAGE_KEYS.COMPLETED_TRANSACTIONS,
+          JSON.stringify(updatedList)
+        );
       } else {
         setTransactionsHasMore(false);
       }
@@ -381,7 +429,7 @@ export function DataProvider({ children }) {
   };
   const pullToRefreshTransactions = async () => {
     await refreshTransactions();
-  }
+  };
 
   const refreshPaymentRequests = async () => {
     if (!profile?.id) return;
@@ -403,7 +451,10 @@ export function DataProvider({ children }) {
 
       // Only store if we have data
       if (response.data && response.data.length > 0) {
-        storage.set(STORAGE_KEYS.PAYMENT_REQUESTS, JSON.stringify(response.data));
+        storage.set(
+          STORAGE_KEYS.PAYMENT_REQUESTS,
+          JSON.stringify(response.data)
+        );
       }
 
       console.log("Payment requests refreshed successfully");
@@ -413,9 +464,7 @@ export function DataProvider({ children }) {
     } finally {
       setIsLoadingPaymentRequests(false);
     }
-  }
-
-
+  };
 
   const clearData = () => {
     try {
@@ -428,12 +477,10 @@ export function DataProvider({ children }) {
       setTransactionsPage(0);
       setTransactionsHasMore(true);
       setIsLoadingTransactions(false);
-
     } catch (error) {
       console.error("Error clearing data:", error);
     }
   };
-
 
   return (
     <DataContext.Provider

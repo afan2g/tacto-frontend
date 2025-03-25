@@ -1,11 +1,12 @@
 import { z } from "zod";
-
+import parsePhoneNumberFromString from "libphonenumber-js/mobile";
+import { Phone } from "lucide-react-native";
 type ValidationResult = {
   success: boolean;
   error: string | null;
 };
 
-const validateUsername = (username: string): ValidationResult => {
+export const validateUsername = (username: string): ValidationResult => {
   const schema = z
     .string({
       required_error: "username is required",
@@ -25,7 +26,7 @@ const validateUsername = (username: string): ValidationResult => {
   };
 };
 
-const validateEmail = (email: string): ValidationResult => {
+export const validateEmail = (email: string): ValidationResult => {
   const schema = z
     .string({
       required_error: "email is required",
@@ -40,7 +41,18 @@ const validateEmail = (email: string): ValidationResult => {
   };
 };
 
-const validatePassword = (password: string): ValidationResult => {
+export const validatePhoneNumber = (phoneNumber: string): ValidationResult => {
+  const number = parsePhoneNumberFromString(phoneNumber, "US");
+  if (!number) {
+    return {
+      success: false,
+      error: "phone number must be a valid US phone number",
+    };
+  }
+  return { success: true, error: null };
+};
+
+export const validatePassword = (password: string): ValidationResult => {
   const schema = z
     .string({
       required_error: "password is required",
@@ -88,5 +100,7 @@ export const clientValidation = {
   username: validateUsername,
   email: validateEmail,
   password: validatePassword,
+  phoneNumber: validatePhoneNumber,
   fullName: validateFullName,
+  phone: validatePhoneNumber,
 } as const;

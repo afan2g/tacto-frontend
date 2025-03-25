@@ -6,7 +6,13 @@ import formatRelativeTime from "../../utils/formatRelativeTime";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 import { useData } from "../../contexts";
-import { fetchTransactionRequest, declinePaymentRequest, fulfillPaymentRequest, cancelPaymentRequest, remindPaymentRequest } from "../../api"
+import {
+  fetchTransactionRequest,
+  declinePaymentRequest,
+  fulfillPaymentRequest,
+  cancelPaymentRequest,
+  remindPaymentRequest,
+} from "../../api";
 import * as SecureStore from "expo-secure-store";
 import { EIP712Signer, Wallet, utils } from "zksync-ethers";
 import routes from "../../navigation/routes";
@@ -19,7 +25,7 @@ function ActivityTransactionCard({
   onPress,
   onLongPress,
   navigation,
-  onDelete
+  onDelete,
 }) {
   const { profile, wallet } = useData();
   const { amount, status, method_id } = transaction;
@@ -27,7 +33,8 @@ function ActivityTransactionCard({
 
   if (method_id === 0 || method_id === 3) {
     ({ updated_at: time, from_user, to_user } = transaction);
-    [otherUser, action] = profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
+    [otherUser, action] =
+      profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
   } else if (method_id === 4) {
     ({ created_at: time } = transaction);
     action = "send";
@@ -37,8 +44,13 @@ function ActivityTransactionCard({
     action = "receive";
     otherUser = { full_name: "External Wallet" };
   } else if (!method_id) {
-    ({ created_at: time, requester: from_user, requestee: to_user } = transaction);
-    [otherUser, action] = profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
+    ({
+      created_at: time,
+      requester: from_user,
+      requestee: to_user,
+    } = transaction);
+    [otherUser, action] =
+      profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
   }
   const formattedAmount = amount % 1 === 0 ? amount : amount.toFixed(2);
   const [isReminding, setIsReminding] = React.useState(false);
@@ -47,16 +59,23 @@ function ActivityTransactionCard({
   const [isDeclining, setIsDeclining] = React.useState(false);
 
   const performTransaction = async () => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
     if (sessionError) {
       console.error("Error getting session data:", sessionError);
       throw new Error("Authentication failed: " + sessionError.message);
     }
     const userJWT = session.access_token;
 
-    console.log("Performing transaction. Amount: ", amount, "Recipient:", otherUser.wallets[0].address);
+    console.log(
+      "Performing transaction. Amount: ",
+      amount,
+      "Recipient:",
+      otherUser.wallets[0].address
+    );
     try {
-
       // Prepare transaction
       const [txRequest, securePhrase] = await Promise.all([
         fetchTransactionRequest(
@@ -65,7 +84,7 @@ function ActivityTransactionCard({
           amount,
           userJWT
         ),
-        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`)
+        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`),
       ]);
       const t0 = performance.now();
       if (!txRequest) {
@@ -74,7 +93,10 @@ function ActivityTransactionCard({
         throw new Error("Failed to retrieve wallet");
       }
 
-      console.log("Transaction request received. Current nonce:", txRequest.nonce);
+      console.log(
+        "Transaction request received. Current nonce:",
+        txRequest.nonce
+      );
       const walletData = JSON.parse(securePhrase);
       const secureWallet = Wallet.fromMnemonic(walletData.phrase);
 
@@ -83,19 +105,30 @@ function ActivityTransactionCard({
       txRequest.customData.customSignature = await signer.sign(txRequest);
       const signedTx = utils.serializeEip712(txRequest);
 
-      const data = await fulfillPaymentRequest(transaction.id, txRequest, signedTx, userJWT);
+      const data = await fulfillPaymentRequest(
+        transaction.id,
+        txRequest,
+        signedTx,
+        userJWT
+      );
       const t1 = performance.now();
       console.log("Transaction time:", t1 - t0, "ms");
       const parsedData = JSON.parse(data);
-
 
       // Check for errors in the response
       if (data.error) {
         throw new Error(`Transaction failed: ${data.error}`);
       }
 
-
-      navigation.navigate(routes.TRANSACTSUCCESS, { action: "fulfill request", amount, recipientUser: otherUser, recipientAddress: otherUser.wallets[0].address, memo: transaction.message, methodId: 3, txHash: parsedData.txHash });
+      navigation.navigate(routes.TRANSACTSUCCESS, {
+        action: "fulfill request",
+        amount,
+        recipientUser: otherUser,
+        recipientAddress: otherUser.wallets[0].address,
+        memo: transaction.message,
+        methodId: 3,
+        txHash: parsedData.txHash,
+      });
 
       return parsedData;
     } catch (err) {
@@ -108,7 +141,10 @@ function ActivityTransactionCard({
     if (isReminding) return;
     setIsReminding(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError) {
         console.error("Error getting session data:", sessionError);
         throw new Error("Authentication failed: " + sessionError.message);
@@ -131,7 +167,10 @@ function ActivityTransactionCard({
     if (isCancelling) return;
     setIsCancelling(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError) {
         console.error("Error getting session data:", sessionError);
         throw new Error("Authentication failed: " + sessionError.message);
@@ -161,13 +200,16 @@ function ActivityTransactionCard({
     } finally {
       setIsPaying(false);
     }
-  }
+  };
   const handleDecline = async () => {
     console.log("Decline pressed");
     if (isDeclining) return;
     setIsDeclining(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError) {
         console.error("Error getting session data:", sessionError);
         throw new Error("Authentication failed: " + sessionError.message);
@@ -184,7 +226,6 @@ function ActivityTransactionCard({
     } finally {
       setIsDeclining(false);
     }
-
   };
 
   const transactionStyles = {
@@ -206,7 +247,8 @@ function ActivityTransactionCard({
         rightButtonText: "Cancel",
         leftButtonHandler: handleRemind,
         rightButtonHandler: handleCancel,
-        leftButtonDisabled: isReminding || !canSendReminder(transaction.last_reminder_sent_at),
+        leftButtonDisabled:
+          isReminding || !canSendReminder(transaction.last_reminder_sent_at),
         rightButtonDisabled: isCancelling,
       },
       receive: {
@@ -222,9 +264,8 @@ function ActivityTransactionCard({
     },
   };
 
-
   const displayConfig = transactionStyles[status][action];
-  const timestampDisplay = `${formatRelativeTime(time)} ago`;
+  const timestampDisplay = formatRelativeTime(time);
   return (
     <Pressable
       style={({ pressed }) => [

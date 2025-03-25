@@ -29,7 +29,6 @@ import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { clientValidation } from "../../validation/clientValidation";
 import ProgressBar from "../../components/ProgressBar";
-import { Button } from "react-native-paper";
 function SignUpUsername({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
