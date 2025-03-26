@@ -4,6 +4,7 @@ import { Phone } from "lucide-react-native";
 type ValidationResult = {
   success: boolean;
   error: string | null;
+  formatted?: string;
 };
 
 export const validateUsername = (username: string): ValidationResult => {
@@ -35,9 +36,16 @@ export const validateEmail = (email: string): ValidationResult => {
     .trim()
     .email({ message: "email must be a valid email address" });
   const result = schema.safeParse(email);
+  if (!result.success) {
+    return {
+      success: false,
+      error: result.error.issues[0]?.message,
+    };
+  }
   return {
-    success: result.success,
-    error: result.success ? null : result.error.issues[0]?.message,
+    success: true,
+    error: null,
+    formatted: email.toLowerCase(),
   };
 };
 
@@ -49,7 +57,7 @@ export const validatePhoneNumber = (phoneNumber: string): ValidationResult => {
       error: "phone number must be a valid US phone number",
     };
   }
-  return { success: true, error: null };
+  return { success: true, error: null, formatted: number.format("E.164") };
 };
 
 export const validatePassword = (password: string): ValidationResult => {

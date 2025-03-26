@@ -204,7 +204,7 @@ function LoginScreen({ navigation }) {
                   style={styles.forgotPassword}
                   onPress={handleForgotPassword}
                 >
-                  Forgot password?
+                  Sign in with OTP
                 </AppText>
 
                 <AppButton

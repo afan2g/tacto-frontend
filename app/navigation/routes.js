@@ -2,6 +2,7 @@ export default Object.freeze({
   ACCOUNT: "Account",
   ACTIVITY: "ActivityLog",
   FORGOTPASSWORD: "ForgotPassword",
+  VERIFYOTP: "VerifyOTP",
   HOME: "Home",
   LANDING: "Landing",
   LOGIN: "Login",

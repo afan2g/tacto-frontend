@@ -2,7 +2,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import routes from "./routes";
-import { LoginScreen, ForgotPasswordScreen } from "../screens/auth";
+import {
+  LoginScreen,
+  ForgotPasswordScreen,
+  VerifyOTPScreen,
+} from "../screens/auth";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,6 +18,7 @@ function LoginNavigator(props) {
         name={routes.FORGOTPASSWORD}
         component={ForgotPasswordScreen}
       />
+      <Stack.Screen name={routes.VERIFYOTP} component={VerifyOTPScreen} />
     </Stack.Navigator>
   );
 }

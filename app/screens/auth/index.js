@@ -7,3 +7,6 @@ export { default as LandingScreen } from "./LandingScreen";
 export { default as LoginScreen } from "./LoginScreen";
 export { default as SignUpComplete } from "./SignUpComplete";
 export { default as SignUpGenerateWallet } from "./SignUpGenerateWallet";
+export { default as SignUpImportWallet } from "./SignUpImportWallet";
+export { default as SignUpScreen } from "./SignUpScreen";
+export { default as VerifyOTPScreen } from "./VerifyOTPScreen";
