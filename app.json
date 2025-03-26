@@ -56,7 +56,16 @@
         }
       ],
       "expo-apple-authentication",
-      "expo-localization"
+      "expo-localization",
+      "react-native-vision-camera",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.24"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
