@@ -5,21 +5,19 @@ import { colors } from "../../config";
 import { supabase } from "../../../lib/supabase";
 import AppAvatar from "../../components/AppAvatar";
 import { NotificationManager } from "../../lib/NotificationManager";
+import { useAuthContext } from "../../contexts";
 
 function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [userId, setUserId] = useState(null);
-
+  const { session, setNeedsWallet } = useAuthContext();
   useEffect(() => {
     checkProfile();
   }, []);
 
   const checkProfile = async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
       if (!session?.user) return;
 
       setUserId(session.user.id);
@@ -42,7 +40,6 @@ function SignUpComplete({ navigation }) {
 
       // Register for push notifications after profile check
       await registerForPushNotifications(session.user.id);
-
     } catch (error) {
       console.error("Profile check error:", error);
     }
@@ -50,7 +47,9 @@ function SignUpComplete({ navigation }) {
 
   async function registerForPushNotifications(userId) {
     try {
-      const token = await NotificationManager.registerForPushNotifications(userId);
+      const token = await NotificationManager.registerForPushNotifications(
+        userId
+      );
       console.log("Expo Push Token:", token.data);
     } catch (error) {
       console.error("Error registering for push notifications:", error);
@@ -122,8 +121,7 @@ function SignUpComplete({ navigation }) {
         .eq("id", userId);
 
       if (profileError) throw profileError;
-
-      await supabase.auth.refreshSession();
+      setNeedsWallet(false);
     } catch (error) {
       console.error("Error in handleSubmit:", error);
     } finally {

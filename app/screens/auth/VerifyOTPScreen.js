@@ -22,6 +22,7 @@ function VerifyOTPScreen({ navigation, route }) {
   const [lastSentTime, setLastSentTime] = useState(Date.now());
   const [timeLeft, setTimeLeft] = useState(60);
   const [otp, setOtp] = useState("");
+  const { isLoading: authLoading } = useAuthContext();
   // Effect that updates the countdown timer every second
   useEffect(() => {
     let interval = null;
@@ -149,7 +150,7 @@ function VerifyOTPScreen({ navigation, route }) {
             type="numeric"
             onFilled={verifyOTP}
             onTextChange={handleInputChange}
-            disabled={loading}
+            disabled={loading || authLoading}
             theme={{
               containerStyle: styles.inputContainer,
               pinCodeContainerStyle: styles.pinCodeContainer,
@@ -165,13 +166,13 @@ function VerifyOTPScreen({ navigation, route }) {
           onPress={verifyOTP}
           title={loading ? "Verifying..." : "Verify"}
           style={styles.next}
-          disabled={loading || otp.length < 6}
-          loading={loading}
+          disabled={loading || authLoading || otp.length < 6}
+          loading={loading || authLoading}
         />
         <Pressable
           onPress={handleResendOTP}
           style={styles.resendContainer}
-          disabled={timeLeft > 0 || loading}
+          disabled={timeLeft > 0 || loading || authLoading}
         >
           <AppText
             style={[

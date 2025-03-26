@@ -2,6 +2,14 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { checkWalletAccess } from "../utils/checkWalletAccess";
+import { storage } from "../../lib/storage";
+
+const STORAGE_KEYS = {
+  PROFILE: "profile",
+  WALLET: "wallet",
+  COMPLETED_TRANSACTIONS: "completedTransactions",
+  PAYMENT_REQUESTS: "paymentRequests",
+};
 const useAuth = () => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,6 +137,8 @@ const useAuth = () => {
       } else if (event === "SIGNED_IN") {
         // For sign in events, use setTimeout to avoid deadlock as per Supabase docs
         console.warn("AUTH SIGNED_IN");
+        console.log("User session:", userSession);
+        console.log("Current session:", session);
         if (!session || userSession.user?.id !== session.user?.id) {
           console.warn("AUTH SIGNED_IN - no existing session");
           setTimeout(() => {
@@ -136,18 +146,11 @@ const useAuth = () => {
           }, 0);
         }
       } else if (event === "INITIAL_SESSION") {
-        // console.warn("AUTH INITIAL_SESSION");
+        console.warn("AUTH INITIAL_SESSION");
         setSession(userSession);
       } else if (event === "TOKEN_REFRESHED") {
         console.warn("AUTH TOKEN_REFRESHED");
-        console.log("old session:", session);
-        console.log("new session:", userSession);
         setSession(userSession);
-        if (!session || userSession.user?.id !== session.user?.id) {
-          setTimeout(() => {
-            fetchProfileAndUpdateState(userSession);
-          }, 0);
-        }
       }
     });
 
@@ -159,7 +162,7 @@ const useAuth = () => {
     };
   }, []);
 
-  return { session, isLoading, needsWallet, secureWalletState };
+  return { session, isLoading, needsWallet, secureWalletState, setNeedsWallet };
 };
 
 export default useAuth;

@@ -15,6 +15,7 @@ import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScre
 import { DataProvider } from "../contexts";
 import TransactNavigator from "./TransactNavigator";
 import { TransactScreen } from "../screens/transact";
+import QRTestingScreen from "../screens/qrTestingScreen";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -42,7 +43,10 @@ function RootNavigator() {
               }}
             >
               <Stack.Group>
-                <Stack.Screen name={routes.APPTABS} component={AppTabNavigator} />
+                <Stack.Screen
+                  name={routes.APPTABS}
+                  component={AppTabNavigator}
+                />
                 <Stack.Screen
                   name={routes.TRANSACTSELECTUSER}
                   component={SelectUserScreen}
@@ -67,6 +71,10 @@ function RootNavigator() {
                 />
               </Stack.Group>
               <Stack.Screen name={routes.TESTING} component={TestingScreen} />
+              <Stack.Screen
+                name={routes.QRTESTING}
+                component={QRTestingScreen}
+              />
               <Stack.Screen
                 name={routes.TESTNOTIFICATIONS}
                 component={NotificationsTest}

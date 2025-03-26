@@ -20,6 +20,7 @@
     "@react-navigation/routers": "^7.1.1",
     "@rneui/themed": "^4.0.0-rc.8",
     "@shopify/flash-list": "1.7.3",
+    "@shopify/react-native-skia": "1.5.0",
     "@supabase/functions-js": "^2.4.4",
     "@supabase/supabase-js": "^2.47.10",
     "@tanstack/react-query": "^5.66.7",
@@ -75,6 +76,7 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vision-camera": "^4.6.4",
     "react-native-web": "~0.19.13",
+    "react-native-worklets-core": "^1.5.0",
     "react-phone-number-input": "^3.4.11",
     "zksync-ethers": "^6.16.1",
     "zod": "^3.24.1"

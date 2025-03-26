@@ -27,6 +27,7 @@ export default Object.freeze({
   APPTABS: "AppTabs",
   ROOT: "Root",
   TESTING: "Testing",
+  QRTESTING: "QRTesting",
   TESTNOTIFICATIONS: "TestNotifications",
   RECOVERWALLET: "RecoverWallet",
   NEWWALLET: "NewWallet",

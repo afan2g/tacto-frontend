@@ -90,6 +90,9 @@ function AccountScreen({ navigation }) {
         <Button onPress={() => navigation.navigate(routes.TESTING)}>
           Go To Testing Screen
         </Button>
+        <Button onPress={() => navigation.navigate(routes.QRTESTING)}>
+          Go To QR Testing Screen
+        </Button>
       </View>
       <SectionList
         sections={SECTIONS}

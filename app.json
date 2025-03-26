@@ -32,6 +32,15 @@
     },
     "plugins": [
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25",
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      [
         "expo-font",
         {
           "fonts": [
@@ -57,13 +66,11 @@
       ],
       "expo-apple-authentication",
       "expo-localization",
-      "react-native-vision-camera",
       [
-        "expo-build-properties",
+        "react-native-vision-camera",
         {
-          "android": {
-            "kotlinVersion": "1.9.24"
-          }
+          "cameraPermissionText": "Tacto needs access to your Camera.",
+          "enableCodeScanner": true
         }
       ]
     ],
