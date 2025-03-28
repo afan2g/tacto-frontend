@@ -25,6 +25,7 @@ import routes from "../../navigation/routes";
 import SSOOptions from "../../components/login/SSOOptions";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import { clientValidation } from "../../validation/clientValidation";
+import { useAuthContext } from "../../contexts";
 function LoginScreen({ navigation }) {
   const passwordRef = useRef(null);
   const [loginForm, setLoginForm] = useState({
@@ -34,6 +35,7 @@ function LoginScreen({ navigation }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { isLoading } = useAuthContext();
   const theme = useTheme();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -212,7 +214,8 @@ function LoginScreen({ navigation }) {
                   title="Log in"
                   style={styles.button}
                   onPress={handleSignIn}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isLoading}
+                  loading={isSubmitting || isLoading}
                 />
               </View>
               <SSOOptions
