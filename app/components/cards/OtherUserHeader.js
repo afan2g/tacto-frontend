@@ -6,8 +6,28 @@ import UserCardVertical from "./UserCardVertical";
 import { colors, fonts } from "../../config";
 import { X } from "lucide-react-native";
 
-function OtherUserHeader({ user, style, handleClose }) {
-  const status = user.friendStatus ?? "none";
+function OtherUserHeader({ user, friendData, style, handleClose }) {
+  const {
+    friendStatus,
+    mutualFriendsCount,
+    targetUserFriendsCount: friendCount,
+  } = friendData;
+  const status = friendStatus ?? "none"; //pending, accpeted, declined, canceled
+
+  const handleFriendPress = async () => {
+    console.log("Friend button pressed. Status:", status);
+    // Handle friend button press logic here
+  };
+
+  const handleSend = async () => {
+    console.log("Send button pressed.");
+    // Handle send button press logic here
+  };
+
+  const handleRequest = async () => {
+    console.log("Request button pressed.");
+    // Handle request button press logic here
+  };
 
   return (
     <View style={[styles.headerContainer, style]}>
@@ -22,11 +42,11 @@ function OtherUserHeader({ user, style, handleClose }) {
       <UserCardVertical user={user} scale={0.8} />
       <View style={styles.userStats}>
         <Pressable style={styles.stat}>
-          <AppText style={styles.statNumber}>{user.friends ?? 0}</AppText>
+          <AppText style={styles.statNumber}>{friendCount ?? 0}</AppText>
           <AppText style={styles.statLabel}>friends</AppText>
         </Pressable>
         <Pressable style={styles.stat}>
-          <AppText style={styles.statNumber}>{user.mutualFriends ?? 0}</AppText>
+          <AppText style={styles.statNumber}>{mutualFriendsCount ?? 0}</AppText>
           <AppText style={styles.statLabel}>mutuals</AppText>
         </Pressable>
       </View>

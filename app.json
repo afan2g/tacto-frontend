@@ -25,7 +25,19 @@
         "backgroundColor": "#364156"
       },
       "package": "com.afan2.Tacto",
-      "googleServicesFile": "./secrets/google-services.json"
+      "googleServicesFile": "./secrets/google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": {
+            "scheme": "https",
+            "host": "usetacto.com",
+            "pathPrefix": "/"
+          },
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

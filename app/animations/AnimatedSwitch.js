@@ -58,7 +58,7 @@ function AnimatedSwitch({
       }
     });
 
-  const composed = Gesture.Simultaneous(swipeLeft, swipeRight);
+  const composed = Gesture.Race(swipeLeft, swipeRight);
   return (
     <View style={{ flex: 1 }}>
       <GestureDetector gesture={composed}>

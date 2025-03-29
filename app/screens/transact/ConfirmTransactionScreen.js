@@ -23,13 +23,32 @@ import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
 import { useData } from "../../contexts";
-import { fetchTransactionRequest, broadcastTransaction, createTransactionRequest } from "../../api";
+import {
+  fetchTransactionRequest,
+  broadcastTransaction,
+  createTransactionRequest,
+} from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
+import { set } from "zod";
 
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 function ConfirmTransactionScreen({ navigation, route }) {
-  const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
-  const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
+  const {
+    action = null,
+    amount = null,
+    recipientUser = null,
+    recipientAddress = null,
+    memo = null,
+    methodId = null,
+  } = route.params || {};
+  const [transaction, setTransaction] = useState({
+    action,
+    amount,
+    recipientUser,
+    recipientAddress,
+    memo,
+    methodId,
+  });
 
   const [showKeypad, setShowKeypad] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,14 +58,20 @@ function ConfirmTransactionScreen({ navigation, route }) {
   const { wallet, profile } = useData();
 
   // Initialize useKeypadInput with transaction.amount
-  const { value, handleKeyPress, getDisplayAmount, resetValue } = useKeypadInput(transaction.amount || "");
+  const { value, handleKeyPress, getDisplayAmount, resetValue } =
+    useKeypadInput(transaction.amount || "");
   const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
 
   useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      navigation.navigate(routes.TRANSACTSELECTUSER, { ...transaction, amount: getFormattedAmountWithoutSymbol(value) });
-      return true;
-    }
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        navigation.navigate(routes.TRANSACTSELECTUSER, {
+          ...transaction,
+          amount: getFormattedAmountWithoutSymbol(value),
+        });
+        return true;
+      }
     );
     return () => subscription.remove();
   }, []);
@@ -83,7 +108,6 @@ function ConfirmTransactionScreen({ navigation, route }) {
     setTransaction((prev) => ({
       ...prev,
       amount: value,
-
     }));
   }, [value, setTransaction]);
 
@@ -95,8 +119,33 @@ function ConfirmTransactionScreen({ navigation, route }) {
     }));
   };
 
-  const handleUserPress = () => {
-    navigation.navigate(routes.USERPROFILE, { user: transaction.recipientUser });
+  const handleUserPress = async () => {
+    console.log("User pressed:", transaction.recipientUser);
+    if (loading) return; // Prevent navigation if loading
+    try {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase.rpc("get_friend_data", {
+        current_user_id: profile.id,
+        target_user_id: transaction.recipientUser.id,
+      });
+      if (error) {
+        console.error("Error fetching friend data:", error);
+        throw new Error("Failed to fetch friend data");
+      }
+      if (!data || data.length === 0) {
+        console.error("user not found: ", transaction.recipientUser.id);
+        throw new Error("User not found");
+      }
+      navigation.navigate(routes.USERPROFILE, {
+        user: transaction.recipientUser,
+      });
+    } catch (error) {
+      console.error("Error navigating to user profile:", error);
+      setError("Failed to load recipient wallet information");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAmountPress = () => {
@@ -118,7 +167,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
   };
 
   const performTransaction = async () => {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
     if (sessionError) {
       console.error("Error getting session data:", sessionError);
       throw new Error("Authentication failed: " + sessionError.message);
@@ -133,7 +185,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
           transaction.amount,
           userJWT
         ),
-        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`)
+        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`),
       ]);
       const t0 = performance.now();
       if (!txRequest) {
@@ -142,7 +194,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
         throw new Error("Failed to retrieve wallet");
       }
 
-      console.log("Transaction request received. Current nonce:", txRequest.nonce);
+      console.log(
+        "Transaction request received. Current nonce:",
+        txRequest.nonce
+      );
       const walletData = JSON.parse(securePhrase);
       const secureWallet = Wallet.fromMnemonic(walletData.phrase);
 
@@ -151,17 +206,20 @@ function ConfirmTransactionScreen({ navigation, route }) {
       txRequest.customData.customSignature = await signer.sign(txRequest);
       const signedTx = utils.serializeEip712(txRequest);
 
-
       // Important fix: Make sure txInfo is a plain object with primitive values
       // The object with prototype methods might be causing issues during JSON serialization
       const txInfo = {
-        toUserId: transaction.recipientUser?.id || "",  // Ensure it's never undefined
+        toUserId: transaction.recipientUser?.id || "", // Ensure it's never undefined
         methodId: transaction.recipientUser ? "0" : "1", // Make sure methodId is a string
-        memo: transaction.memo || null
+        memo: transaction.memo || null,
       };
 
-
-      const data = await broadcastTransaction(signedTx, txRequest, txInfo, userJWT);
+      const data = await broadcastTransaction(
+        signedTx,
+        txRequest,
+        txInfo,
+        userJWT
+      );
       const t1 = performance.now();
       console.log("Transaction time:", t1 - t0, "ms");
       const parsedData = JSON.parse(data);
@@ -190,7 +248,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
 
   const handleConfirm = async () => {
     if (!transaction.amount || parseFloat(transaction.amount) <= 0) {
-      Alert.alert("Invalid Amount", "Please enter a valid amount greater than zero");
+      Alert.alert(
+        "Invalid Amount",
+        "Please enter a valid amount greater than zero"
+      );
       return;
     }
 
@@ -206,7 +267,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
       await performTransaction();
     } catch (err) {
       setError(err.message || "Transaction failed. Please try again.");
-      Alert.alert("Transaction Failed", err.message || "An error occurred while processing your transaction");
+      Alert.alert(
+        "Transaction Failed",
+        err.message || "An error occurred while processing your transaction"
+      );
     } finally {
       setLoading(false);
     }
@@ -215,7 +279,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
   const handleRequest = async () => {
     console.log("Requesting transaction:", transaction);
     if (!transaction.amount || parseFloat(transaction.amount) <= 0) {
-      Alert.alert("Invalid Amount", "Please enter a valid amount greater than zero");
+      Alert.alert(
+        "Invalid Amount",
+        "Please enter a valid amount greater than zero"
+      );
       return;
     }
 
@@ -227,7 +294,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
     setLoading(true);
     setError(null);
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
     if (sessionError) {
       console.error("Error getting session data:", sessionError);
       throw new Error("Authentication failed: " + sessionError.message);
@@ -241,11 +311,14 @@ function ConfirmTransactionScreen({ navigation, route }) {
       navigation.navigate(routes.TRANSACTSUCCESS, { ...transaction });
     } catch (err) {
       setError(err.message || "Transaction failed. Please try again.");
-      Alert.alert("Transaction Failed", err.message || "An error occurred while processing your transaction");
+      Alert.alert(
+        "Transaction Failed",
+        err.message || "An error occurred while processing your transaction"
+      );
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <Pressable style={styles.container} onPress={dismissInputs}>
@@ -254,7 +327,12 @@ function ConfirmTransactionScreen({ navigation, route }) {
           <ChevronLeft
             size={36}
             color={colors.lightGray}
-            onPress={() => navigation.navigate(routes.TRANSACTSELECTUSER, { ...transaction, amount: getFormattedAmountWithoutSymbol(value) })}
+            onPress={() =>
+              navigation.navigate(routes.TRANSACTSELECTUSER, {
+                ...transaction,
+                amount: getFormattedAmountWithoutSymbol(value),
+              })
+            }
             style={styles.backButton}
           />
           <AppText style={styles.headerText}>{transaction.action}</AppText>
@@ -294,9 +372,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
               accessibilityLabel="Memo input"
               contentStyle={{ alignItems: "flex-start" }}
               textAlignVertical="top"
-              label={
-                <Text style={{ fontFamily: fonts.black }}>Memo</Text>
-              }
+              label={<Text style={{ fontFamily: fonts.black }}>Memo</Text>}
               render={(innerProps) => (
                 <RNTextInput
                   onPress={dismissKeypad}
@@ -307,33 +383,37 @@ function ConfirmTransactionScreen({ navigation, route }) {
                       paddingTop: 8,
                       paddingBottom: 8,
                       height: 100,
-                    }
+                    },
                   ]}
                 />
               )}
             />
           </View>
 
-          {error && (
-            <AppText style={styles.errorText}>{error}</AppText>
-          )}
+          {error && <AppText style={styles.errorText}>{error}</AppText>}
         </ScrollView>
 
         <View style={styles.bottomContainer}>
           <View style={styles.buttonContainer}>
-
             <AppButton
-              onPress={transaction.action === "Sending" ? handleConfirm : handleRequest}
+              onPress={
+                transaction.action === "Sending" ? handleConfirm : handleRequest
+              }
               color={colors.yellow}
               title={transaction.action === "Sending" ? "Send" : "Request"}
               loading={loading}
-              disabled={loading || !transaction.amount || (!transaction.recipientUser && transaction.action === "Requesting")}
+              disabled={
+                loading ||
+                !transaction.amount ||
+                (!transaction.recipientUser &&
+                  transaction.action === "Requesting")
+              }
             />
             <AppButton
               onPress={() => {
                 navigation.navigate(routes.TRANSACTSUCCESS, {
-                  txHash: "0x1234567890abcdef"
-                })
+                  txHash: "0x1234567890abcdef",
+                });
               }}
               color={colors.red}
               title="Skip"
@@ -390,9 +470,9 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   errorText: {
-    color: 'red',
+    color: "red",
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
     fontFamily: fonts.medium,
   },
   input: {

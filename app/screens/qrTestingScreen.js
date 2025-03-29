@@ -10,7 +10,7 @@ import {
   useCameraFormat,
   Templates,
 } from "react-native-vision-camera";
-import { Screen } from "../components/primitives";
+import { AppText, Screen } from "../components/primitives";
 import { Skia, PaintStyle } from "@shopify/react-native-skia";
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -48,7 +48,7 @@ function QRTestingScreen(props) {
   const handleShowCamera = useCallback((newPosition) => {
     console.log("toggling camera. new position: ", newPosition);
     position.value = newPosition;
-    setShowCamera(!position.value);
+    setShowCamera(!newPosition);
   });
 
   const handleTorch = useCallback(() => {
@@ -67,17 +67,9 @@ function QRTestingScreen(props) {
     runOnJS(focus)({ x, y });
   });
 
-  return (
-    <GestureDetector gesture={gesture}>
-      <View style={StyleSheet.absoluteFill}>
-        {showCamera && (
-          <Flashlight
-            onPress={handleTorch}
-            color={colors.lightGray}
-            size={36}
-            style={styles.flashIcon}
-          />
-        )}
+  if (showCamera) {
+    return (
+      <View style={styles.container}>
         <View style={styles.switchContainer}>
           <AnimatedSwitch
             leftText="Scan Code"
@@ -88,25 +80,55 @@ function QRTestingScreen(props) {
             borderWidth={2}
           />
         </View>
-        <Camera
-          ref={camera}
-          style={StyleSheet.absoluteFill}
-          device={device}
-          isActive={showCamera}
-          codeScanner={codeScanner}
-          format={format}
-          torch={torch}
+        <Flashlight
+          onPress={handleTorch}
+          color={torch === "on" ? colors.yellow : colors.lightGray}
+          size={36}
+          style={styles.flashIcon}
         />
+        <GestureDetector gesture={gesture}>
+          <Camera
+            ref={camera}
+            style={StyleSheet.absoluteFill}
+            device={device}
+            isActive={showCamera}
+            codeScanner={codeScanner}
+            format={format}
+            torch={torch}
+          />
+        </GestureDetector>
         <View style={styles.cameraBox} />
       </View>
-    </GestureDetector>
+    );
+  }
+  return (
+    <View style={styles.container}>
+      <View style={styles.switchContainer}>
+        <AnimatedSwitch
+          leftText="Scan Code"
+          rightText="Your Code"
+          onToggle={handleShowCamera}
+          position={position}
+          borderColor={colors.fadedGray}
+          borderWidth={2}
+        />
+      </View>
+      <View style={styles.cameraBox}>
+        <AppText>Your Code</AppText>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   flashIcon: {
     position: "absolute",
-    top: 80,
+    top: 60,
     right: 40,
     zIndex: 100,
   },
@@ -127,14 +149,12 @@ const styles = StyleSheet.create({
     left: "50%",
     transform: [{ translateX: -125 }, { translateY: -125 }],
     margin: "auto",
+    justifyContent: "center",
+    alignItems: "center",
   },
   switchContainer: {
-    position: "absolute",
-    top: 40,
-    left: 20,
+    top: 150,
     zIndex: 100,
-    padding: 0,
-    margin: 0,
   },
 });
 

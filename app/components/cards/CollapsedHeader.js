@@ -3,14 +3,11 @@ import { View, StyleSheet, Image } from "react-native";
 
 import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
+import AppAvatar from "../AppAvatar";
 function CollapsedHeader({ user }) {
   return (
     <View style={styles.container}>
-      <Image
-        source={{ uri: user.avatar_url }}
-        style={styles.image}
-        resizeMode="contain"
-      />
+      <AppAvatar user={user} />
       <AppText style={styles.text}>{user.full_name}</AppText>
     </View>
   );

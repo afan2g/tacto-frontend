@@ -18,8 +18,22 @@ import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 
 function SelectUserScreen({ navigation, route }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
-  const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
-  const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
+  const {
+    action = null,
+    amount = null,
+    recipientUser = null,
+    recipientAddress = null,
+    memo = null,
+    methodId = null,
+  } = route.params || {};
+  const [transaction, setTransaction] = useState({
+    action,
+    amount,
+    recipientUser,
+    recipientAddress,
+    memo,
+    methodId,
+  });
   const [profiles, setProfiles] = useState([]);
   const { profile } = useData();
 
@@ -35,18 +49,23 @@ function SelectUserScreen({ navigation, route }) {
         .select("*")
         .neq("id", profile.id);
       if (error) throw error;
+      console.log("Fetched profiles:", profiles);
       setProfiles(profiles);
     };
 
     fetchProfiles();
   }, []);
 
-
   useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      navigation.navigate(routes.APPTABS, { screen: routes.TRANSACTHOME, params: { ...transaction, } });
-      return true;
-    }
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        navigation.navigate(routes.APPTABS, {
+          screen: routes.TRANSACTHOME,
+          params: { ...transaction },
+        });
+        return true;
+      }
     );
     return () => subscription.remove();
   }, []);
@@ -77,7 +96,12 @@ function SelectUserScreen({ navigation, route }) {
         <ChevronLeft
           size={36}
           color={colors.lightGray}
-          onPress={() => navigation.navigate(routes.APPTABS, { screen: routes.TRANSACTHOME, params: { ...transaction, } })}
+          onPress={() =>
+            navigation.navigate(routes.APPTABS, {
+              screen: routes.TRANSACTHOME,
+              params: { ...transaction },
+            })
+          }
         />
         <AppText style={styles.headerText}>
           {transaction.action}{" "}

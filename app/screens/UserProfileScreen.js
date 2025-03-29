@@ -38,11 +38,8 @@ const ANIMATION_CONFIG = {
 const Tab = createMaterialTopTabNavigator();
 
 function Profile({ navigation, route, ...props }) {
-  // const user = FAKE_OTHER_USERS[0];
-  // if (route.params.user) {
-  //   user = route.params.user;
-  // }
-  const user = route.params.user ? route.params.user : FAKE_OTHER_USERS[0];
+  const { user, ...friendData } = route.params;
+  console.log("User Profile:", user, friendData);
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -143,7 +140,7 @@ function Profile({ navigation, route, ...props }) {
   const renderActivityList = useCallback(
     () => (
       <ActivityList
-        data={FAKE_HOME_SCREEN_DATA}
+        data={friendData.sharedTransactions}
         ref={activityRef}
         onScroll={activityScrollHandler}
         {...sharedProps}
@@ -155,7 +152,7 @@ function Profile({ navigation, route, ...props }) {
   const renderStatsList = useCallback(
     () => (
       <ActivityList
-        data={FAKE_HOME_SCREEN_DATA}
+        data={friendData.sharedTransactions}
         ref={statsRef}
         onScroll={statsScrollHandler}
         {...sharedProps}
@@ -252,7 +249,7 @@ function Profile({ navigation, route, ...props }) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
-        <OtherUserHeader user={user} />
+        <OtherUserHeader user={user} friendData={friendData} />
       </Animated.View>
       <X
         color={colors.lightGray}

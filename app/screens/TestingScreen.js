@@ -10,11 +10,21 @@ import { colors, fonts } from "../config";
 import { supabase } from "../../lib/supabase";
 import routes from "../navigation/routes";
 import { fetchAccountNonce, fetchTransactionRequest } from "../api";
+import { useAuthContext } from "../contexts/AuthContext";
+
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function TestingScreen({ navigation }) {
-  const { profile, wallet, completedTransactions, clearCompletedTransactions, fetchUserData } = useData();
-
+  const {
+    profile,
+    wallet,
+    completedTransactions,
+    clearCompletedTransactions,
+    fetchUserData,
+  } = useData();
+  const { session } = useAuthContext();
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(false);
   const handleViewStorage = () => {
     console.log("Storage pressed!");
     console.log("storage profile: ", profile);
@@ -254,10 +264,14 @@ function TestingScreen({ navigation }) {
     }
   };
 
-
   const getAccountNonce = async () => {
     const address = wallet.address;
-    const { data: { session: { access_token: userJWT } }, error } = await supabase.auth.getSession();
+    const {
+      data: {
+        session: { access_token: userJWT },
+      },
+      error,
+    } = await supabase.auth.getSession();
     if (error) {
       console.error("Error getting session data:", error);
       return;
@@ -269,11 +283,11 @@ function TestingScreen({ navigation }) {
 
   const handleShowCompletedTransactions = () => {
     console.log("Completed Transactions:", completedTransactions);
-  }
+  };
 
   const handleClearCompletedTransactions = () => {
     clearCompletedTransactions();
-  }
+  };
 
   const handleRefreshSession = async () => {
     console.log("Refreshing session...");
@@ -283,8 +297,49 @@ function TestingScreen({ navigation }) {
     } else {
       console.log("Session refreshed:", data);
     }
-  }
+  };
 
+  const handleUserPress = async () => {
+    const user = {
+      avatar_url:
+        "https://xxzucuadafldmamlluvh.supabase.co/storage/v1/object/public/avatars/963f9398-e270-4b14-8f7e-92f2b4c7b1fb/avatar.svg",
+      created_at: "2025-03-26T05:48:36.949486+00:00",
+      first_name: "Aoana",
+      full_name: "Aoana djdn",
+      id: "963f9398-e270-4b14-8f7e-92f2b4c7b1fb",
+      last_name: "djdn",
+      onboarding_complete: true,
+      username: "afndk",
+    };
+    console.log("User pressed:", user.id);
+    if (loading) return; // Prevent navigation if loading
+    try {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase.rpc("get_friend_data", {
+        current_user_id: session.user.id,
+        target_user_id: user.id,
+      });
+      if (error) {
+        console.error("Error fetching friend data:", error);
+        throw new Error("Failed to fetch friend data");
+      }
+      if (!data || data.length === 0) {
+        console.error("user not found: ", user.id);
+        throw new Error("User not found");
+      }
+      console.log("friend data: ", data);
+      navigation.navigate(routes.USERPROFILE, {
+        user,
+        ...data,
+      });
+    } catch (error) {
+      console.error("Error navigating to user profile:", error);
+      setError("Failed to load recipient wallet information");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
@@ -346,9 +401,14 @@ function TestingScreen({ navigation }) {
         Test Notifications
       </Button>
       <Button onPress={getAccountNonce}>Get Account Nonce</Button>
-      <Button onPress={handleShowCompletedTransactions}>Show Completed Transactions</Button>
-      <Button onPress={handleClearCompletedTransactions}>Clear Completed Transactions</Button>
+      <Button onPress={handleShowCompletedTransactions}>
+        Show Completed Transactions
+      </Button>
+      <Button onPress={handleClearCompletedTransactions}>
+        Clear Completed Transactions
+      </Button>
       <Button onPress={handleRefreshSession}>Refresh Session</Button>
+      <Button onPress={handleUserPress}>Test User Profile</Button>
     </Screen>
   );
 }
