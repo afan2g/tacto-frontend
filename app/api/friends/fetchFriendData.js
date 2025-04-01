@@ -1,4 +1,4 @@
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 
 async function fetchFriendData(currentUserId, targetUserId) {
   /* 
@@ -26,6 +26,7 @@ async function fetchFriendData(currentUserId, targetUserId) {
       mutualFriendCount: 0,
     };
   }
+  console.log("Friend data fetched:", data);
   return data;
 }
 

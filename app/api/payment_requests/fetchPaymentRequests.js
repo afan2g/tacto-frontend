@@ -1,4 +1,4 @@
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 
 async function fetchPaymentRequests(user_id) {
   console.log(`Fetching pending transactions for user ID: ${user_id}`);

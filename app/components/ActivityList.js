@@ -5,11 +5,13 @@ import { AppCardSeparator, TransactionCard } from "./cards";
 import { colors } from "../config";
 import formatRelativeTime from "../utils/formatRelativeTime";
 import { FlashList } from "@shopify/flash-list";
+import { useData } from "../contexts";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 const ActivityList = React.forwardRef((props, ref) => {
-  const { data, navigation, minHeight } = props;
+  const { data, user, navigation, minHeight } = props;
+  const { profile } = useData();
   return (
     <View style={[minHeight, { flex: 1 }]}>
       <AnimatedFlashList
@@ -18,11 +20,20 @@ const ActivityList = React.forwardRef((props, ref) => {
         estimatedItemSize={110}
         renderItem={({ item }) => (
           <TransactionCard
-            transaction={{ ...item, time: formatRelativeTime(item.time) }}
+            transaction={{
+              ...item,
+              time: formatRelativeTime(item.updated_at),
+              from: item.from_user_id === profile.id ? profile : user,
+              to: item.to_user_id === profile.id ? profile : user,
+              memo: "",
+              score: 0,
+              commentCount: 0,
+              txid: item.hash,
+            }}
             navigation={navigation}
           />
         )}
-        keyExtractor={(item) => item.txid.toString()}
+        keyExtractor={(item) => item.id}
         {...props}
         snapToEnd={false}
         showsVerticalScrollIndicator={false}

@@ -5,7 +5,7 @@ import { AppText, AppButton } from "../primitives";
 import formatRelativeTime from "../../utils/formatRelativeTime";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
-import { useData } from "../../contexts";
+import { useAuthContext, useData } from "../../contexts";
 import {
   fetchTransactionRequest,
   declinePaymentRequest,
@@ -29,6 +29,7 @@ function ActivityTransactionCard({
 }) {
   const { profile, wallet } = useData();
   const { amount, status, method_id } = transaction;
+  const { session } = useAuthContext();
   let time, from_user, to_user, otherUser, action;
 
   if (method_id === 0 || method_id === 3) {
@@ -57,7 +58,8 @@ function ActivityTransactionCard({
   const [isCancelling, setIsCancelling] = React.useState(false);
   const [isPaying, setIsPaying] = React.useState(false);
   const [isDeclining, setIsDeclining] = React.useState(false);
-
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
   const performTransaction = async () => {
     const {
       data: { session },
@@ -228,6 +230,42 @@ function ActivityTransactionCard({
     }
   };
 
+  const handleUserPress = async () => {
+    console.log("User pressed:", otherUser);
+    if (isLoading) return; // Prevent navigation if loading
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { data, error } = await supabase.rpc("get_friend_data", {
+        current_user_id: session.user.id,
+        target_user_id: otherUser.id,
+      });
+      if (error) {
+        console.error("Error fetching friend data:", error);
+        throw new Error("Failed to fetch friend data");
+      }
+      if (!data || data.length === 0) {
+        console.error("user not found: ", otherUser.id);
+        throw new Error("User not found");
+      }
+      console.log("friend data fetched: ", data);
+      navigation.navigate(routes.USERPROFILE, {
+        user: otherUser,
+        friendData: {
+          ...data.friendData,
+          mutualFriendCount: data.mutualFriendCount,
+          friendCount: data.friendCount,
+        },
+        sharedTransactions: data.sharedTransactions,
+      });
+    } catch (error) {
+      console.error("Error navigating to user profile:", error);
+      setError("Failed to load recipient wallet information");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const transactionStyles = {
     confirmed: {
       receive: {
@@ -277,7 +315,13 @@ function ActivityTransactionCard({
       unstable_pressDelay={240}
     >
       <View style={styles.textContainer}>
-        {otherUser && <UserCard user={otherUser} subtext={timestampDisplay} />}
+        {otherUser && (
+          <UserCard
+            user={otherUser}
+            subtext={timestampDisplay}
+            onPress={handleUserPress}
+          />
+        )}
         <AppText style={[styles.amountText, displayConfig.style]}>
           {displayConfig.text}
         </AppText>

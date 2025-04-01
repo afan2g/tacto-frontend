@@ -38,7 +38,15 @@ function PeopleFriendsScreen({ navigation }) {
     if (dropDownOpen) {
       setDropDownOpen(false);
     } else {
-      navigation.navigate(routes.USERPROFILE, { user: item });
+      navigation.navigate(routes.USERPROFILE, {
+        user: item,
+        friendData: {
+          ...data.friendData,
+          mutualFriendCount: data.mutualFriendCount,
+          friendCount: data.friendCount,
+        },
+        sharedTransactions: data.sharedTransactions,
+      });
     }
   };
 

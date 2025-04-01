@@ -19,7 +19,6 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 
-import { FAKE_HOME_SCREEN_DATA, FAKE_OTHER_USERS } from "../data/fakeData";
 import { colors, fonts } from "../config";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,8 +37,8 @@ const ANIMATION_CONFIG = {
 const Tab = createMaterialTopTabNavigator();
 
 function Profile({ navigation, route, ...props }) {
-  const { user, ...friendData } = route.params;
-  console.log("User Profile:", user, friendData);
+  const { user, friendData, sharedTransactions } = route.params;
+
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -140,7 +139,8 @@ function Profile({ navigation, route, ...props }) {
   const renderActivityList = useCallback(
     () => (
       <ActivityList
-        data={friendData.sharedTransactions}
+        data={sharedTransactions}
+        user={user}
         ref={activityRef}
         onScroll={activityScrollHandler}
         {...sharedProps}
@@ -152,7 +152,7 @@ function Profile({ navigation, route, ...props }) {
   const renderStatsList = useCallback(
     () => (
       <ActivityList
-        data={friendData.sharedTransactions}
+        data={sharedTransactions}
         ref={statsRef}
         onScroll={statsScrollHandler}
         {...sharedProps}

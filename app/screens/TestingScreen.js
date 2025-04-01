@@ -328,10 +328,14 @@ function TestingScreen({ navigation }) {
         console.error("user not found: ", user.id);
         throw new Error("User not found");
       }
-      console.log("friend data: ", data);
       navigation.navigate(routes.USERPROFILE, {
         user,
-        ...data,
+        friendData: {
+          ...data.friendData,
+          mutualFriendCount: data.mutualFriendCount,
+          friendCount: data.friendCount,
+        },
+        sharedTransactions: data.sharedTransactions,
       });
     } catch (error) {
       console.error("Error navigating to user profile:", error);

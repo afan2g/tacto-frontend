@@ -139,6 +139,12 @@ function ConfirmTransactionScreen({ navigation, route }) {
       }
       navigation.navigate(routes.USERPROFILE, {
         user: transaction.recipientUser,
+        friendData: {
+          ...data.friendData,
+          mutualFriendCount: data.mutualFriendCount,
+          friendCount: data.friendCount,
+        },
+        sharedTransactions: data.sharedTransactions,
       });
     } catch (error) {
       console.error("Error navigating to user profile:", error);

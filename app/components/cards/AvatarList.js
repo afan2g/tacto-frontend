@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet, Image } from "react-native";
 import { colors } from "../../config";
+import AppAvatar from "../AppAvatar";
 
 function AvatarList({ avatars, size = 50, style }) {
   const scaledStyle = {
@@ -24,15 +25,20 @@ function AvatarList({ avatars, size = 50, style }) {
     <View style={[styles.container, style]}>
       <View style={styles.avatarList}>
         {avatars.slice(avatars.length - 1).map((avatar, index) => (
-          <Image
-            key={index}
-            source={{ uri: avatar }}
-            style={[scaledStyle.avatar, { zIndex: avatars.length - index }]}
-          />
+          // <Image
+          //   key={index}
+          //   source={{ uri: avatar }}
+          //   style={[scaledStyle.avatar, { zIndex: avatars.length - index }]}
+          // />
+          <AppAvatar key={index} user={avatar} scale={scaledStyle.avatar} />
         ))}
-        <Image
+        {/* <Image
           source={{ uri: avatars[avatars.length - 1] }}
           style={[scaledStyle.avatar, styles.lastAvatar, { zIndex: 0 }]}
+        /> */}
+        <AppAvatar
+          user={avatars[avatars.length - 1]}
+          scale={scaledStyle.avatar}
         />
       </View>
     </View>

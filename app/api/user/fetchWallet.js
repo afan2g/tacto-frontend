@@ -1,4 +1,4 @@
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 
 const fetchWallet = async (userId) => {
   const { data, error } = await supabase

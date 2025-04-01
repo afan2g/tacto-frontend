@@ -1,34 +1,62 @@
 import { ArrowBigDown, ArrowBigUp } from "lucide-react-native";
 import React from "react";
 import { View, StyleSheet, Pressable } from "react-native";
+import { useNavigation } from "@react-navigation/native"; // Import useNavigation
 
+import { useAuthContext } from "../../contexts/AuthContext";
+import { supabase } from "../../../lib/supabase";
 import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 import AvatarList from "./AvatarList";
 import routes from "../../navigation/routes";
-import { useNavigation } from "@react-navigation/native"; // Import useNavigation
-import { FAKE_OTHER_USERS } from "../../data/fakeData";
 
 function TransactionCard({ transaction, style, onLongPress, origin }) {
   const navigation = useNavigation(); // Use useNavigation here
-
   const { from, to, amount, memo, score, commentCount, time, txid } =
     transaction;
+
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(false);
+  const { session } = useAuthContext();
   const handlePress = () => {
     console.log("Transaction Card pressed. Transaction:", transaction);
     navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
   };
-  const handleUserPress = (user) => {
-    console.log(
-      "Transaction Card user pressed",
-      user,
-      "navigation",
-      navigation
-    );
 
-    navigation.navigate(routes.USERPROFILE, {
-      user: FAKE_OTHER_USERS[0],
-    });
+  const handleUserPress = async (user) => {
+    console.log("User pressed:", user);
+    if (loading) return; // Prevent navigation if loading
+    try {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase.rpc("get_friend_data", {
+        current_user_id: session.user.id,
+        target_user_id: user.id,
+      });
+      if (error) {
+        console.error("Error fetching friend data:", error);
+        throw new Error("Failed to fetch friend data");
+      }
+      if (!data || data.length === 0) {
+        console.error("user not found: ", user.id);
+        throw new Error("User not found");
+      }
+      console.log("friend data: ", data);
+      navigation.navigate(routes.USERPROFILE, {
+        user,
+        friendData: {
+          ...data.friendData,
+          mutualFriendCount: data.mutualFriendCount,
+          friendCount: data.friendCount,
+        },
+        sharedTransactions: data.sharedTransactions,
+      });
+    } catch (error) {
+      console.error("Error navigating to user profile:", error);
+      setError("Failed to load recipient wallet information");
+    } finally {
+      setLoading(false);
+    }
   };
   const handleUpVotePress = () => {
     console.log("TransactionCardTest upvoted");
@@ -51,7 +79,7 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
       <View style={styles.topContainer}>
         <View style={styles.actionContainer}>
           <AvatarList
-            avatars={[from.avatar_url, to.avatar_url]}
+            avatars={[from, to]}
             size={32}
             style={styles.avatarList}
           />
@@ -89,7 +117,7 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
             {commentCount} comment{commentCount != 1 ? "s" : ""}
           </AppText>
         </View>
-        <AppText style={styles.time}>{time} ago</AppText>
+        <AppText style={styles.time}>{time}</AppText>
       </View>
     </Pressable>
   );
