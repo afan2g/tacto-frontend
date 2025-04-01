@@ -12,6 +12,7 @@ const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 const ActivityList = React.forwardRef((props, ref) => {
   const { data, user, navigation, minHeight } = props;
   const { profile } = useData();
+
   return (
     <View style={[minHeight, { flex: 1 }]}>
       <AnimatedFlashList

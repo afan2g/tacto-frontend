@@ -158,6 +158,7 @@ const ProfileContent = ({
     () => (
       <ActivityList
         data={sharedTransactions}
+        user={user}
         ref={statsRef}
         onScroll={statsScrollHandler}
         {...sharedProps}
@@ -316,6 +317,9 @@ const ProfileBottomSheet = forwardRef(
       []
     );
 
+    console.log("ProfileBottomSheet user: ", user);
+    console.log("ProfileBottomSheet friendData: ", friendData);
+    console.log("ProfileBottomSheet sharedTransactions: ", sharedTransactions);
     return (
       <BottomSheetModal
         ref={bottomSheetRef}

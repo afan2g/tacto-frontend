@@ -24,6 +24,7 @@ function ActivityTransactionCard({
   transaction,
   onPress,
   onLongPress,
+  onUserPress,
   navigation,
   onDelete,
 }) {
@@ -230,31 +231,31 @@ function ActivityTransactionCard({
     }
   };
 
-  const handleUserPress = async () => {
-    console.log("User pressed:", otherUser);
+  const handleUserPress = async (user) => {
+    console.log("User pressed:", user);
     if (isLoading) return; // Prevent navigation if loading
     try {
       setIsLoading(true);
       setError(null);
       const { data, error } = await supabase.rpc("get_friend_data", {
         current_user_id: session.user.id,
-        target_user_id: otherUser.id,
+        target_user_id: user.id,
       });
       if (error) {
         console.error("Error fetching friend data:", error);
         throw new Error("Failed to fetch friend data");
       }
       if (!data || data.length === 0) {
-        console.error("user not found: ", otherUser.id);
+        console.error("user not found: ", user.id);
         throw new Error("User not found");
       }
       console.log("friend data fetched: ", data);
-      navigation.navigate(routes.USERPROFILE, {
-        user: otherUser,
+      setBottomSheetItem({
+        user,
         friendData: {
           ...data.friendData,
-          mutualFriendCount: data.mutualFriendCount,
-          friendCount: data.friendCount,
+          mutualFriendCount: data.mutualFriendsCount,
+          friendCount: data.targetUserFriendsCount,
         },
         sharedTransactions: data.sharedTransactions,
       });
@@ -265,6 +266,41 @@ function ActivityTransactionCard({
       setIsLoading(false);
     }
   };
+  // const handleUserPress = async () => {
+  //   console.log("User pressed:", otherUser);
+  //   if (isLoading) return; // Prevent navigation if loading
+  //   try {
+  //     setIsLoading(true);
+  //     setError(null);
+  //     const { data, error } = await supabase.rpc("get_friend_data", {
+  //       current_user_id: session.user.id,
+  //       target_user_id: otherUser.id,
+  //     });
+  //     if (error) {
+  //       console.error("Error fetching friend data:", error);
+  //       throw new Error("Failed to fetch friend data");
+  //     }
+  //     if (!data || data.length === 0) {
+  //       console.error("user not found: ", otherUser.id);
+  //       throw new Error("User not found");
+  //     }
+  //     console.log("friend data fetched: ", data);
+  //     navigation.navigate(routes.USERPROFILE, {
+  //       user: otherUser,
+  //       friendData: {
+  //         ...data.friendData,
+  //         mutualFriendCount: data.mutualFriendCount,
+  //         friendCount: data.friendCount,
+  //       },
+  //       sharedTransactions: data.sharedTransactions,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error navigating to user profile:", error);
+  //     setError("Failed to load recipient wallet information");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const transactionStyles = {
     confirmed: {
@@ -319,7 +355,7 @@ function ActivityTransactionCard({
           <UserCard
             user={otherUser}
             subtext={timestampDisplay}
-            onPress={handleUserPress}
+            onPress={() => onUserPress(otherUser)}
           />
         )}
         <AppText style={[styles.amountText, displayConfig.style]}>

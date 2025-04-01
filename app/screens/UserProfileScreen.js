@@ -251,11 +251,7 @@ function Profile({ navigation, route, ...props }) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
-        <OtherUserHeader
-          user={user}
-          friendData={friendData}
-          style={{ backgroundColor: colors.black }}
-        />
+        <OtherUserHeader user={user} friendData={friendData} />
       </Animated.View>
       <X
         color={colors.lightGray}

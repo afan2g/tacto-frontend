@@ -13,13 +13,11 @@ import {
 
 import useModal from "../hooks/useModal";
 import TransactionModal from "../components/modals/TransactionModal";
-import { useData } from "../contexts";
+import { useAuthContext, useData } from "../contexts";
 import { ActivityIndicator } from "react-native-paper";
 import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
-import {
-  FAKE_TRANSACTIONS_COMPLETED,
-  FAKE_TRANSACTIONS_FULL,
-} from "../data/fakeData";
+import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
+import { supabase } from "../../lib/supabase";
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const {
@@ -35,6 +33,7 @@ function ActivityScreen({ navigation }) {
     refreshPaymentRequests,
     transactionsPage,
   } = useData();
+  const { session } = useAuthContext();
   const [refreshing, setRefreshing] = React.useState(false);
   const [stickyHeaderIndices, setStickyHeaderIndices] = React.useState([
     0,
@@ -44,7 +43,10 @@ function ActivityScreen({ navigation }) {
   const isInitialLoading = !completedTransactions || !paymentRequests;
   const [bottomSheetItem, setBottomSheetItem] = React.useState(null);
   const [bottomSheetVisible, setBottomSheetVisible] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
   const transactionSheetRef = React.useRef(null);
+  const profileSheetRef = React.useRef(null);
   useEffect(() => {
     if (completedTransactions && paymentRequests) {
       setTransactions([
@@ -110,6 +112,53 @@ function ActivityScreen({ navigation }) {
       transactionSheetRef.current?.present();
     }
   };
+  const handleUserPress = async (user) => {
+    console.log("User pressed in activity screen. Other user:", user);
+    if (isLoading) return; // Prevent navigation if loading
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log("current user id: ", session.user.id);
+      console.log("other user id: ", user.id);
+      const { data, error } = await supabase.rpc("get_friend_data", {
+        current_user_id: session.user.id,
+        target_user_id: user.id,
+      });
+      if (error) {
+        console.error("Error fetching friend data:", error);
+        throw new Error("Failed to fetch friend data");
+      }
+      if (!data || data.length === 0) {
+        console.error("user not found: ", user.id);
+        throw new Error("User not found");
+      }
+      console.log("friend data fetched: ", data.friendData);
+      console.log("shared transactions: ", data.sharedTransactions);
+      console.log("other user: ", user);
+      console.log("friend data: ", data.friendData);
+      console.log("mutual friend count: ", data.mutualFriendsCount);
+      console.log("friend count: ", data.targetUserFriendsCount);
+      setBottomSheetItem({
+        user,
+        friendData: {
+          ...data.friendData,
+          mutualFriendCount: data.mutualFriendsCount,
+          friendCount: data.targetUserFriendsCount,
+        },
+        sharedTransactions: data.sharedTransactions,
+      });
+      profileSheetRef.current?.present();
+    } catch (error) {
+      console.error("Error navigating to user profile:", error);
+      setError("Failed to load recipient wallet information");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Bottom sheet item changed:", bottomSheetItem);
+  }, [bottomSheetItem]);
 
   if (isInitialLoading) {
     return (
@@ -141,7 +190,7 @@ function ActivityScreen({ navigation }) {
           if (typeof item === "string") {
             // Rendering header
             return (
-              <View style={{ backgroundColor: colors.black, zIndex: 1 }}>
+              <View style={{ backgroundColor: colors.blue, zIndex: 1 }}>
                 <AppText style={styles.header}>{item}</AppText>
               </View>
             );
@@ -154,6 +203,7 @@ function ActivityScreen({ navigation }) {
                 onLongPress={() => handleLongPress(item)}
                 navigation={navigation}
                 onDelete={() => handleRemove(item)}
+                onUserPress={handleUserPress}
               />
             );
           }
@@ -196,6 +246,14 @@ function ActivityScreen({ navigation }) {
       <TransactionBottomSheet
         ref={transactionSheetRef}
         transaction={bottomSheetItem}
+      />
+
+      <ProfileBottomSheet
+        ref={profileSheetRef}
+        user={bottomSheetItem?.user}
+        friendData={bottomSheetItem?.friendData}
+        sharedTransactions={bottomSheetItem?.sharedTransactions}
+        navigation={navigation}
       />
     </Screen>
   );

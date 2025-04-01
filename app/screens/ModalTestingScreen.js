@@ -41,16 +41,17 @@ function ModalTestingScreen({ navigation }) {
         console.error("user not found: ", user.id);
         throw new Error("User not found");
       }
+      console.log("friend data fetched: ", data);
       setBottomSheetItem({
         user,
         friendData: {
           ...data.friendData,
-          mutualFriendCount: data.mutualFriendCount,
-          friendCount: data.friendCount,
+          mutualFriendCount: data.mutualFriendsCount,
+          friendCount: data.targetUserFriendsCount,
         },
         sharedTransactions: data.sharedTransactions,
       });
-
+      console.log("bottomSheetItem: ", bottomSheetItem);
       handleBottomSheet();
     } catch (error) {
       console.error("Error navigating to user profile:", error);
