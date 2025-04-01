@@ -93,6 +93,9 @@ function AccountScreen({ navigation }) {
         <Button onPress={() => navigation.navigate(routes.QRTESTING)}>
           Go To QR Testing Screen
         </Button>
+        <Button onPress={() => navigation.navigate(routes.TESTBOTTOMSHEET)}>
+          Go To Bottom Sheet Test
+        </Button>
       </View>
       <SectionList
         sections={SECTIONS}

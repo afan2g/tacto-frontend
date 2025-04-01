@@ -16,6 +16,7 @@ import { DataProvider } from "../contexts";
 import TransactNavigator from "./TransactNavigator";
 import { TransactScreen } from "../screens/transact";
 import QRTestingScreen from "../screens/qrTestingScreen";
+import ModalTestingScreen from "../screens/ModalTestingScreen";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -78,6 +79,10 @@ function RootNavigator() {
               <Stack.Screen
                 name={routes.TESTNOTIFICATIONS}
                 component={NotificationsTest}
+              />
+              <Stack.Screen
+                name={routes.TESTBOTTOMSHEET}
+                component={ModalTestingScreen}
               />
             </Stack.Navigator>
           </TransactionProvider>

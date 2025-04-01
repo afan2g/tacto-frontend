@@ -31,4 +31,5 @@ export default Object.freeze({
   TESTNOTIFICATIONS: "TestNotifications",
   RECOVERWALLET: "RecoverWallet",
   NEWWALLET: "NewWallet",
+  TESTBOTTOMSHEET: "TestBottomSheet",
 });

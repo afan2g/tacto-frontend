@@ -25,6 +25,7 @@ function TestingScreen({ navigation }) {
   const { session } = useAuthContext();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(false);
+
   const handleViewStorage = () => {
     console.log("Storage pressed!");
     console.log("storage profile: ", profile);
@@ -328,15 +329,15 @@ function TestingScreen({ navigation }) {
         console.error("user not found: ", user.id);
         throw new Error("User not found");
       }
-      navigation.navigate(routes.USERPROFILE, {
-        user,
-        friendData: {
-          ...data.friendData,
-          mutualFriendCount: data.mutualFriendCount,
-          friendCount: data.friendCount,
-        },
-        sharedTransactions: data.sharedTransactions,
-      });
+      // navigation.navigate(routes.USERPROFILE, {
+      //   user,
+      //   friendData: {
+      //     ...data.friendData,
+      //     mutualFriendCount: data.mutualFriendCount,
+      //     friendCount: data.friendCount,
+      //   },
+      //   sharedTransactions: data.sharedTransactions,
+      // });
     } catch (error) {
       console.error("Error navigating to user profile:", error);
       setError("Failed to load recipient wallet information");
@@ -344,6 +345,7 @@ function TestingScreen({ navigation }) {
       setLoading(false);
     }
   };
+
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>

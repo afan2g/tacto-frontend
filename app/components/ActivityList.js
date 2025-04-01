@@ -39,6 +39,10 @@ const ActivityList = React.forwardRef((props, ref) => {
         showsVerticalScrollIndicator={false}
         horizontal={false}
         ItemSeparatorComponent={() => <AppCardSeparator />}
+        style={{
+          backgroundColor: colors.black,
+          paddingBottom: 20,
+        }}
       />
     </View>
   );

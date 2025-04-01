@@ -14,10 +14,9 @@ import { Wallet, utils, EIP712Signer } from "zksync-ethers";
 import * as SecureStore from "expo-secure-store";
 import { supabase } from "../../../lib/supabase";
 import { ChevronLeft } from "lucide-react-native";
-import { Button, TextInput, useTheme } from "react-native-paper";
+import { TextInput, useTheme } from "react-native-paper";
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import { UserCardVertical } from "../../components/cards";
-import { TransactionContext } from "../../contexts/TransactionContext";
 import { colors, fonts } from "../../config";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
@@ -29,7 +28,6 @@ import {
   createTransactionRequest,
 } from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
-import { set } from "zod";
 
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 function ConfirmTransactionScreen({ navigation, route }) {

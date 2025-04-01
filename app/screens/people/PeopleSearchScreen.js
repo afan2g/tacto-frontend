@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Pressable,
@@ -16,10 +16,34 @@ import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
 import { Search } from "lucide-react-native";
 import { colors, fonts } from "../../config";
+import { fetchFriends, fetchProfiles } from "../../api";
+import { useAuthContext } from "../../contexts";
 
 function PeopleSearchScreen({ navigation, ...props }) {
   const { modalVisible, selectedItem, openModal, closeModal } = useModal();
   // const [dropDownOpen, setDropDownOpen] = useState(false);
+  const { session } = useAuthContext();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        // Simulate fetching users from an API or database
+        const fetchedUsers = await fetchProfiles(session.user.id);
+        setUsers(fetchedUsers);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError("Failed to load users");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
@@ -51,7 +75,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
     <Pressable style={styles.screen} onPress={handleOutsidePress}>
       <FindUserBar />
       <FlatList
-        data={FAKE_OTHER_USERS}
+        data={users}
         renderItem={({ item }) => (
           <UserCard
             user={item}
