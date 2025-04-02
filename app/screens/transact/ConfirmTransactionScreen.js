@@ -30,6 +30,7 @@ import {
 } from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 import { useProfileSheet } from "../../hooks/useProfileSheet";
+import RNHapticFeedback from "react-native-haptic-feedback";
 
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 function ConfirmTransactionScreen({ navigation, route }) {
@@ -49,7 +50,6 @@ function ConfirmTransactionScreen({ navigation, route }) {
     memo,
     methodId,
   });
-  console.log("Transaction data:", transaction);
 
   const [showKeypad, setShowKeypad] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -60,11 +60,8 @@ function ConfirmTransactionScreen({ navigation, route }) {
   const [bottomSheetItem, setBottomSheetItem] = useState(null);
   const { wallet, profile } = useData();
   const { session } = useAuthContext();
-  const {
-    present: presentProfileSheet,
-    dismiss: dismissProfileSheet,
-    ProfileSheet,
-  } = useProfileSheet(navigation);
+  const { present: presentProfileSheet, ProfileSheet } =
+    useProfileSheet(navigation);
   const { value, handleKeyPress, getDisplayAmount, resetValue } =
     useKeypadInput(transaction.amount || "");
   const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
@@ -262,16 +259,25 @@ function ConfirmTransactionScreen({ navigation, route }) {
   };
 
   const handleConfirm = async () => {
-    if (!transaction.amount || parseFloat(transaction.amount) <= 0) {
-      Alert.alert(
-        "Invalid Amount",
-        "Please enter a valid amount greater than zero"
-      );
+    if (!value || value === "") {
+      setError("Please enter an amount");
+      RNHapticFeedback.trigger("notificationWarning", {
+        ignoreAndroidSystemSettings: true,
+      });
       return;
     }
-
+    if (parseFloat(value) > parseFloat(wallet.usdc_balance)) {
+      setError("Insufficient balance");
+      RNHapticFeedback.trigger("notificationWarning", {
+        ignoreAndroidSystemSettings: true,
+      });
+      return;
+    }
     if (!transaction.recipientAddress) {
-      Alert.alert("Invalid Recipient", "Recipient address is missing");
+      setError("Recipient address is missing");
+      RNHapticFeedback.trigger("notificationWarning", {
+        ignoreAndroidSystemSettings: true,
+      });
       return;
     }
 
@@ -293,11 +299,11 @@ function ConfirmTransactionScreen({ navigation, route }) {
 
   const handleRequest = async () => {
     console.log("Requesting transaction:", transaction);
-    if (!transaction.amount || parseFloat(transaction.amount) <= 0) {
-      Alert.alert(
-        "Invalid Amount",
-        "Please enter a valid amount greater than zero"
-      );
+    if (!value || value === "") {
+      setError("Please enter an amount");
+      RNHapticFeedback.trigger("notificationWarning", {
+        ignoreAndroidSystemSettings: true,
+      });
       return;
     }
 
@@ -420,6 +426,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
               disabled={
                 loading ||
                 !transaction.amount ||
+                parseFloat(transaction.amount) <= 0 ||
                 (!transaction.recipientUser &&
                   transaction.action === "Requesting")
               }
