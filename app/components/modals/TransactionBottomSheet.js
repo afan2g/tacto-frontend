@@ -13,7 +13,8 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { AppText } from "../primitives";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
-
+import { colors } from "../../config";
+import { DataProvider } from "../../contexts";
 const TransactionBottomSheet = forwardRef(({ transaction, onDismiss }, ref) => {
   const bottomSheetRef = useRef(null);
   const { handleSheetPositionChange } =
@@ -42,21 +43,24 @@ const TransactionBottomSheet = forwardRef(({ transaction, onDismiss }, ref) => {
       snapPoints={snapPoints}
       onChange={handleSheetPositionChange}
       backdropComponent={renderBackdrop}
-      enableDynamicSizing={false}
+      handleIndicatorStyle={{ backgroundColor: colors.lightGray }}
+      backgroundStyle={{
+        backgroundColor: colors.black,
+      }}
     >
-      <BottomSheetView style={styles.contentContainer}>
-        <AppText>{transaction?.amount}</AppText>
-        <AppText>{transaction?.hash}</AppText>
-      </BottomSheetView>
+      <DataProvider>
+        <BottomSheetView style={styles.contentContainer}>
+          <AppText>{transaction?.amount}</AppText>
+          <AppText>{transaction?.hash}</AppText>
+        </BottomSheetView>
+      </DataProvider>
     </BottomSheetModal>
   );
 });
 
 const styles = StyleSheet.create({
   contentContainer: {
-    backgroundColor: "white",
     flex: 1,
-    padding: 20,
   },
 });
 

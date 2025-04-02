@@ -17,8 +17,6 @@ import Animated, {
   useSharedValue,
   withTiming,
   Extrapolation,
-  useAnimatedReaction,
-  runOnJS,
 } from "react-native-reanimated";
 import BottomSheet, {
   BottomSheetModal,
@@ -32,14 +30,13 @@ import {
 
 import { colors, fonts } from "../../config";
 import navigationTheme from "../../navigation/navigationTheme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ActivityList from "../ActivityList";
 import { OtherUserHeader } from "../cards";
 import AppTabBar from "../AppTabBar";
-import { X } from "lucide-react-native";
 import CollapsedHeader from "../cards/CollapsedHeader";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
 import { DataProvider } from "../../contexts";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TAB_BAR_HEIGHT = 50;
 const COLLAPSED_HEADER_HEIGHT = 20;
@@ -56,8 +53,6 @@ const ProfileContent = ({
   navigation,
 }) => {
   const layout = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-
   const [index, setIndex] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(0);
 
@@ -74,6 +69,7 @@ const ProfileContent = ({
 
   const handleHeaderLayout = useCallback((event) => {
     setHeaderHeight(event.nativeEvent.layout.height);
+    console.log("Header height: ", event.nativeEvent.layout.height);
   }, []);
 
   const activityRef = useRef(null);
@@ -124,6 +120,7 @@ const ProfileContent = ({
     () => ({
       paddingTop: rendered ? headerHeight + TAB_BAR_HEIGHT : 0,
       minHeight: layout.height + headerDiff,
+      backgroundColor: colors.black, // Ensure consistent background
     }),
     [rendered, headerHeight]
   );
@@ -212,41 +209,6 @@ const ProfileContent = ({
     [heightCollapsed, collapsedHeaderAnimatedStyle]
   );
 
-  // Create states to hold the latest offsets in a React-friendly manner
-  const [activityOffset, setActivityOffset] = useState(0);
-  const [statsOffset, setStatsOffset] = useState(0);
-
-  // Update activityOffset when activityScrollValue changes
-  useAnimatedReaction(
-    () => activityScrollValue.value,
-    (val) => {
-      runOnJS(setActivityOffset)(val);
-    },
-    []
-  );
-
-  // Update statsOffset when statsScrollValue changes
-  useAnimatedReaction(
-    () => statsScrollValue.value,
-    (val) => {
-      runOnJS(setStatsOffset)(val);
-    },
-    []
-  );
-
-  // Sync offsets between the lists
-  useEffect(() => {
-    const currentOffset = index === 0 ? activityOffset : statsOffset;
-    const otherRef = index === 0 ? statsRef : activityRef;
-
-    if (currentOffset >= 0 && currentOffset <= headerDiff) {
-      otherRef.current?.scrollToOffset({
-        offset: currentOffset,
-        animated: false,
-      });
-    }
-  }, [index, headerDiff, activityOffset, statsOffset]);
-
   return (
     <DataProvider>
       <BottomSheetView style={styles.bottomSheetContainer}>
@@ -274,9 +236,18 @@ const ProfileContent = ({
                   textTransform: "capitalize",
                   fontSize: 16,
                 },
-                tabBarStyle: { backgroundColor: colors.black },
+                tabBarStyle: {
+                  backgroundColor: colors.black,
+                  // Remove borders and elevation
+                  borderTopWidth: 0,
+                  borderBottomWidth: 0,
+                  elevation: 0,
+                  shadowOpacity: 0,
+                },
                 tabBarItemStyle: {
                   width: layout.width / 2,
+                  // Remove any borders
+                  borderWidth: 0,
                 },
                 tabBarIndicatorStyle: { backgroundColor: colors.yellow },
                 tabBarActiveTintColor: colors.lightGray,
@@ -304,7 +275,8 @@ const ProfileBottomSheet = forwardRef(
       dismiss: () => bottomSheetRef.current?.dismiss(),
     }));
 
-    const snapPoints = useMemo(() => [364, "90%"], []);
+    const insets = useSafeAreaInsets();
+    const snapPoints = useMemo(() => [364 + insets.top, "100%"], []);
 
     const renderBackdrop = useCallback(
       (props) => (
@@ -330,9 +302,25 @@ const ProfileBottomSheet = forwardRef(
         backgroundStyle={{
           backgroundColor: colors.black,
         }}
+        containerStyle={{ marginTop: insets.top }}
         enableOverDrag={false}
         enableContentPanningGesture={true}
-        activeOffsetY={[-10, 10]}
+        activeOffsetY={[-30, 30]}
+        style={{
+          borderWidth: 0,
+          backgroundColor: colors.black,
+          borderTopRightRadius: 20,
+          borderTopLeftRadius: 20,
+          shadowColor: colors.lightGray,
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+
+          elevation: 5,
+        }}
       >
         <ProfileContent
           user={user}
@@ -354,10 +342,14 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 20,
     backgroundColor: colors.black,
+    // Remove any potential border
+    borderWidth: 0,
   },
-
   bottomSheetContainer: {
     flex: 1,
+    backgroundColor: colors.black, // Ensure this matches the modal background
+    marginTop: -1,
+    paddingTop: -1,
   },
   closeIcon: {
     position: "absolute",
@@ -370,6 +362,12 @@ const styles = StyleSheet.create({
     right: 0,
     position: "absolute",
     zIndex: 1,
+    backgroundColor: colors.black, // Ensure consistent background
+    // Remove any borders that might be causing lines
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+    elevation: 0, // Remove Android elevation shadow
+    shadowOpacity: 0, // Remove iOS shadow
   },
   headerContainer: {
     top: 0,
@@ -377,6 +375,9 @@ const styles = StyleSheet.create({
     right: 0,
     position: "absolute",
     zIndex: 1,
+    backgroundColor: colors.black, // Ensure consistent background
+    // Remove any borders
+    borderBottomWidth: 0,
   },
   collapsedHeaderStyle: {
     position: "absolute",
@@ -388,6 +389,9 @@ const styles = StyleSheet.create({
     zIndex: 2,
     alignItems: "center",
     flexDirection: "row",
+    // Remove any borders
+    borderBottomWidth: 0,
+    borderTopWidth: 0,
   },
 });
 
