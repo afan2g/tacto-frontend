@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useImperativeHandle } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import { AppCardSeparator, TransactionCard } from "./cards";
@@ -9,11 +9,24 @@ const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 const ActivityList = React.forwardRef((props, ref) => {
   const { data, user, profile, navigation, minHeight } = props;
+  const listRef = React.useRef(null);
+
+  // Expose the scrollToOffset method to the parent component
+  useImperativeHandle(ref, () => ({
+    scrollToOffset: (params) => {
+      listRef.current?.scrollToOffset(params);
+    },
+    // Pass through any other FlashList methods that might be needed
+    recordInteraction: () => listRef.current?.recordInteraction(),
+    scrollToEnd: (params) => listRef.current?.scrollToEnd(params),
+    scrollToIndex: (params) => listRef.current?.scrollToIndex(params),
+    getScrollableNode: () => listRef.current?.getScrollableNode(),
+  }));
 
   return (
-    <View style={[minHeight, { flex: 1 }]}>
+    <View style={[styles.container, minHeight]}>
       <AnimatedFlashList
-        ref={ref}
+        ref={listRef}
         data={data}
         estimatedItemSize={110}
         renderItem={({ item }) => (
@@ -33,16 +46,25 @@ const ActivityList = React.forwardRef((props, ref) => {
         )}
         keyExtractor={(item) => item.id}
         {...props}
-        snapToEnd={false}
+        // snapToEnd={false}
         showsVerticalScrollIndicator={false}
         horizontal={false}
-        nestedScrollEnabled={false}
         ItemSeparatorComponent={() => <AppCardSeparator />}
+        ListFooterComponent={() => <View style={styles.footer} />}
+        overScrollMode="never"
+        bounces={false}
       />
     </View>
   );
 });
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  footer: {
+    height: 100, // Add some padding at the bottom to ensure scrollability
+  },
+});
 
 export default ActivityList;

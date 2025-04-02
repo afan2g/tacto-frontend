@@ -7,7 +7,7 @@ import AppAvatar from "../AppAvatar";
 function CollapsedHeader({ user }) {
   return (
     <View style={styles.container}>
-      <AppAvatar user={user} />
+      <AppAvatar user={user} scale={0.5} />
       <AppText style={styles.text}>{user.full_name}</AppText>
     </View>
   );

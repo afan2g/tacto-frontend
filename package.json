@@ -49,6 +49,7 @@
     "libphonenumber-js": "^1.11.19",
     "lottie-react-native": "7.1.0",
     "lucide-react-native": "^0.460.0",
+    "moti": "^0.30.0",
     "react": "18.3.1",
     "react-hook-form": "^7.53.2",
     "react-native": "^0.76.5",

@@ -13,6 +13,7 @@ import Animated, {
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useAnimatedReaction,
   useDerivedValue,
   useSharedValue,
   withTiming,
@@ -39,10 +40,10 @@ import { DataProvider, useData } from "../../contexts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TAB_BAR_HEIGHT = 50;
-const COLLAPSED_HEADER_HEIGHT = 20;
+const COLLAPSED_HEADER_HEIGHT = 80;
 const OVERLAY_VISIBILTIY_OFFSET = 32;
 const ANIMATION_CONFIG = {
-  duration: 10,
+  duration: 0,
 };
 const Tab = createMaterialTopTabNavigator();
 
@@ -58,14 +59,9 @@ const ProfileContent = ({
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const rendered = headerHeight > 0;
-  const defaultHeaderHeight = COLLAPSED_HEADER_HEIGHT;
 
-  const headerConfig = {
-    heightCollapsed: defaultHeaderHeight,
-    heightExpanded: headerHeight,
-  };
-
-  const { heightCollapsed, heightExpanded } = headerConfig;
+  const heightCollapsed = COLLAPSED_HEADER_HEIGHT;
+  const heightExpanded = headerHeight;
   const headerDiff = heightExpanded - heightCollapsed;
 
   const handleHeaderLayout = useCallback((event) => {
@@ -78,25 +74,63 @@ const ProfileContent = ({
   const activityScrollValue = useSharedValue(0);
   const statsScrollValue = useSharedValue(0);
 
+  // This shared value tracks ONLY the header's collapsed state, not the entire scroll position
+  const isHeaderCollapsed = useSharedValue(false);
+
+  // Create scroll handlers for each tab that update the header state
   const createScrollHandler = (scrollValue) =>
     useAnimatedScrollHandler((event) => {
+      // Update the individual tab's scroll position
       scrollValue.value = event.contentOffset.y;
+
+      // Update the header state based on whether we've scrolled past the collapse threshold
+      isHeaderCollapsed.value = event.contentOffset.y >= headerDiff;
     });
 
   const activityScrollHandler = createScrollHandler(activityScrollValue);
   const statsScrollHandler = createScrollHandler(statsScrollValue);
 
-  const currentScrollValue = useDerivedValue(
-    () => (index === 0 ? activityScrollValue.value : statsScrollValue.value),
-    [index]
-  );
+  // When switching tabs, apply the current header state to the new tab if needed
+  useEffect(() => {
+    // Only run after render and when we have header height
+    if (!headerHeight) return;
 
+    const currentRef = index === 0 ? activityRef : statsRef;
+    const currentScrollValue =
+      index === 0 ? activityScrollValue : statsScrollValue;
+
+    // If header is collapsed but the current tab isn't scrolled enough to show it
+    if (isHeaderCollapsed.value && currentScrollValue.value < headerDiff) {
+      // Scroll just enough to collapse the header, not the entire previous position
+      currentRef.current?.scrollToOffset({
+        offset: headerDiff,
+        animated: false,
+      });
+    }
+    // If header is expanded but the current tab is showing it as collapsed
+    else if (
+      !isHeaderCollapsed.value &&
+      currentScrollValue.value >= headerDiff
+    ) {
+      // Scroll back to show the expanded header
+      currentRef.current?.scrollToOffset({
+        offset: 0,
+        animated: false,
+      });
+    }
+  }, [index, headerHeight, headerDiff]);
+
+  // Calculate translateY based on the current tab's scroll position
+  // This ensures smooth animation within each tab
   const translateY = useDerivedValue(() => {
+    const currentTabScrollValue =
+      index === 0 ? activityScrollValue.value : statsScrollValue.value;
+
     return withTiming(
-      -Math.min(currentScrollValue.value, headerDiff),
+      -Math.min(currentTabScrollValue, headerDiff),
       ANIMATION_CONFIG
     );
-  }, [currentScrollValue, headerDiff]);
+  }, [index, activityScrollValue, statsScrollValue, headerDiff]);
 
   const tabBarAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -116,26 +150,33 @@ const ProfileContent = ({
     };
   }, [translateY, headerDiff]);
 
+  // Calculate a proper minimum height to ensure scrollability
+  const calculatedMinHeight = useMemo(() => {
+    // We want to ensure the content is tall enough that:
+    // 1. The header can be fully collapsed
+    // 2. There's enough content to scroll even with minimal data
+    return layout.height + headerDiff; // Add extra padding to ensure scrollability
+  }, [layout.height, headerDiff]);
+
   const contentContainerStyle = useMemo(
     () => ({
       paddingTop: rendered ? headerHeight + TAB_BAR_HEIGHT : 0,
-      minHeight: layout.height + headerDiff,
-      backgroundColor: colors.black, // Ensure consistent background
+      minHeight: calculatedMinHeight,
+      backgroundColor: colors.black,
     }),
-    [rendered, headerHeight]
+    [rendered, headerHeight, calculatedMinHeight]
   );
 
   const sharedProps = useMemo(
     () => ({
-      minHeight: layout.height + headerDiff,
+      minHeight: { height: calculatedMinHeight },
       contentContainerStyle,
-      scrollEventThrottle: 1,
       scrollIndicatorInsets: {
         top: headerHeight,
       },
       snapToOffsets: [0, headerDiff],
     }),
-    [contentContainerStyle, headerHeight, headerDiff, layout.height]
+    [contentContainerStyle, headerHeight, headerDiff, calculatedMinHeight]
   );
 
   const renderActivityList = useCallback(
@@ -288,10 +329,6 @@ const ProfileBottomSheet = forwardRef(
       ),
       []
     );
-
-    console.log("ProfileBottomSheet user: ", user);
-    console.log("ProfileBottomSheet friendData: ", friendData);
-    console.log("ProfileBottomSheet sharedTransactions: ", sharedTransactions);
 
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.dismiss();
