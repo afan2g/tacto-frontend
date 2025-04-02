@@ -5,7 +5,7 @@
 import { useCallback, useRef } from "react";
 import { BackHandler } from "react-native";
 
-export const useBottomSheetBackHandler = (bottomSheetRef) => {
+export const useBottomSheetBackHandler = (bottomSheetRef, onDismiss) => {
   const backHandlerSubscriptionRef = useRef(null);
   const handleSheetPositionChange = useCallback(
     (index) => {
@@ -22,9 +22,13 @@ export const useBottomSheetBackHandler = (bottomSheetRef) => {
       } else if (!isBottomSheetVisible) {
         backHandlerSubscriptionRef.current?.remove();
         backHandlerSubscriptionRef.current = null;
+
+        if (onDismiss) {
+          onDismiss();
+        }
       }
     },
-    [bottomSheetRef, backHandlerSubscriptionRef]
+    [bottomSheetRef, backHandlerSubscriptionRef, onDismiss]
   );
   return { handleSheetPositionChange };
 };

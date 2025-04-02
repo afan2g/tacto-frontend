@@ -1,17 +1,14 @@
 import React from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import { AppCardSeparator, TransactionCard } from "./cards";
-import { colors } from "../config";
 import formatRelativeTime from "../utils/formatRelativeTime";
 import { FlashList } from "@shopify/flash-list";
-import { useData } from "../contexts";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 const ActivityList = React.forwardRef((props, ref) => {
-  const { data, user, navigation, minHeight } = props;
-  const { profile } = useData();
+  const { data, user, profile, navigation, minHeight } = props;
 
   return (
     <View style={[minHeight, { flex: 1 }]}>

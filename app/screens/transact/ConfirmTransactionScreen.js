@@ -10,24 +10,26 @@ import {
   Alert,
   BackHandler,
 } from "react-native";
+import { TextInput, useTheme } from "react-native-paper";
 import { Wallet, utils, EIP712Signer } from "zksync-ethers";
+import { ChevronLeft } from "lucide-react-native";
 import * as SecureStore from "expo-secure-store";
 import { supabase } from "../../../lib/supabase";
-import { ChevronLeft } from "lucide-react-native";
-import { TextInput, useTheme } from "react-native-paper";
 import { AppButton, AppText, Screen } from "../../components/primitives";
 import { UserCardVertical } from "../../components/cards";
+import ProfileBottomSheet from "../../components/modals/ProfileBottomSheet";
 import { colors, fonts } from "../../config";
 import AppKeypad from "../../components/forms/AppKeypad";
 import { useKeypadInput } from "../../hooks/useKeypadInput";
 import routes from "../../navigation/routes";
-import { useData } from "../../contexts";
+import { useAuthContext, useData } from "../../contexts";
 import {
   fetchTransactionRequest,
   broadcastTransaction,
   createTransactionRequest,
 } from "../../api";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
+import { useProfileSheet } from "../../hooks/useProfileSheet";
 
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 function ConfirmTransactionScreen({ navigation, route }) {
@@ -47,15 +49,22 @@ function ConfirmTransactionScreen({ navigation, route }) {
     memo,
     methodId,
   });
+  console.log("Transaction data:", transaction);
 
   const [showKeypad, setShowKeypad] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const theme = useTheme();
   const memoRef = useRef(null);
+  const profileSheetRef = useRef(null);
+  const [bottomSheetItem, setBottomSheetItem] = useState(null);
   const { wallet, profile } = useData();
-
-  // Initialize useKeypadInput with transaction.amount
+  const { session } = useAuthContext();
+  const {
+    present: presentProfileSheet,
+    dismiss: dismissProfileSheet,
+    ProfileSheet,
+  } = useProfileSheet(navigation);
   const { value, handleKeyPress, getDisplayAmount, resetValue } =
     useKeypadInput(transaction.amount || "");
   const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
@@ -117,16 +126,23 @@ function ConfirmTransactionScreen({ navigation, route }) {
     }));
   };
 
+  const handleAmountPress = () => {
+    setShowKeypad(true);
+    Keyboard.dismiss();
+  };
+
   const handleUserPress = async () => {
-    console.log("User pressed:", transaction.recipientUser);
     if (loading) return; // Prevent navigation if loading
     try {
       setLoading(true);
       setError(null);
+
       const { data, error } = await supabase.rpc("get_friend_data", {
-        current_user_id: profile.id,
+        current_user_id: session.user.id,
         target_user_id: transaction.recipientUser.id,
       });
+
+      console.log("Friend data:", data);
       if (error) {
         console.error("Error fetching friend data:", error);
         throw new Error("Failed to fetch friend data");
@@ -135,15 +151,16 @@ function ConfirmTransactionScreen({ navigation, route }) {
         console.error("user not found: ", transaction.recipientUser.id);
         throw new Error("User not found");
       }
-      navigation.navigate(routes.USERPROFILE, {
-        user: transaction.recipientUser,
-        friendData: {
+      dismissInputs();
+      presentProfileSheet(
+        transaction.recipientUser,
+        {
           ...data.friendData,
-          mutualFriendCount: data.mutualFriendCount,
-          friendCount: data.friendCount,
+          mutualFriendCount: data.mutualFriendsCount,
+          friendCount: data.targetUserFriendsCount,
         },
-        sharedTransactions: data.sharedTransactions,
-      });
+        data.sharedTransactions
+      );
     } catch (error) {
       console.error("Error navigating to user profile:", error);
       setError("Failed to load recipient wallet information");
@@ -151,12 +168,6 @@ function ConfirmTransactionScreen({ navigation, route }) {
       setLoading(false);
     }
   };
-
-  const handleAmountPress = () => {
-    setShowKeypad(true);
-    Keyboard.dismiss();
-  };
-
   const dismissInputs = () => {
     dismissKeypad();
     Keyboard.dismiss();
@@ -428,6 +439,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
           {showKeypad && <AppKeypad onPress={handleKeyPress} />}
         </View>
       </Screen>
+      <ProfileSheet />
     </Pressable>
   );
 }

@@ -35,7 +35,7 @@ import { OtherUserHeader } from "../cards";
 import AppTabBar from "../AppTabBar";
 import CollapsedHeader from "../cards/CollapsedHeader";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
-import { DataProvider } from "../../contexts";
+import { DataProvider, useData } from "../../contexts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TAB_BAR_HEIGHT = 50;
@@ -48,9 +48,10 @@ const Tab = createMaterialTopTabNavigator();
 
 const ProfileContent = ({
   user,
+  profile,
   friendData,
   sharedTransactions,
-  navigation,
+  handleClose,
 }) => {
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
@@ -69,7 +70,6 @@ const ProfileContent = ({
 
   const handleHeaderLayout = useCallback((event) => {
     setHeaderHeight(event.nativeEvent.layout.height);
-    console.log("Header height: ", event.nativeEvent.layout.height);
   }, []);
 
   const activityRef = useRef(null);
@@ -143,12 +143,13 @@ const ProfileContent = ({
       <ActivityList
         data={sharedTransactions}
         user={user}
+        profile={profile}
         ref={activityRef}
         onScroll={activityScrollHandler}
         {...sharedProps}
       />
     ),
-    [sharedProps, activityScrollHandler, sharedTransactions, user]
+    [sharedProps, activityScrollHandler, sharedTransactions, user, profile]
   );
 
   const renderStatsList = useCallback(
@@ -156,12 +157,13 @@ const ProfileContent = ({
       <ActivityList
         data={sharedTransactions}
         user={user}
+        profile={profile}
         ref={statsRef}
         onScroll={statsScrollHandler}
         {...sharedProps}
       />
     ),
-    [sharedProps, statsScrollHandler, sharedTransactions]
+    [sharedProps, statsScrollHandler, sharedTransactions, user, profile]
   );
 
   const tabBarStyle = useMemo(
@@ -210,65 +212,63 @@ const ProfileContent = ({
   );
 
   return (
-    <DataProvider>
-      <BottomSheetView style={styles.bottomSheetContainer}>
-        <Animated.View
-          onLayout={handleHeaderLayout}
-          style={headerContainerStyle}
-        >
-          <OtherUserHeader
-            user={user}
-            friendData={friendData}
-            style={styles.header}
-          />
-        </Animated.View>
-        <Animated.View style={collapsedHeaderStyle}>
-          <CollapsedHeader user={user} />
-        </Animated.View>
-        <NavigationIndependentTree>
-          <NavigationContainer independent={true}>
-            <Tab.Navigator
-              tabBar={renderTabBar}
-              screenOptions={{
-                tabBarScrollEnabled: true,
-                tabBarLabelStyle: {
-                  fontFamily: fonts.bold,
-                  textTransform: "capitalize",
-                  fontSize: 16,
-                },
-                tabBarStyle: {
-                  backgroundColor: colors.black,
-                  // Remove borders and elevation
-                  borderTopWidth: 0,
-                  borderBottomWidth: 0,
-                  elevation: 0,
-                  shadowOpacity: 0,
-                },
-                tabBarItemStyle: {
-                  width: layout.width / 2,
-                  // Remove any borders
-                  borderWidth: 0,
-                },
-                tabBarIndicatorStyle: { backgroundColor: colors.yellow },
-                tabBarActiveTintColor: colors.lightGray,
-                tabBarInactiveTintColor: colors.grayOpacity50,
-              }}
-            >
-              <Tab.Screen name="activity">{renderActivityList}</Tab.Screen>
-              <Tab.Screen name="stats">{renderStatsList}</Tab.Screen>
-            </Tab.Navigator>
-          </NavigationContainer>
-        </NavigationIndependentTree>
-      </BottomSheetView>
-    </DataProvider>
+    <BottomSheetView style={styles.bottomSheetContainer}>
+      <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
+        <OtherUserHeader
+          user={user}
+          friendData={friendData}
+          style={styles.header}
+          handleClose={handleClose}
+        />
+      </Animated.View>
+      <Animated.View style={collapsedHeaderStyle}>
+        <CollapsedHeader user={user} />
+      </Animated.View>
+      <NavigationIndependentTree>
+        <NavigationContainer independent={true}>
+          <Tab.Navigator
+            tabBar={renderTabBar}
+            screenOptions={{
+              tabBarScrollEnabled: true,
+              tabBarLabelStyle: {
+                fontFamily: fonts.bold,
+                textTransform: "capitalize",
+                fontSize: 16,
+              },
+              tabBarStyle: {
+                backgroundColor: colors.black,
+                // Remove borders and elevation
+                borderTopWidth: 0,
+                borderBottomWidth: 0,
+                elevation: 0,
+                shadowOpacity: 0,
+              },
+              tabBarItemStyle: {
+                width: layout.width / 2,
+                // Remove any borders
+                borderWidth: 0,
+              },
+              tabBarIndicatorStyle: { backgroundColor: colors.yellow },
+              tabBarActiveTintColor: colors.lightGray,
+              tabBarInactiveTintColor: colors.grayOpacity50,
+            }}
+          >
+            <Tab.Screen name="activity">{renderActivityList}</Tab.Screen>
+            <Tab.Screen name="stats">{renderStatsList}</Tab.Screen>
+          </Tab.Navigator>
+        </NavigationContainer>
+      </NavigationIndependentTree>
+    </BottomSheetView>
   );
 };
 
 const ProfileBottomSheet = forwardRef(
-  ({ user, friendData, sharedTransactions, navigation }, ref) => {
+  ({ user, friendData, sharedTransactions, onDismiss, navigation }, ref) => {
     const bottomSheetRef = useRef(null);
-    const { handleSheetPositionChange } =
-      useBottomSheetBackHandler(bottomSheetRef);
+    const { handleSheetPositionChange } = useBottomSheetBackHandler(
+      bottomSheetRef,
+      onDismiss
+    );
 
     useImperativeHandle(ref, () => ({
       present: () => bottomSheetRef.current?.present(),
@@ -277,7 +277,7 @@ const ProfileBottomSheet = forwardRef(
 
     const insets = useSafeAreaInsets();
     const snapPoints = useMemo(() => [364 + insets.top, "100%"], []);
-
+    const { profile } = useData();
     const renderBackdrop = useCallback(
       (props) => (
         <BottomSheetBackdrop
@@ -292,6 +292,10 @@ const ProfileBottomSheet = forwardRef(
     console.log("ProfileBottomSheet user: ", user);
     console.log("ProfileBottomSheet friendData: ", friendData);
     console.log("ProfileBottomSheet sharedTransactions: ", sharedTransactions);
+
+    const handleClose = useCallback(() => {
+      bottomSheetRef.current?.dismiss();
+    }, []);
     return (
       <BottomSheetModal
         ref={bottomSheetRef}
@@ -326,7 +330,9 @@ const ProfileBottomSheet = forwardRef(
           user={user}
           friendData={friendData}
           sharedTransactions={sharedTransactions}
+          profile={profile}
           navigation={navigation}
+          handleClose={handleClose}
         />
       </BottomSheetModal>
     );

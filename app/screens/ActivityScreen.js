@@ -5,7 +5,6 @@ import { FlashList } from "@shopify/flash-list";
 
 import { AppText, Screen } from "../components/primitives";
 import { colors, fonts } from "../config";
-import routes from "../navigation/routes";
 import {
   AccountBalanceCard,
   ActivityTransactionCard,
@@ -16,8 +15,8 @@ import TransactionModal from "../components/modals/TransactionModal";
 import { useAuthContext, useData } from "../contexts";
 import { ActivityIndicator } from "react-native-paper";
 import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
-import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
 import { supabase } from "../../lib/supabase";
+import { useProfileSheet } from "../hooks/useProfileSheet";
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const {
@@ -42,11 +41,10 @@ function ActivityScreen({ navigation }) {
   const [transactions, setTransactions] = React.useState([]);
   const isInitialLoading = !completedTransactions || !paymentRequests;
   const [bottomSheetItem, setBottomSheetItem] = React.useState(null);
-  const [bottomSheetVisible, setBottomSheetVisible] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState(null);
   const transactionSheetRef = React.useRef(null);
-  const profileSheetRef = React.useRef(null);
+
+  const { present: openProfileSheet, ProfileSheet } =
+    useProfileSheet(navigation);
   useEffect(() => {
     if (completedTransactions && paymentRequests) {
       setTransactions([
@@ -58,11 +56,7 @@ function ActivityScreen({ navigation }) {
       setStickyHeaderIndices([0, paymentRequests.length + 1]);
     }
   }, [completedTransactions, paymentRequests]);
-  const handlePress = (transaction) => {
-    // navigation.navigate(routes.TRANSACTIONDETAIL, { transaction });
-    setBottomSheetItem(transaction);
-    handleBottomSheet();
-  };
+
   const handleLongPress = (transaction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     openModal(transaction);
@@ -105,60 +99,27 @@ function ActivityScreen({ navigation }) {
     }
   };
 
-  const handleBottomSheet = () => {
-    if (bottomSheetVisible) {
-      transactionSheetRef.current?.dismiss();
-    } else {
-      transactionSheetRef.current?.present();
-    }
-  };
   const handleUserPress = async (user) => {
-    console.log("User pressed in activity screen. Other user:", user);
-    if (isLoading) return; // Prevent navigation if loading
-    try {
-      setIsLoading(true);
-      setError(null);
-      console.log("current user id: ", session.user.id);
-      console.log("other user id: ", user.id);
-      const { data, error } = await supabase.rpc("get_friend_data", {
-        current_user_id: session.user.id,
-        target_user_id: user.id,
-      });
-      if (error) {
-        console.error("Error fetching friend data:", error);
-        throw new Error("Failed to fetch friend data");
-      }
-      if (!data || data.length === 0) {
-        console.error("user not found: ", user.id);
-        throw new Error("User not found");
-      }
-      console.log("friend data fetched: ", data.friendData);
-      console.log("shared transactions: ", data.sharedTransactions);
-      console.log("other user: ", user);
-      console.log("friend data: ", data.friendData);
-      console.log("mutual friend count: ", data.mutualFriendsCount);
-      console.log("friend count: ", data.targetUserFriendsCount);
-      setBottomSheetItem({
-        user,
-        friendData: {
-          ...data.friendData,
-          mutualFriendCount: data.mutualFriendsCount,
-          friendCount: data.targetUserFriendsCount,
-        },
-        sharedTransactions: data.sharedTransactions,
-      });
-      profileSheetRef.current?.present();
-    } catch (error) {
-      console.error("Error navigating to user profile:", error);
-      setError("Failed to load recipient wallet information");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const { data, error } = await supabase.rpc("get_friend_data", {
+      current_user_id: session.user.id,
+      target_user_id: user.id,
+    });
 
-  useEffect(() => {
-    console.log("Bottom sheet item changed:", bottomSheetItem);
-  }, [bottomSheetItem]);
+    if (error || !data) {
+      console.error("Failed to fetch friend data");
+      return;
+    }
+
+    openProfileSheet(
+      user,
+      {
+        ...data.friendData,
+        mutualFriendCount: data.mutualFriendsCount,
+        friendCount: data.targetUserFriendsCount,
+      },
+      data.sharedTransactions
+    );
+  };
 
   if (isInitialLoading) {
     return (
@@ -248,13 +209,7 @@ function ActivityScreen({ navigation }) {
         transaction={bottomSheetItem}
       />
 
-      <ProfileBottomSheet
-        ref={profileSheetRef}
-        user={bottomSheetItem?.user}
-        friendData={bottomSheetItem?.friendData}
-        sharedTransactions={bottomSheetItem?.sharedTransactions}
-        navigation={navigation}
-      />
+      <ProfileSheet />
     </Screen>
   );
 }

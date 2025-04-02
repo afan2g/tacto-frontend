@@ -17,6 +17,7 @@ import TransactNavigator from "./TransactNavigator";
 import { TransactScreen } from "../screens/transact";
 import QRTestingScreen from "../screens/qrTestingScreen";
 import ModalTestingScreen from "../screens/ModalTestingScreen";
+import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
 const Stack = createNativeStackNavigator();
 
 const config = {

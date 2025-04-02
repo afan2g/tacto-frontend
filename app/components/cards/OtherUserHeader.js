@@ -14,6 +14,7 @@ import {
   acceptFriendRequest,
   unfriendUser,
 } from "../../api";
+import { supabase } from "../../../lib/supabase";
 
 function OtherUserHeader({ user, friendData, style, handleClose }) {
   const {
@@ -148,18 +149,48 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
     }
   };
 
-  const handleTransactNavigation = (type) => {
-    navigation.navigate(routes.TRANSACTHOME, { user, type });
+  const handleTransactNavigation = async (type) => {
+    if (loading) return; // Prevent navigation if loading
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log("fetching wallet information for user:", user);
+      // fetch user wallet information
+      const { data, error } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+      if (error) {
+        console.error("Error fetching wallet information:", error);
+        throw new Error("Failed to fetch wallet information");
+      }
+      if (!data) {
+        console.error("Wallet not found for user:", user.id);
+        throw new Error("Wallet not found");
+      }
+      console.log("Wallet data:", data);
+      // Pass the wallet information to the next screen
+      handleClose(); // Close the modal before navigating
+      navigation.navigate(routes.TRANSACTCONFIRM, {
+        action: type,
+        amount: null,
+        recipientUser: user,
+        recipientAddress: data.address,
+        memo: "",
+        methodId: type === "send" ? 0 : null,
+      });
+    } catch (error) {
+      console.error("Error navigating to transact screen:", error);
+      setError("Failed to load recipient wallet information");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={[styles.headerContainer, style]}>
-      {handleClose && (
-        <Pressable onPress={handleClose} style={styles.closeButton}>
-          <X size={24} color={colors.lightGray} />
-        </Pressable>
-      )}
-
       <UserCardVertical user={user} scale={0.8} />
 
       <View style={styles.userStats}>
@@ -196,14 +227,14 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
       <View style={styles.transactButtons}>
         <Pressable
           style={styles.send}
-          onPress={() => handleTransactNavigation("send")}
+          onPress={() => handleTransactNavigation("Sending")}
           disabled={loading}
         >
           <AppText style={styles.text}>Send</AppText>
         </Pressable>
         <Pressable
           style={styles.request}
-          onPress={() => handleTransactNavigation("request")}
+          onPress={() => handleTransactNavigation("Requesting")}
           disabled={loading}
         >
           <AppText style={styles.text}>Request</AppText>
