@@ -7,8 +7,11 @@ import AppAvatar from "../AppAvatar";
 function CollapsedHeader({ user }) {
   return (
     <View style={styles.container}>
-      <AppAvatar user={user} scale={0.5} />
-      <AppText style={styles.text}>{user.full_name}</AppText>
+      <AppAvatar user={user} scale={0.75} />
+      <View style={styles.textContainer}>
+        <AppText style={styles.fullName}>{user.full_name}</AppText>
+        <AppText style={styles.username}>{user.username}</AppText>
+      </View>
     </View>
   );
 }
@@ -18,23 +21,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    // borderWidth: 1,
-    // borderColor: "red",
-    paddingBottom: 10,
-    paddingLeft: 56,
+    paddingLeft: 20,
   },
-  image: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 16,
-    borderWidth: 1,
-    borderColor: colors.blackTint80,
-  },
-  text: {
+  fullName: {
     color: colors.lightGray,
     fontSize: 20,
     fontFamily: fonts.bold,
+  },
+  username: {
+    color: colors.lightGray,
+    fontSize: 16,
+    fontFamily: fonts.medium,
+  },
+  textContainer: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "flex-start", // ⬆️ aligns text to the top
+    alignItems: "flex-start",
+    height: "100%",
+    marginLeft: 10,
+    textAlignVertical: "top",
   },
 });
 

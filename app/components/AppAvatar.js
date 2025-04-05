@@ -21,18 +21,18 @@ function AppAvatar({ user, scale = 1 }) {
     width: size,
     borderRadius: size / 2,
   };
-  if (!url) {
-    return (
-      <View style={[scaleStyle, styles.profilePic, styles.placeholderAvatar]}>
-        <AppText style={styles.placeholderText}>
-          {user.full_name
-            .split(" ")
-            .map((name) => name?.[0] || "")
-            .join("")}
-        </AppText>
-      </View>
-    );
-  }
+  // if (!url) {
+  //   return (
+  //     <View style={[scaleStyle, styles.profilePic, styles.placeholderAvatar]}>
+  //       <AppText style={styles.placeholderText}>
+  //         {user.full_name
+  //           .split(" ")
+  //           .map((name) => name?.[0] || "")
+  //           .join("")}
+  //       </AppText>
+  //     </View>
+  //   );
+  // }
 
   if (isSvg) {
     return (

@@ -1,86 +1,60 @@
 import React, { useRef } from "react";
-import { View, StyleSheet, Button } from "react-native";
-import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
+import { View, StyleSheet, Button, Text } from "react-native";
 import { useAuthContext } from "../contexts";
 import { supabase } from "../../lib/supabase";
 import { colors } from "../config";
+import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
+import { useProfileSheet } from "../hooks/useProfileSheet";
+import SkeletonLoader from "../components/skeletons/SkeletonLoader";
+import { Skeleton } from "moti/skeleton";
 function ModalTestingScreen({ navigation }) {
-  const profileSheetRef = useRef(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState(null);
-  const [bottomSheetItem, setBottomSheetItem] = React.useState(null);
-  const [visible, setVisible] = React.useState(false);
   const { session } = useAuthContext();
-
-  const handleUserPress = async () => {
-    const user = {
-      avatar_url:
-        "https://xxzucuadafldmamlluvh.supabase.co/storage/v1/object/public/avatars/963f9398-e270-4b14-8f7e-92f2b4c7b1fb/avatar.svg",
-      created_at: "2025-03-26T05:48:36.949486+00:00",
-      first_name: "Aoana",
-      full_name: "Aoana djdn",
-      id: "963f9398-e270-4b14-8f7e-92f2b4c7b1fb",
-      last_name: "djdn",
-      onboarding_complete: true,
-      username: "afndk",
-    };
-    console.log("User pressed:", user.id);
-    if (loading) return; // Prevent navigation if loading
-    try {
-      setLoading(true);
-      setError(null);
-      const { data, error } = await supabase.rpc("get_friend_data", {
-        current_user_id: session.user.id,
-        target_user_id: user.id,
-      });
-      if (error) {
-        console.error("Error fetching friend data:", error);
-        throw new Error("Failed to fetch friend data");
-      }
-      if (!data || data.length === 0) {
-        console.error("user not found: ", user.id);
-        throw new Error("User not found");
-      }
-      console.log("friend data fetched: ", data);
-      setBottomSheetItem({
-        user,
-        friendData: {
-          ...data.friendData,
-          mutualFriendCount: data.mutualFriendsCount,
-          friendCount: data.targetUserFriendsCount,
-        },
-        sharedTransactions: data.sharedTransactions,
-      });
-      console.log("bottomSheetItem: ", bottomSheetItem);
-      handleBottomSheet();
-    } catch (error) {
-      console.error("Error navigating to user profile:", error);
-      setError("Failed to load recipient wallet information");
-    } finally {
-      setLoading(false);
-    }
+  const { bottomSheetRef, loading, data, presentSheet, dismissSheet } =
+    useProfileSheet({
+      sessionUserId: session.user.id,
+      onSuccess: (data) => console.log("Success!"),
+      onError: (error) => console.error("Error:", error),
+    });
+  const user = {
+    avatar_url:
+      "https://xxzucuadafldmamlluvh.supabase.co/storage/v1/object/public/avatars/963f9398-e270-4b14-8f7e-92f2b4c7b1fb/avatar.svg",
+    created_at: "2025-03-26T05:48:36.949486+00:00",
+    first_name: "Aoana",
+    full_name: "Aoana djdn",
+    id: "963f9398-e270-4b14-8f7e-92f2b4c7b1fb",
+    last_name: "djdn",
+    onboarding_complete: true,
+    username: "afndk",
   };
 
-  const handleBottomSheet = () => {
-    if (visible) {
-      profileSheetRef.current?.dismiss();
-      setVisible(false);
-    } else {
-      profileSheetRef.current?.present();
-      setVisible(true);
-    }
+  const handlePress = () => {
+    presentSheet(user);
+  };
+
+  const handleDismiss = () => {
+    dismissSheet();
   };
 
   return (
+    // <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    //   <Button title="Open Modal" onPress={handlePress} />
+    //   <ProfileBottomSheet
+    //     ref={bottomSheetRef}
+    //     user={data?.user}
+    //     friendData={data?.friendData}
+    //     sharedTransactions={data?.sharedTransactions}
+    //     loading={loading}
+    //     navigation={navigation}
+    //     onDismiss={handleDismiss}
+    //   />
+    // </View>
     <View style={styles.container}>
-      <Button onPress={handleUserPress} title="open bottom sheet" />
-      <ProfileBottomSheet
-        ref={profileSheetRef}
-        user={bottomSheetItem?.user}
-        friendData={bottomSheetItem?.friendData}
-        sharedTransactions={bottomSheetItem?.sharedTransactions}
-        navigation={navigation}
-      />
+      <Text>Custom Skeleton Loader</Text>
+      <SkeletonLoader width={200} height={40} />
+      <SkeletonLoader width={200} height={200} radius={100} />
+      <Text>Moti Skeleton Loader</Text>
+
+      <Skeleton width={200} height={40} />
     </View>
   );
 }
@@ -88,7 +62,6 @@ function ModalTestingScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
   },

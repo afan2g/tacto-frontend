@@ -1,4 +1,4 @@
-import React, { useImperativeHandle } from "react";
+import React, { useImperativeHandle, useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import { AppCardSeparator, TransactionCard } from "./cards";
@@ -10,6 +10,10 @@ const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 const ActivityList = React.forwardRef((props, ref) => {
   const { data, user, profile, navigation, minHeight } = props;
   const listRef = React.useRef(null);
+
+  // const dataPlaceholder = useMemo(() => {
+  //   return Array.from({ length: 10 }, (_, index) => (null));
+  // },[]);
 
   // Expose the scrollToOffset method to the parent component
   useImperativeHandle(ref, () => ({
@@ -44,15 +48,16 @@ const ActivityList = React.forwardRef((props, ref) => {
             navigation={navigation}
           />
         )}
+        nestedScrollEnabled={true}
         keyExtractor={(item) => item.id}
         {...props}
-        // snapToEnd={false}
         showsVerticalScrollIndicator={false}
         horizontal={false}
         ItemSeparatorComponent={() => <AppCardSeparator />}
         ListFooterComponent={() => <View style={styles.footer} />}
         overScrollMode="never"
         bounces={false}
+        snapToEnd={false}
       />
     </View>
   );

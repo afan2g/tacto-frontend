@@ -4,8 +4,14 @@ import { AppText } from "../primitives";
 import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 import AppAvatar from "../AppAvatar";
-
-function UserCardVertical({ user, onPress, navigation, scale = 1, style }) {
+import { Skeleton } from "moti/skeleton";
+function UserCardVertical({
+  user,
+  onPress = () => {},
+  navigation,
+  scale = 1,
+  style,
+}) {
   const scaleStyle = {
     profilePic: {
       height: 72 * scale,
@@ -28,17 +34,16 @@ function UserCardVertical({ user, onPress, navigation, scale = 1, style }) {
         pressed ? styles.pressed : styles.notPressed,
       ]}
     >
-      <>
-        <AppAvatar user={user} scale={scale * 1.5} />
-        <View style={styles.userNameContainer}>
-          <AppText style={[styles.fullName, scaleStyle.fullName]}>
-            {user.full_name}
-          </AppText>
-          <AppText style={[styles.username, scaleStyle.username]}>
-            {user.username}
-          </AppText>
-        </View>
-      </>
+      <AppAvatar user={user} scale={scale * 1.5} />
+      <View style={styles.userNameContainer}>
+        <AppText style={[styles.fullName, scaleStyle.fullName]}>
+          {user.full_name}
+        </AppText>
+
+        <AppText style={[styles.username, scaleStyle.username]}>
+          {user.username}
+        </AppText>
+      </View>
     </Pressable>
   );
 }
@@ -56,12 +61,13 @@ const styles = StyleSheet.create({
   },
   fullName: {
     fontFamily: fonts.medium,
-
     color: colors.lightGray,
+    textAlign: "center",
   },
   username: {
     fontFamily: fonts.light,
     color: colors.lightGray,
+    textAlign: "center",
   },
 });
 

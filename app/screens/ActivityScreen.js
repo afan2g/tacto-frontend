@@ -17,6 +17,7 @@ import { ActivityIndicator } from "react-native-paper";
 import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
 import { supabase } from "../../lib/supabase";
 import { useProfileSheet } from "../hooks/useProfileSheet";
+import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const {
@@ -43,8 +44,10 @@ function ActivityScreen({ navigation }) {
   const [bottomSheetItem, setBottomSheetItem] = React.useState(null);
   const transactionSheetRef = React.useRef(null);
 
-  const { present: openProfileSheet, ProfileSheet } =
-    useProfileSheet(navigation);
+  const { bottomSheetRef, loading, data, presentSheet, dismissSheet } =
+    useProfileSheet({
+      sessionUserId: session.user.id,
+    });
   useEffect(() => {
     if (completedTransactions && paymentRequests) {
       setTransactions([
@@ -99,26 +102,12 @@ function ActivityScreen({ navigation }) {
     }
   };
 
-  const handleUserPress = async (user) => {
-    const { data, error } = await supabase.rpc("get_friend_data", {
-      current_user_id: session.user.id,
-      target_user_id: user.id,
-    });
+  const handleUserPress = (user) => {
+    presentSheet(user);
+  };
 
-    if (error || !data) {
-      console.error("Failed to fetch friend data");
-      return;
-    }
-
-    openProfileSheet(
-      user,
-      {
-        ...data.friendData,
-        mutualFriendCount: data.mutualFriendsCount,
-        friendCount: data.targetUserFriendsCount,
-      },
-      data.sharedTransactions
-    );
+  const handleDismissBottomSheet = () => {
+    dismissSheet();
   };
 
   if (isInitialLoading) {
@@ -209,7 +198,15 @@ function ActivityScreen({ navigation }) {
         transaction={bottomSheetItem}
       />
 
-      <ProfileSheet />
+      <ProfileBottomSheet
+        ref={bottomSheetRef}
+        user={data?.user}
+        friendData={data?.friendData}
+        sharedTransactions={data?.sharedTransactions}
+        loading={loading}
+        navigation={navigation}
+        onDismiss={handleDismissBottomSheet}
+      />
     </Screen>
   );
 }

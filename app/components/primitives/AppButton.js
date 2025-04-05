@@ -46,7 +46,9 @@ const AppButton = ({
             style={styles.indicator}
             testID="button-loading-indicator"
           />
-        ) : icon}
+        ) : (
+          icon
+        )}
         <AppText
           style={[styles.text, textStyle, loading && styles.textWithIndicator]}
           numberOfLines={1}

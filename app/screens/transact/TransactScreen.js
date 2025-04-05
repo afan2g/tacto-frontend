@@ -12,13 +12,29 @@ import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 import { set } from "zod";
 
 function TransactScreen({ navigation, route }) {
-  const { action = null, amount = null, recipientUser = null, recipientAddress = null, memo = null, methodId = null } = route.params || {};
-  const [transaction, setTransaction] = useState({ action, amount, recipientUser, recipientAddress, memo, methodId });
+  const {
+    action = null,
+    amount = null,
+    recipientUser = null,
+    recipientAddress = null,
+    memo = null,
+    methodId = null,
+  } = route.params || {};
+  const [transaction, setTransaction] = useState({
+    action,
+    amount,
+    recipientUser,
+    recipientAddress,
+    memo,
+    methodId,
+  });
   const [error, setError] = useState(null);
   const { wallet } = useData();
 
   // Use the custom hook with initial value and options
-  const { value, setValue, handleKeyPress, getDisplayAmount } = useKeypadInput(transaction.amount || "");
+  const { value, setValue, handleKeyPress, getDisplayAmount } = useKeypadInput(
+    transaction.amount || ""
+  );
   const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
   // Update transaction.amount whenever value changes
   useEffect(() => {
@@ -35,7 +51,6 @@ function TransactScreen({ navigation, route }) {
     }
   }, [transaction.amount, setValue]);
 
-
   useEffect(() => {
     const unsubscribe = navigation.addListener("blur", () => {
       setTransaction({});
@@ -44,7 +59,7 @@ function TransactScreen({ navigation, route }) {
   }, [navigation]);
 
   const handleSend = () => {
-    if (!value || value === "") {
+    if (!value || value === "" || parseFloat(value) <= 0) {
       setError("Please enter an amount");
       RNHapticFeedback.trigger("notificationWarning", {
         ignoreAndroidSystemSettings: true,
@@ -71,7 +86,7 @@ function TransactScreen({ navigation, route }) {
       setError("Please enter an amount");
       RNHapticFeedback.trigger("notificationWarning", {
         ignoreAndroidSystemSettings: true,
-      })
+      });
       return;
     }
     const updatedTransaction = {

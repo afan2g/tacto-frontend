@@ -15,16 +15,16 @@ import {
   unfriendUser,
 } from "../../api";
 import { supabase } from "../../../lib/supabase";
-
+import { Skeleton } from "moti/skeleton";
+import SkeletonLoader from "../skeletons/SkeletonLoader";
+const Spacer = ({ height = 16 }) => <View style={{ height }} />;
 function OtherUserHeader({ user, friendData, style, handleClose }) {
-  const {
-    friendCount = 0,
-    mutualFriendsCount = 0,
-    status = "none",
-  } = friendData || {};
+  const { friendCount, mutualFriendCount, status } = friendData || {};
   const { session } = useAuthContext();
   const navigation = useNavigation();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingFriend, setLoadingFriend] = useState(false);
+  const [loadingTransact, setLoadingTransact] = useState(false);
   const [error, setError] = useState(null);
   const [friendStatus, setFriendStatus] = useState(status);
   const [friendRequestData, setFriendRequestData] = useState(friendData);
@@ -32,6 +32,16 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   const [isRequester, setIsRequester] = useState(
     friendRequestData?.requester_id === session.user.id
   );
+
+  useEffect(() => {
+    if (friendData) {
+      setFriendRequestData(friendData);
+      setFriendStatus(friendData.status);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+  }, [friendData]);
 
   // Compute friend action based on current status and requester information
   const friendAction = useMemo(() => {
@@ -82,10 +92,10 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   }, [friendStatus]);
 
   const handleFriendPress = async () => {
-    if (loading || !friendAction) return;
+    if (loadingFriend || !friendAction) return;
 
     try {
-      setLoading(true);
+      setLoadingFriend(true);
       setError(null);
 
       switch (friendAction) {
@@ -145,14 +155,14 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
       console.error("Error handling friend request:", err);
       setError("An error occurred while processing your request.");
     } finally {
-      setLoading(false);
+      setLoadingFriend(false);
     }
   };
 
   const handleTransactNavigation = async (type) => {
-    if (loading) return; // Prevent navigation if loading
+    if (loading || loadingTransact) return; // Prevent navigation if loading
     try {
-      setLoading(true);
+      setLoadingTransact(true);
       setError(null);
 
       console.log("fetching wallet information for user:", user);
@@ -185,60 +195,88 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
       console.error("Error navigating to transact screen:", error);
       setError("Failed to load recipient wallet information");
     } finally {
-      setLoading(false);
+      setLoadingTransact(false);
     }
   };
 
   return (
     <View style={[styles.headerContainer, style]}>
       <UserCardVertical user={user} scale={0.8} />
-
       <View style={styles.userStats}>
         <Pressable style={styles.stat}>
-          <AppText style={styles.statNumber}>{friendCount}</AppText>
+          {loading && (
+            <SkeletonLoader width={50} height={22} radius={5} show={loading} />
+          )}
+          {!loading && (
+            <AppText style={styles.statNumber}>
+              {!loading && friendCount}
+            </AppText>
+          )}
+
           <AppText style={styles.statLabel}>friends</AppText>
         </Pressable>
         <Pressable style={styles.stat}>
-          <AppText style={styles.statNumber}>{mutualFriendsCount}</AppText>
+          {loading && (
+            <SkeletonLoader width={50} height={22} radius={5} show={loading} />
+          )}
+
+          {!loading && (
+            <AppText style={styles.statNumber}>
+              {!loading && mutualFriendCount}
+            </AppText>
+          )}
           <AppText style={styles.statLabel}>mutuals</AppText>
         </Pressable>
       </View>
+      {loading && <Spacer height={10} />}
 
       <View style={styles.friendButtonContainer}>
-        <AppButton
-          style={buttonStyles.button}
-          onPress={handleFriendPress}
-          disabled={loading || !friendAction}
-          title={loading ? "" : friendAction}
-          color={
-            friendStatus === "pending"
-              ? colors.grayOpacity40
-              : friendStatus === "accepted"
-              ? colors.grayOpacity40
-              : colors.bluePop
-          }
-          textStyle={buttonStyles.text}
-          loading={loading}
-        />
-
+        {loading && <SkeletonLoader width={"100%"} radius={5} height={44} />}
+        {!loading && (
+          <AppButton
+            style={buttonStyles.button}
+            onPress={handleFriendPress}
+            disabled={loadingFriend || loading || !friendAction}
+            title={loading ? "" : friendAction}
+            color={
+              friendStatus === "pending"
+                ? colors.grayOpacity40
+                : friendStatus === "accepted"
+                ? colors.grayOpacity40
+                : colors.bluePop
+            }
+            textStyle={buttonStyles.text}
+            loading={loadingFriend}
+          />
+        )}
         {error && <AppText style={styles.errorText}>{error}</AppText>}
       </View>
-
+      {loading && <Spacer height={10} />}
       <View style={styles.transactButtons}>
-        <Pressable
-          style={styles.send}
-          onPress={() => handleTransactNavigation("Sending")}
-          disabled={loading}
-        >
-          <AppText style={styles.text}>Send</AppText>
-        </Pressable>
-        <Pressable
-          style={styles.request}
-          onPress={() => handleTransactNavigation("Requesting")}
-          disabled={loading}
-        >
-          <AppText style={styles.text}>Request</AppText>
-        </Pressable>
+        {loading && <SkeletonLoader width={190} height={44} radius={5} />}
+        {!loading && (
+          <AppButton
+            style={styles.send}
+            onPress={() => handleTransactNavigation("Sending")}
+            disabled={loadingTransact || loading}
+            title="Send"
+            color={colors.yellow}
+            textStyle={styles.text}
+            loading={loadingTransact}
+          />
+        )}
+        {loading && <SkeletonLoader width={190} height={44} radius={5} />}
+        {!loading && (
+          <AppButton
+            style={styles.request}
+            onPress={() => handleTransactNavigation("Requesting")}
+            disabled={loadingTransact || loading}
+            title="Request"
+            color={colors.lightGray}
+            textStyle={styles.text}
+            loading={loadingTransact}
+          />
+        )}
       </View>
     </View>
   );
@@ -309,16 +347,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
+    alignSelf: "center",
+    textAlign: "center",
   },
   statNumber: {
     color: colors.lightGray,
     fontFamily: fonts.bold,
     fontSize: 16,
+    alignSelf: "center",
+    textAlign: "center",
   },
   statLabel: {
     color: colors.blackTint40,
     fontFamily: fonts.medium,
     fontSize: 14,
+    alignSelf: "center",
+    textAlign: "center",
   },
   friendButtonContainer: {
     width: "100%",
@@ -336,13 +380,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
+    gap: 10,
     paddingHorizontal: 10,
-    marginTop: 10,
   },
   send: {
     backgroundColor: colors.yellow,
     padding: 10,
-    marginHorizontal: 5,
     borderRadius: 5,
     flex: 1,
     alignItems: "center",
@@ -352,7 +395,6 @@ const styles = StyleSheet.create({
   request: {
     backgroundColor: colors.lightGray,
     padding: 10,
-    marginHorizontal: 5,
     borderRadius: 5,
     flex: 1,
     alignItems: "center",

@@ -9,7 +9,7 @@ import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 import AvatarList from "./AvatarList";
 import routes from "../../navigation/routes";
-
+import SkeletonLoader from "../skeletons/SkeletonLoader";
 function TransactionCard({ transaction, style, onLongPress, origin }) {
   const navigation = useNavigation(); // Use useNavigation here
   const { from, to, amount, memo, score, commentCount, time, txid } =
@@ -78,46 +78,62 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
     >
       <View style={styles.topContainer}>
         <View style={styles.actionContainer}>
-          <AvatarList
-            avatars={[from, to]}
-            size={32}
-            style={styles.avatarList}
-          />
-          <View style={styles.usersContainer}>
-            <AppText style={styles.users} onPress={() => handleUserPress(from)}>
-              {from.full_name}
-            </AppText>
-            <AppText style={styles.sent}> paid </AppText>
-            <AppText style={styles.users} onPress={() => handleUserPress(to)}>
-              {to.full_name}
-            </AppText>
-          </View>
+          {!loading && (
+            <AvatarList
+              avatars={[from, to]}
+              size={32}
+              style={styles.avatarList}
+            />
+          )}
+          {/* {loading && <Skeleton width={"70%"} height={20} />} */}
+          {!loading && (
+            <View style={styles.usersContainer}>
+              <AppText
+                style={styles.users}
+                onPress={() => handleUserPress(from)}
+              >
+                {from.full_name}
+              </AppText>
+              <AppText style={styles.sent}> paid </AppText>
+              <AppText style={styles.users} onPress={() => handleUserPress(to)}>
+                {to.full_name}
+              </AppText>
+            </View>
+          )}
         </View>
-        <AppText style={styles.amount}>${amount.toFixed(2)}</AppText>
+        {/* {loading && <Skeleton width={40} height={20} />} */}
+        {!loading && (
+          <AppText style={styles.amount}>${amount.toFixed(2)}</AppText>
+        )}
       </View>
       <AppText style={styles.memo}>{memo}</AppText>
       <View style={styles.bottomContainer}>
-        <View style={styles.scoreContainer}>
-          <View style={styles.voteContainer}>
-            <ArrowBigUp
-              color={colors.lightGray}
-              size={24}
-              style={styles.vote}
-              onPress={handleUpVotePress}
-            />
-            <AppText style={styles.score}>{score}</AppText>
-            <ArrowBigDown
-              color={colors.lightGray}
-              size={24}
-              style={styles.vote}
-              onPress={handleDownVotePress}
-            />
+        {/* {loading && <Skeleton width={100} height={20} />} */}
+        {!loading && (
+          <View style={styles.scoreContainer}>
+            <View style={styles.voteContainer}>
+              <ArrowBigUp
+                color={colors.lightGray}
+                size={24}
+                style={styles.vote}
+                onPress={handleUpVotePress}
+              />
+              <AppText style={styles.score}>{score}</AppText>
+              <ArrowBigDown
+                color={colors.lightGray}
+                size={24}
+                style={styles.vote}
+                onPress={handleDownVotePress}
+              />
+            </View>
+            <AppText style={styles.comments}>
+              {commentCount} comment{commentCount != 1 ? "s" : ""}
+            </AppText>
           </View>
-          <AppText style={styles.comments}>
-            {commentCount} comment{commentCount != 1 ? "s" : ""}
-          </AppText>
-        </View>
-        <AppText style={styles.time}>{time}</AppText>
+        )}
+        {/* {loading && <Skeleton width={75} height={20} />} */}
+        {/* {loading && <TextSkeletonLoader width={75} height={20} />} */}
+        {!loading && <AppText style={styles.time}>{time}</AppText>}
       </View>
     </Pressable>
   );
@@ -197,7 +213,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
   },
   time: {
-    color: colors.blackShade10,
+    color: colors.blackTint40,
     fontFamily: fonts.medium,
   },
 });
