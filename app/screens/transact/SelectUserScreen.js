@@ -78,27 +78,43 @@ function SelectUserScreen({ navigation, route }) {
       try {
         setIsSearching(true);
 
-        // Use Supabase full-text search
-        const { data: searchResults, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
-          .neq("id", profile.id)
-          .limit(20);
+        // Using trigram similarity for fuzzy matching
+        const { data: searchResults, error } = await supabase.rpc(
+          "search_profiles",
+          {
+            search_term: searchTerm,
+            similarity_threshold: 0.3,
+            current_user_id: profile.id,
+            result_limit: 20,
+          }
+        );
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error with trigram search:", error);
 
-        console.log("Search results:", searchResults);
-        setProfiles(searchResults);
+          // Fallback to simple ILIKE search if RPC fails
+          const { data: fallbackResults, fallbackError } = await supabase
+            .from("profiles")
+            .select("*")
+            .or(
+              `username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`
+            )
+            .neq("id", profile.id)
+            .limit(20);
+
+          if (fallbackError) throw fallbackError;
+          setProfiles(fallbackResults);
+        } else {
+          setProfiles(searchResults);
+        }
       } catch (error) {
         console.error("Error searching profiles:", error);
       } finally {
         setIsSearching(false);
       }
-    }, 100), // 300ms debounce delay
+    }, 300), // 300ms debounce delay
     [profile.id]
   );
-
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
