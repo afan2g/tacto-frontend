@@ -41,7 +41,6 @@ function FindUserBar({ style, onChangeText, value, isSearching = false }) {
         />
       </View>
       <View style={styles.iconsContainer}>
-        <AppNFCIcon />
         <View style={styles.qrIcon}>
           <QrCode color={colors.yellow} size={32} onPress={handleQrPress} />
         </View>
@@ -67,6 +66,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: colors.blueShade30,
     paddingVertical: 10,
+    marginLeft: 5,
   },
   input: {
     paddingLeft: 10,
@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
   iconsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 10,
   },
   qrIcon: {
     marginHorizontal: 5,

@@ -26,6 +26,7 @@
       },
       "package": "com.afan2.Tacto",
       "googleServicesFile": "./secrets/google-services.json",
+      "softwareKeyboardLayoutMode": "pan",
       "intentFilters": [
         {
           "action": "VIEW",

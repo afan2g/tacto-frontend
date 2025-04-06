@@ -4,7 +4,6 @@ import { AppText } from "./primitives";
 import { colors, fonts } from "../config";
 import { SvgUri } from "react-native-svg";
 import { Image } from "react-native";
-
 function AppAvatar({ user, scale = 1 }) {
   const [url, setUrl] = useState(user.avatar_url || null);
 

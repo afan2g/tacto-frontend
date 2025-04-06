@@ -12,7 +12,7 @@ import { TransactionContext } from "../../contexts/TransactionContext";
 import { AppCardSeparator } from "../../components/cards";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
-import { useData } from "../../contexts";
+import { useAuthContext, useData } from "../../contexts";
 import { supabase } from "../../../lib/supabase";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
 import { debounce } from "lodash";
@@ -35,9 +35,9 @@ function SelectUserScreen({ navigation, route }) {
     memo,
     methodId,
   });
+  const { session } = useAuthContext();
   const [profiles, setProfiles] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const { profile } = useData();
   const [search, setSearch] = useState("");
   // Use our amount formatter
   const { getFormattedAmount } = useAmountFormatter();
@@ -53,11 +53,10 @@ function SelectUserScreen({ navigation, route }) {
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .neq("id", profile.id)
+        .neq("id", session.user.id)
         .limit(20); // Limit initial fetch
 
       if (error) throw error;
-      console.log("Fetched initial profiles:", profiles);
       setProfiles(profiles);
     } catch (error) {
       console.error("Error fetching profiles:", error);
@@ -84,7 +83,7 @@ function SelectUserScreen({ navigation, route }) {
           {
             search_term: searchTerm,
             similarity_threshold: 0.3,
-            current_user_id: profile.id,
+            current_user_id: session.user.id,
             result_limit: 20,
           }
         );
@@ -99,7 +98,7 @@ function SelectUserScreen({ navigation, route }) {
             .or(
               `username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`
             )
-            .neq("id", profile.id)
+            .neq("id", session.user.id)
             .limit(20);
 
           if (fallbackError) throw fallbackError;
@@ -113,7 +112,7 @@ function SelectUserScreen({ navigation, route }) {
         setIsSearching(false);
       }
     }, 300), // 300ms debounce delay
-    [profile.id]
+    [session.user.id]
   );
   useEffect(() => {
     const subscription = BackHandler.addEventListener(

@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
-import { Easing, StyleSheet } from "react-native";
+import { Dimensions, Easing, StyleSheet, View } from "react-native";
 import routes from "./routes";
 import HomeNavigator from "./HomeNavigator";
 import {
