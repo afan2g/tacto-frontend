@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { View, StyleSheet, BackHandler } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -15,6 +15,7 @@ import UserModal from "../../components/modals/UserModal";
 import { useData } from "../../contexts";
 import { supabase } from "../../../lib/supabase";
 import { useAmountFormatter } from "../../hooks/useAmountFormatter";
+import { debounce } from "lodash";
 
 function SelectUserScreen({ navigation, route }) {
   const { selectedItem, modalVisible, openModal, closeModal } = useModal();
@@ -35,26 +36,68 @@ function SelectUserScreen({ navigation, route }) {
     methodId,
   });
   const [profiles, setProfiles] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const { profile } = useData();
-
+  const [search, setSearch] = useState("");
   // Use our amount formatter
   const { getFormattedAmount } = useAmountFormatter();
 
-  // Fetch profiles data
+  // Fetch initial profiles data
   useEffect(() => {
-    const fetchProfiles = async () => {
+    fetchInitialProfiles();
+  }, []);
+
+  const fetchInitialProfiles = async () => {
+    try {
       // Fetch profiles data
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .neq("id", profile.id);
-      if (error) throw error;
-      console.log("Fetched profiles:", profiles);
-      setProfiles(profiles);
-    };
+        .neq("id", profile.id)
+        .limit(20); // Limit initial fetch
 
-    fetchProfiles();
-  }, []);
+      if (error) throw error;
+      console.log("Fetched initial profiles:", profiles);
+      setProfiles(profiles);
+    } catch (error) {
+      console.error("Error fetching profiles:", error);
+    }
+  };
+
+  // Debounced search function for as-you-type searching
+  // Update the debouncedSearch function in your SelectUserScreen component
+  // Replace the existing debouncedSearch function with this enhanced version
+  const debouncedSearch = useCallback(
+    debounce(async (searchTerm) => {
+      if (!searchTerm || searchTerm.trim() === "") {
+        fetchInitialProfiles();
+        setIsSearching(false);
+        return;
+      }
+
+      try {
+        setIsSearching(true);
+
+        // Use Supabase full-text search
+        const { data: searchResults, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+          .neq("id", profile.id)
+          .limit(20);
+
+        if (error) throw error;
+
+        console.log("Search results:", searchResults);
+        setProfiles(searchResults);
+      } catch (error) {
+        console.error("Error searching profiles:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 100), // 300ms debounce delay
+    [profile.id]
+  );
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
@@ -76,10 +119,10 @@ function SelectUserScreen({ navigation, route }) {
     );
     return () => subscription.remove();
   }, []);
+
   // Handle user card press
   const handleCardPress = (item) => {
     // Update the transaction with the selected user
-
     const updatedTransaction = {
       ...transaction,
       recipientUser: { ...item },
@@ -95,8 +138,14 @@ function SelectUserScreen({ navigation, route }) {
     openModal(item);
   };
 
+  const handleSearch = (value) => {
+    setSearch(value);
+    debouncedSearch(value);
+  };
+
   // Format the amount for display
   const formattedAmount = getFormattedAmount(transaction.amount);
+
   return (
     <Screen style={styles.screen}>
       <View style={styles.headerContainer}>
@@ -118,7 +167,9 @@ function SelectUserScreen({ navigation, route }) {
       </View>
       <FindUserBar
         style={styles.FindUserBar}
-        action={transaction.action.slice(0, 3).toLowerCase()}
+        onChangeText={handleSearch}
+        value={search}
+        isSearching={isSearching}
       />
       <FlashList
         estimatedItemSize={76}
@@ -131,7 +182,7 @@ function SelectUserScreen({ navigation, route }) {
             style={styles.userCard}
           />
         )}
-        keyExtractor={(item) => item.username}
+        keyExtractor={(item) => item.id || item.username}
         contentContainerStyle={styles.flatList}
         ItemSeparatorComponent={() => <AppCardSeparator />}
       />
@@ -175,6 +226,9 @@ const styles = StyleSheet.create({
   },
   userCard: {
     paddingHorizontal: 10,
+  },
+  flatList: {
+    paddingBottom: 20,
   },
 });
 

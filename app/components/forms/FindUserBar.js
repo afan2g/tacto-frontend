@@ -1,29 +1,28 @@
-import React, { useState } from "react";
-import { View, StyleSheet, TextInput } from "react-native";
+import React from "react";
+import { View, StyleSheet, TextInput, ActivityIndicator } from "react-native";
 import { QrCode, Search } from "lucide-react-native";
 import colors from "../../config/colors";
 import fonts from "../../config/fonts";
 import AppNFCIcon from "../icons/AppNFCIcon";
 import { useNavigation } from "@react-navigation/native";
 import routes from "../../navigation/routes";
-function FindUserBar({ style, action }) {
-  const [search, setSearch] = useState("");
-  const navigation = useNavigation();
-  const handleInputChange = (value) => {
-    setSearch(value);
-  };
 
-  const handleSubmit = () => {
-    console.log("Submitted search:", search);
-  };
+function FindUserBar({ style, onChangeText, value, isSearching = false }) {
+  const navigation = useNavigation();
+
   const handleQrPress = () => {
     console.log("QR Code pressed");
     navigation.navigate(routes.QRTESTING);
   };
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.searchBar}>
-        <Search color={colors.lightGray} size={16} />
+        {isSearching ? (
+          <ActivityIndicator size="small" color={colors.lightGray} />
+        ) : (
+          <Search color={colors.lightGray} size={16} />
+        )}
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -31,14 +30,14 @@ function FindUserBar({ style, action }) {
           name="username"
           numberOfLines={1}
           multiline={false}
-          onChangeText={(value) => handleInputChange(value)}
-          onSubmitEditing={handleSubmit}
+          onChangeText={onChangeText}
           placeholder="Username, email, or phone #"
           placeholderTextColor={colors.softGray}
-          returnKeyType="next"
+          returnKeyType="search"
           selectionColor={colors.lightGray}
-          style={[styles.input, styles.placeholder, search && styles.text]}
+          style={[styles.input, styles.placeholder, value && styles.text]}
           maxLength={24}
+          value={value}
         />
       </View>
       <View style={styles.iconsContainer}>
