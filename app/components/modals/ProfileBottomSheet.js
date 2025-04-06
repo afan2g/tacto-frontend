@@ -15,7 +15,35 @@ import { colors } from "../../config";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
 import { useData } from "../../contexts";
 import ProfileSheetContent from "./ProfileSheetContent";
-import ProfileSkeletonLoader from "../skeletons/ProfileSkeletonLoader";
+
+/**
+ * ProfileBottomSheet component
+ * @typedef {Object} ProfileBottomSheetProps
+ * @property {Object} user - User object containing user data to be displayed.
+ * @property {Object} friendData - Data related to the user's friends.
+ * @property {Array} sharedTransactions - List of transactions shared with the user.
+ * @property {boolean} loading - Loading state for the bottom sheet.
+ * @property {Function} onDismiss - Callback function to be called when the bottom sheet is dismissed.
+ * @property {Object} navigation - Navigation object for navigating between screens.
+ */
+
+/**
+ * @typedef {React.Ref} ProfileBottomSheetRef
+ * @property {Function} present - Function to present the bottom sheet.
+ * @property {Function} dismiss - Function to dismiss the bottom sheet.
+ */
+
+/**
+ * ProfileBottomSheet component
+ * @component
+ * @property {Object} user - User object containing user data to be displayed.
+ * @property {Object} friendData - Data related to the user's friends.
+ * @property {Array} sharedTransactions - List of transactions shared with the user.
+ * @property {boolean} loading - Loading state for the bottom sheet.
+ * @property {Function} onDismiss - Callback function to be called when the bottom sheet is dismissed.
+ * @property {Object} navigation - Navigation object for navigating between screens.
+ * @returns {JSX.Element} - Rendered component.
+ * */
 
 const ProfileBottomSheet = forwardRef(
   (

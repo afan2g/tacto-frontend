@@ -46,7 +46,7 @@ function UserCard({
           </AppText>
 
           <AppText style={[scaleStyle.username, styles.username]}>
-            {subtext || user.username}
+            {subtext || `@${user.username}`}
           </AppText>
         </View>
       </View>

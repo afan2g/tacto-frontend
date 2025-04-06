@@ -41,7 +41,7 @@ function UserCardVertical({
         </AppText>
 
         <AppText style={[styles.username, scaleStyle.username]}>
-          {user.username}
+          @{user.username}
         </AppText>
       </View>
     </Pressable>

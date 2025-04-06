@@ -14,6 +14,7 @@ export default function SkeletonLoader({
   radius = height * (1 / 2),
   show = true,
   animated = true,
+  duration = 3000,
 }) {
   // Set default colors for the dark theme
   const colors = [
@@ -38,7 +39,11 @@ export default function SkeletonLoader({
     }
     // Reset and start animation
     progress.value = 0;
-    progress.value = withRepeat(withTiming(1, { duration: 3000 }), -1, true);
+    progress.value = withRepeat(
+      withTiming(1, { duration: duration }),
+      -1,
+      true
+    );
   }, []);
 
   // Calculate gradient start and end points based on progress

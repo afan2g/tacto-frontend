@@ -8,10 +8,11 @@ function UserCardSkeletonLoader({ scale = 1, style }) {
         height={54 * scale}
         width={54 * scale}
         radius={(54 * scale) / 2}
+        duration={1000}
       />
       <View style={styles.usernameContainer}>
-        <SkeletonLoader width={200} height={20} />
-        <SkeletonLoader width={80} height={16} />
+        <SkeletonLoader width={200} height={20} duration={1000} />
+        <SkeletonLoader width={80} height={16} duration={1000} />
       </View>
     </View>
   );

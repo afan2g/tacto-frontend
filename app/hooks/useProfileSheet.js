@@ -8,7 +8,18 @@ import { supabase } from "../../lib/supabase";
  * @param {string} options.sessionUserId - Current user's session ID
  * @param {Function} [options.onSuccess] - Optional callback for successful data fetch
  * @param {Function} [options.onError] - Optional callback for error handling
- * @returns {Object} - Methods and state for controlling the bottom sheet
+ * @returns {UseProfileSheet} - Methods and state for controlling the bottom sheet
+ */
+
+/**
+ * The `useProfileSheet` hook manages the state and data fetching for a profile bottom sheet.
+ * @typedef {Object} UseProfileSheet
+ * @property {React.Ref} bottomSheetRef - Ref for the bottom sheet component.
+ * @property {boolean} loading - Loading state for data fetching.
+ * @property {Object|null} data - Fetched profile data.
+ * @property {Function} presentSheet - Function to present the bottom sheet with user data.
+ * @property {Function} dismissSheet - Function to dismiss the bottom sheet.
+ * @property {Function} fetchProfileData - Function to fetch profile data for a specific user.
  */
 export const useProfileSheet = ({ sessionUserId, onSuccess, onError }) => {
   const [loading, setLoading] = useState(true);

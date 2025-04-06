@@ -166,7 +166,11 @@ function ActivityScreen({ navigation }) {
         estimatedItemSize={100}
         keyExtractor={(item) => (typeof item === "string" ? item : item.id)}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            style={{ zIndex: 999999 }}
+          />
         }
         stickyHeaderHiddenOnScroll={false}
         onEndReached={handleEndReached}
@@ -239,6 +243,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.lightGray,
     paddingHorizontal: 10,
+    zIndex: 1,
   },
   pendingContainer: {},
   completedContainer: {

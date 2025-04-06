@@ -10,7 +10,7 @@ function CollapsedHeader({ user }) {
       <AppAvatar user={user} scale={0.75} />
       <View style={styles.textContainer}>
         <AppText style={styles.fullName}>{user.full_name}</AppText>
-        <AppText style={styles.username}>{user.username}</AppText>
+        <AppText style={styles.username}>@{user.username}</AppText>
       </View>
     </View>
   );

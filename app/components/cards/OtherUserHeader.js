@@ -100,6 +100,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
 
       switch (friendAction) {
         case "Add Friend":
+          console.log("Sending friend request to:", user.id);
           const { data: sendRequestData } = await sendFriendRequest(
             user.id,
             session.access_token

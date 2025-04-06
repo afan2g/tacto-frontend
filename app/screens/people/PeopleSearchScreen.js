@@ -18,6 +18,8 @@ import { Search } from "lucide-react-native";
 import { colors, fonts } from "../../config";
 import { fetchFriends, fetchProfiles } from "../../api";
 import { useAuthContext } from "../../contexts";
+import { useProfileSheet } from "../../hooks/useProfileSheet";
+import ProfileBottomSheet from "../../components/modals/ProfileBottomSheet";
 
 function PeopleSearchScreen({ navigation, ...props }) {
   const { modalVisible, selectedItem, openModal, closeModal } = useModal();
@@ -25,6 +27,14 @@ function PeopleSearchScreen({ navigation, ...props }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const {
+    bottomSheetRef,
+    data,
+    dismissSheet,
+    fetchProfileData,
+    loading: loadingBottomSheet,
+    presentSheet,
+  } = useProfileSheet({ sessionUserId: session.user.id });
   const skeletonItems = Array.from({ length: 5 });
   useEffect(() => {
     const fetchUsers = async () => {
@@ -47,6 +57,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
   const handleRefresh = async () => {
     setLoading(true); // Show loading state immediately for better UX
 
+    // await new Promise((resolve) => setTimeout(resolve, 10000)); // Optional: Add a delay for the loading state
     try {
       await fetchUsers();
     } catch (err) {
@@ -72,7 +83,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
   };
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
-    navigation.navigate("UserProfile", { user: item });
+    presentSheet(item); // Open the bottom sheet with user data
   };
 
   const handleCardLongPress = (item) => {
@@ -114,10 +125,13 @@ function PeopleSearchScreen({ navigation, ...props }) {
         contentContainerStyle={styles.flatList}
         ItemSeparatorComponent={<AppCardSeparator />}
       />
-      <UserModal
-        user={selectedItem}
-        visible={modalVisible}
-        close={closeModal}
+      <ProfileBottomSheet
+        ref={bottomSheetRef}
+        user={data?.user}
+        loading={loadingBottomSheet}
+        onDismiss={dismissSheet}
+        friendData={data?.friendData}
+        sharedTransactions={data?.sharedTransactions}
       />
     </Pressable>
   );

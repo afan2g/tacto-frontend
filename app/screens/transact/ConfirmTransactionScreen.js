@@ -60,8 +60,17 @@ function ConfirmTransactionScreen({ navigation, route }) {
   const [bottomSheetItem, setBottomSheetItem] = useState(null);
   const { wallet, profile } = useData();
   const { session } = useAuthContext();
-  const { present: presentProfileSheet, ProfileSheet } =
-    useProfileSheet(navigation);
+
+  const {
+    bottomSheetRef,
+    loading: loadingBottomSheet,
+    data,
+    presentSheet,
+    dismissSheet,
+  } = useProfileSheet({
+    sessionUserId: session.user.id,
+  });
+
   const { value, handleKeyPress, getDisplayAmount, resetValue } =
     useKeypadInput(transaction.amount || "");
   const { getFormattedAmountWithoutSymbol } = useAmountFormatter();
@@ -128,43 +137,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
     Keyboard.dismiss();
   };
 
-  const handleUserPress = async () => {
-    if (loading) return; // Prevent navigation if loading
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase.rpc("get_friend_data", {
-        current_user_id: session.user.id,
-        target_user_id: transaction.recipientUser.id,
-      });
-
-      console.log("Friend data:", data);
-      if (error) {
-        console.error("Error fetching friend data:", error);
-        throw new Error("Failed to fetch friend data");
-      }
-      if (!data || data.length === 0) {
-        console.error("user not found: ", transaction.recipientUser.id);
-        throw new Error("User not found");
-      }
-      dismissInputs();
-      presentProfileSheet(
-        transaction.recipientUser,
-        {
-          ...data.friendData,
-          mutualFriendCount: data.mutualFriendsCount,
-          friendCount: data.targetUserFriendsCount,
-        },
-        data.sharedTransactions
-      );
-    } catch (error) {
-      console.error("Error navigating to user profile:", error);
-      setError("Failed to load recipient wallet information");
-    } finally {
-      setLoading(false);
-    }
+  const handleUserPress = () => {
+    presentSheet(transaction.recipientUser);
   };
+
   const dismissInputs = () => {
     dismissKeypad();
     Keyboard.dismiss();
@@ -446,7 +422,15 @@ function ConfirmTransactionScreen({ navigation, route }) {
           {showKeypad && <AppKeypad onPress={handleKeyPress} />}
         </View>
       </Screen>
-      <ProfileSheet />
+      <ProfileBottomSheet
+        ref={bottomSheetRef}
+        user={transaction.recipientUser}
+        friendData={data?.friendData}
+        sharedTransactions={data?.sharedTransactions}
+        loading={loadingBottomSheet}
+        navigation={navigation}
+        onDismiss={dismissSheet}
+      />
     </Pressable>
   );
 }
