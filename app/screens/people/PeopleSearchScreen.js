@@ -48,7 +48,6 @@ function PeopleSearchScreen({ navigation, ...props }) {
     setLoading(true); // Show loading state immediately for better UX
 
     try {
-      // await new Promise((resolve) => setTimeout(resolve, 10000)); // Simulate network delay
       await fetchUsers();
     } catch (err) {
       console.error("Error refreshing users:", err);

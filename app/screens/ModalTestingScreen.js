@@ -7,6 +7,8 @@ import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
 import { useProfileSheet } from "../hooks/useProfileSheet";
 import SkeletonLoader from "../components/skeletons/SkeletonLoader";
 import { Skeleton } from "moti/skeleton";
+import TransactionCardSkeletonLoader from "../components/skeletons/TransactionCardSkeletonLoader";
+import { TransactionCard } from "../components/cards";
 function ModalTestingScreen({ navigation }) {
   const { session } = useAuthContext();
   const { bottomSheetRef, loading, data, presentSheet, dismissSheet } =
@@ -49,12 +51,8 @@ function ModalTestingScreen({ navigation }) {
     //   />
     // </View>
     <View style={styles.container}>
-      <Text>Custom Skeleton Loader</Text>
-      <SkeletonLoader width={200} height={40} />
-      <SkeletonLoader width={200} height={200} radius={100} />
-      <Text>Moti Skeleton Loader</Text>
-
-      <Skeleton width={200} height={40} />
+      <TransactionCardSkeletonLoader />
+      <TransactionCard transaction={null} />
     </View>
   );
 }
@@ -64,6 +62,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  card: {
+    backgroundColor: colors.black,
   },
 });
 

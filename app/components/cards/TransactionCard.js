@@ -10,12 +10,12 @@ import { colors, fonts } from "../../config";
 import AvatarList from "./AvatarList";
 import routes from "../../navigation/routes";
 import SkeletonLoader from "../skeletons/SkeletonLoader";
+import TransactionCardSkeletonLoader from "../skeletons/TransactionCardSkeletonLoader";
 function TransactionCard({ transaction, style, onLongPress, origin }) {
-  const navigation = useNavigation(); // Use useNavigation here
-  const { from, to, amount, memo, score, commentCount, time, txid } =
-    transaction;
+  const navigation = useNavigation();
 
-  const [loading, setLoading] = React.useState(false);
+  const { from, to, amount, memo, score, commentCount, time } = transaction;
+  const [userLoading, setUserLoading] = React.useState(false);
   const [error, setError] = React.useState(false);
   const { session } = useAuthContext();
   const handlePress = () => {
@@ -25,9 +25,9 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
 
   const handleUserPress = async (user) => {
     console.log("User pressed:", user);
-    if (loading) return; // Prevent navigation if loading
+    if (userLoading) return; // Prevent navigation if loading
     try {
-      setLoading(true);
+      setUserLoading(true);
       setError(null);
       const { data, error } = await supabase.rpc("get_friend_data", {
         current_user_id: session.user.id,
@@ -55,7 +55,7 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
       console.error("Error navigating to user profile:", error);
       setError("Failed to load recipient wallet information");
     } finally {
-      setLoading(false);
+      setUserLoading(false);
     }
   };
   const handleUpVotePress = () => {
@@ -78,62 +78,46 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
     >
       <View style={styles.topContainer}>
         <View style={styles.actionContainer}>
-          {!loading && (
-            <AvatarList
-              avatars={[from, to]}
-              size={32}
-              style={styles.avatarList}
-            />
-          )}
-          {/* {loading && <Skeleton width={"70%"} height={20} />} */}
-          {!loading && (
-            <View style={styles.usersContainer}>
-              <AppText
-                style={styles.users}
-                onPress={() => handleUserPress(from)}
-              >
-                {from.full_name}
-              </AppText>
-              <AppText style={styles.sent}> paid </AppText>
-              <AppText style={styles.users} onPress={() => handleUserPress(to)}>
-                {to.full_name}
-              </AppText>
-            </View>
-          )}
+          <AvatarList
+            avatars={[from, to]}
+            size={32}
+            style={styles.avatarList}
+          />
+          <View style={styles.usersContainer}>
+            <AppText style={styles.users} onPress={() => handleUserPress(from)}>
+              {from.full_name}
+            </AppText>
+            <AppText style={styles.sent}> paid </AppText>
+            <AppText style={styles.users} onPress={() => handleUserPress(to)}>
+              {to.full_name}
+            </AppText>
+          </View>
         </View>
-        {/* {loading && <Skeleton width={40} height={20} />} */}
-        {!loading && (
-          <AppText style={styles.amount}>${amount.toFixed(2)}</AppText>
-        )}
+        <AppText style={styles.amount}>${amount.toFixed(2)}</AppText>
       </View>
       <AppText style={styles.memo}>{memo}</AppText>
       <View style={styles.bottomContainer}>
-        {/* {loading && <Skeleton width={100} height={20} />} */}
-        {!loading && (
-          <View style={styles.scoreContainer}>
-            <View style={styles.voteContainer}>
-              <ArrowBigUp
-                color={colors.lightGray}
-                size={24}
-                style={styles.vote}
-                onPress={handleUpVotePress}
-              />
-              <AppText style={styles.score}>{score}</AppText>
-              <ArrowBigDown
-                color={colors.lightGray}
-                size={24}
-                style={styles.vote}
-                onPress={handleDownVotePress}
-              />
-            </View>
-            <AppText style={styles.comments}>
-              {commentCount} comment{commentCount != 1 ? "s" : ""}
-            </AppText>
+        <View style={styles.scoreContainer}>
+          <View style={styles.voteContainer}>
+            <ArrowBigUp
+              color={colors.lightGray}
+              size={24}
+              style={styles.vote}
+              onPress={handleUpVotePress}
+            />
+            <AppText style={styles.score}>{score}</AppText>
+            <ArrowBigDown
+              color={colors.lightGray}
+              size={24}
+              style={styles.vote}
+              onPress={handleDownVotePress}
+            />
           </View>
-        )}
-        {/* {loading && <Skeleton width={75} height={20} />} */}
-        {/* {loading && <TextSkeletonLoader width={75} height={20} />} */}
-        {!loading && <AppText style={styles.time}>{time}</AppText>}
+          <AppText style={styles.comments}>
+            {commentCount} comment{commentCount != 1 ? "s" : ""}
+          </AppText>
+        </View>
+        <AppText style={styles.time}>{time}</AppText>
       </View>
     </Pressable>
   );

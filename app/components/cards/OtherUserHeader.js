@@ -231,7 +231,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
       {loading && <Spacer height={10} />}
 
       <View style={styles.friendButtonContainer}>
-        {loading && <SkeletonLoader width={"100%"} radius={5} height={44} />}
+        {loading && <SkeletonLoader width={390} radius={5} height={44} />}
         {!loading && (
           <AppButton
             style={buttonStyles.button}

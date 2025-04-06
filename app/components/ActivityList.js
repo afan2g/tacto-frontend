@@ -1,19 +1,19 @@
 import React, { useImperativeHandle, useMemo } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import Animated from "react-native-reanimated";
 import { AppCardSeparator, TransactionCard } from "./cards";
 import formatRelativeTime from "../utils/formatRelativeTime";
 import { FlashList } from "@shopify/flash-list";
-
+import TransactionCardSkeletonLoader from "./skeletons/TransactionCardSkeletonLoader";
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 const ActivityList = React.forwardRef((props, ref) => {
-  const { data, user, profile, navigation, minHeight } = props;
+  const { sharedTransactions, user, profile, navigation, minHeight } = props;
   const listRef = React.useRef(null);
 
-  // const dataPlaceholder = useMemo(() => {
-  //   return Array.from({ length: 10 }, (_, index) => (null));
-  // },[]);
+  const dataPlaceholder = useMemo(() => {
+    return Array.from({ length: 10 }, (_, index) => null);
+  }, []);
 
   // Expose the scrollToOffset method to the parent component
   useImperativeHandle(ref, () => ({
@@ -31,25 +31,31 @@ const ActivityList = React.forwardRef((props, ref) => {
     <View style={[styles.container, minHeight]}>
       <AnimatedFlashList
         ref={listRef}
-        data={data}
+        data={sharedTransactions || dataPlaceholder}
         estimatedItemSize={110}
-        renderItem={({ item }) => (
-          <TransactionCard
-            transaction={{
-              ...item,
-              time: formatRelativeTime(item.updated_at),
-              from: item.from_user_id === profile.id ? profile : user,
-              to: item.to_user_id === profile.id ? profile : user,
-              memo: "",
-              score: 0,
-              commentCount: 0,
-              txid: item.hash,
-            }}
-            navigation={navigation}
-          />
-        )}
-        nestedScrollEnabled={true}
-        keyExtractor={(item) => item.id}
+        renderItem={({ item }) =>
+          // Render a placeholder if the item is null
+          item === null ? (
+            <TransactionCardSkeletonLoader />
+          ) : (
+            // Otherwise, render the actual TransactionCard component
+            <TransactionCard
+              transaction={{
+                ...item,
+                time: formatRelativeTime(item.updated_at),
+                from: item.from_user_id === profile.id ? profile : user,
+                to: item.to_user_id === profile.id ? profile : user,
+                memo: "",
+                score: 0,
+                commentCount: 0,
+                txid: item.hash,
+              }}
+              navigation={navigation}
+            />
+          )
+        }
+        nestedScrollEnabled={false}
+        keyExtractor={(item, index) => item?.hash || `placeholder-${index}`}
         {...props}
         showsVerticalScrollIndicator={false}
         horizontal={false}

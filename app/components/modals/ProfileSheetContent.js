@@ -127,27 +127,18 @@ const ProfileSheetContent = ({
     () => isHeaderCollapsed.value,
     (current, prev) => {
       if (current !== prev) {
-        console.log(
-          `Header ${current ? "Collapsed" : "Expanded"}. Current list: ${
-            index === 0 ? "Activity list" : "Stats list"
-          }`
-        );
         if (current) {
           // Header is collapsed
           if (index === 0) {
-            console.log("collapsing stats list");
             runOnJS(scrollStatsToOffset)(headerDiff, false);
           } else if (index === 1) {
-            console.log("collapsing activity list");
             runOnJS(scrollActivityToOffset)(headerDiff, false);
           }
         } else {
           // Header is expanded
           if (index === 0) {
-            console.log("expanding stats list");
             runOnJS(scrollStatsToOffset)(0, false);
           } else if (index === 1) {
-            console.log("expanding activity list");
             runOnJS(scrollActivityToOffset)(0, false);
           }
         }
@@ -183,7 +174,6 @@ const ProfileSheetContent = ({
   const contentContainerStyle = useMemo(
     () => ({
       paddingTop: rendered ? headerHeight + TAB_BAR_HEIGHT : 0,
-      minHeight: calculatedMinHeight,
       backgroundColor: colors.black,
     }),
     [rendered, headerHeight, calculatedMinHeight]
@@ -202,10 +192,9 @@ const ProfileSheetContent = ({
   );
 
   const renderActivityList = useCallback(() => {
-    console.log("rendering activity list");
     return (
       <ActivityList
-        data={sharedTransactions}
+        sharedTransactions={sharedTransactions}
         user={user}
         profile={profile}
         ref={activityRef}
@@ -216,10 +205,9 @@ const ProfileSheetContent = ({
   }, [sharedProps, activityScrollHandler, sharedTransactions, user, profile]);
 
   const renderStatsList = useCallback(() => {
-    console.log("rendering stats list");
     return (
       <ActivityList
-        data={sharedTransactions}
+        sharedTransactions={sharedTransactions}
         user={user}
         profile={profile}
         ref={statsRef}

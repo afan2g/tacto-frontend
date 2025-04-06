@@ -72,9 +72,7 @@ export const useProfileSheet = ({ sessionUserId, onSuccess, onError }) => {
     (targetUser) => {
       setData({ user: targetUser });
       bottomSheetRef.current?.present();
-      setTimeout(() => {
-        fetchProfileData(targetUser);
-      }, 1000);
+      fetchProfileData(targetUser);
     },
     [fetchProfileData]
   );
