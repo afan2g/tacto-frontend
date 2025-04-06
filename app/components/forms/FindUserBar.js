@@ -4,9 +4,11 @@ import { QrCode, Search } from "lucide-react-native";
 import colors from "../../config/colors";
 import fonts from "../../config/fonts";
 import AppNFCIcon from "../icons/AppNFCIcon";
+import { useNavigation } from "@react-navigation/native";
+import routes from "../../navigation/routes";
 function FindUserBar({ style, action }) {
   const [search, setSearch] = useState("");
-
+  const navigation = useNavigation();
   const handleInputChange = (value) => {
     setSearch(value);
   };
@@ -14,7 +16,10 @@ function FindUserBar({ style, action }) {
   const handleSubmit = () => {
     console.log("Submitted search:", search);
   };
-
+  const handleQrPress = () => {
+    console.log("QR Code pressed");
+    navigation.navigate(routes.QRTESTING);
+  };
   return (
     <View style={[styles.container, style]}>
       <View style={styles.searchBar}>
@@ -39,7 +44,7 @@ function FindUserBar({ style, action }) {
       <View style={styles.iconsContainer}>
         <AppNFCIcon />
         <View style={styles.qrIcon}>
-          <QrCode color={colors.yellow} size={32} />
+          <QrCode color={colors.yellow} size={32} onPress={handleQrPress} />
         </View>
       </View>
     </View>

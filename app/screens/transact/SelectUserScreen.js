@@ -60,11 +60,18 @@ function SelectUserScreen({ navigation, route }) {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        navigation.navigate(routes.APPTABS, {
-          screen: routes.TRANSACTHOME,
-          params: { ...transaction },
-        });
-        return true;
+        const prevRoute =
+          navigation.getState().routes[navigation.getState().index - 1];
+        if (prevRoute.name === routes.TRANSACTCONFIRM) {
+          navigation.navigate(routes.APPTABS, {
+            screen: routes.TRANSACTHOME,
+            params: { ...transaction },
+          });
+          return true;
+        } else {
+          navigation.popToTop();
+          return true;
+        }
       }
     );
     return () => subscription.remove();

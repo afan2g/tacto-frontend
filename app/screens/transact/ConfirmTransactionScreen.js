@@ -79,11 +79,18 @@ function ConfirmTransactionScreen({ navigation, route }) {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        navigation.navigate(routes.TRANSACTSELECTUSER, {
-          ...transaction,
-          amount: getFormattedAmountWithoutSymbol(value),
-        });
-        return true;
+        const prevRoute =
+          navigation.getState().routes[navigation.getState().index - 1];
+        if (prevRoute.name === routes.TRANSACTCONFIRM) {
+          navigation.navigate(routes.TRANSACTSELECTUSER, {
+            ...transaction,
+            amount: getFormattedAmountWithoutSymbol(value),
+          });
+          return true;
+        } else {
+          navigation.popToTop();
+          return true;
+        }
       }
     );
     return () => subscription.remove();

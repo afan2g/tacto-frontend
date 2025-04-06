@@ -16,17 +16,25 @@ import { Skia, PaintStyle } from "@shopify/react-native-skia";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS, useSharedValue } from "react-native-reanimated";
 import { colors } from "../config";
-import { Flashlight } from "lucide-react-native";
+import { Flashlight, X } from "lucide-react-native";
 import AnimatedSwitch from "../animations/AnimatedSwitch";
-import { z } from "zod";
-function QRTestingScreen(props) {
+function QrScreen({ navigation }) {
+  const { hasPermission, requestPermission } = useCameraPermission();
+
+  if (!hasPermission) {
+    return (
+      <View style={styles.container}>
+        <Button title="Request permission" onPress={requestPermission} />
+      </View>
+    );
+  }
+
   const camera = React.useRef(null);
   const device = useCameraDevice("back", {
     physicalDevices: ["wide-angle-camera"],
   });
   const [showCamera, setShowCamera] = React.useState(true);
   const [torch, setTorch] = React.useState("off");
-  const { hasPermission, requestPermission } = useCameraPermission();
   const position = useSharedValue(0);
 
   const format = useCameraFormat(device, Templates.Instagram);
@@ -37,13 +45,6 @@ function QRTestingScreen(props) {
       console.log(codes);
     },
   });
-  if (!hasPermission) {
-    return (
-      <View style={styles.container}>
-        <Button title="Request permission" onPress={requestPermission} />
-      </View>
-    );
-  }
 
   const handleShowCamera = useCallback((newPosition) => {
     console.log("toggling camera. new position: ", newPosition);
@@ -58,9 +59,8 @@ function QRTestingScreen(props) {
 
   const focus = useCallback((point) => {
     const c = camera.current;
-    if (c) {
-      console.log("focusing");
-    }
+    if (c == null) return;
+    c.focus(point);
   }, []);
 
   const gesture = Gesture.Tap().onEnd(({ x, y }) => {
@@ -70,6 +70,12 @@ function QRTestingScreen(props) {
   if (showCamera) {
     return (
       <View style={styles.container}>
+        <X
+          onPress={() => navigation.goBack()}
+          color={colors.lightGray}
+          size={36}
+          style={styles.closeIcon}
+        />
         <View style={styles.switchContainer}>
           <AnimatedSwitch
             leftText="Scan Code"
@@ -103,6 +109,12 @@ function QRTestingScreen(props) {
   }
   return (
     <View style={styles.container}>
+      <X
+        color={colors.lightGray}
+        size={36}
+        onPress={() => navigation.goBack()}
+        style={styles.closeIcon}
+      />
       <View style={styles.switchContainer}>
         <AnimatedSwitch
           leftText="Scan Code"
@@ -126,13 +138,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  closeIcon: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 100,
+  },
   flashIcon: {
     position: "absolute",
-    top: 60,
+    top: 40,
     right: 40,
     zIndex: 100,
   },
-
   cameraContainer: {
     width: "100%",
     height: "100%",
@@ -158,4 +175,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default QRTestingScreen;
+export default QrScreen;

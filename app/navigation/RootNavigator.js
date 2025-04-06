@@ -13,11 +13,8 @@ import TestingScreen from "../screens/TestingScreen";
 import NotificationsTest from "../testing/NotificationsTest";
 import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScreen";
 import { DataProvider } from "../contexts";
-import TransactNavigator from "./TransactNavigator";
-import { TransactScreen } from "../screens/transact";
-import QRTestingScreen from "../screens/qrTestingScreen";
 import ModalTestingScreen from "../screens/ModalTestingScreen";
-import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
+import QrScreen from "../screens/QrScreen";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -49,18 +46,20 @@ function RootNavigator() {
                   name={routes.APPTABS}
                   component={AppTabNavigator}
                 />
-                <Stack.Screen
-                  name={routes.TRANSACTSELECTUSER}
-                  component={SelectUserScreen}
-                />
-                <Stack.Screen
-                  name={routes.TRANSACTCONFIRM}
-                  component={ConfirmTransactionScreen}
-                />
-                <Stack.Screen
-                  name={routes.TRANSACTSUCCESS}
-                  component={TransactionSuccessScreen}
-                />
+                <Stack.Group screenOptions={{ presentation: "modal" }}>
+                  <Stack.Screen
+                    name={routes.TRANSACTSELECTUSER}
+                    component={SelectUserScreen}
+                  />
+                  <Stack.Screen
+                    name={routes.TRANSACTCONFIRM}
+                    component={ConfirmTransactionScreen}
+                  />
+                  <Stack.Screen
+                    name={routes.TRANSACTSUCCESS}
+                    component={TransactionSuccessScreen}
+                  />
+                </Stack.Group>
               </Stack.Group>
               <Stack.Group screenOptions={{}}>
                 <Stack.Screen
@@ -73,10 +72,7 @@ function RootNavigator() {
                 />
               </Stack.Group>
               <Stack.Screen name={routes.TESTING} component={TestingScreen} />
-              <Stack.Screen
-                name={routes.QRTESTING}
-                component={QRTestingScreen}
-              />
+              <Stack.Screen name={routes.QRTESTING} component={QrScreen} />
               <Stack.Screen
                 name={routes.TESTNOTIFICATIONS}
                 component={NotificationsTest}

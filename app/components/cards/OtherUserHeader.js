@@ -26,7 +26,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   const [loadingFriend, setLoadingFriend] = useState(false);
   const [loadingTransact, setLoadingTransact] = useState(false);
   const [error, setError] = useState(null);
-  const [friendStatus, setFriendStatus] = useState(status);
+  const [friendStatus, setFriendStatus] = useState(status || "none");
   const [friendRequestData, setFriendRequestData] = useState(friendData);
   // Track who is the requester when we send a friend request
   const [isRequester, setIsRequester] = useState(
@@ -36,7 +36,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   useEffect(() => {
     if (friendData) {
       setFriendRequestData(friendData);
-      setFriendStatus(friendData.status);
+      setFriendStatus(friendData.status || "none");
       setLoading(false);
     } else {
       setLoading(true);
