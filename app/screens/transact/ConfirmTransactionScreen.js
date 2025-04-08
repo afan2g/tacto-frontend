@@ -56,8 +56,6 @@ function ConfirmTransactionScreen({ navigation, route }) {
   const [error, setError] = useState(null);
   const theme = useTheme();
   const memoRef = useRef(null);
-  const profileSheetRef = useRef(null);
-  const [bottomSheetItem, setBottomSheetItem] = useState(null);
   const { wallet, profile } = useData();
   const { session } = useAuthContext();
 

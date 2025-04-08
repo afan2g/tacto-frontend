@@ -1,24 +1,19 @@
-async function fetchFriendRequests(userJWT) {
-  const workerUrl = "https://zksync.tacto.workers.dev";
-  try {
-    const { data: requests, error: fetchError } = await supabase
-      .from("friends")
-      .select("*")
-      .eq("requestee_id", user.id)
-      .eq("status", "pending")
-      .order("updated_at", { ascending: false });
+import { supabase } from "../../../lib/supabase";
+async function fetchFriendRequests(user_id) {
+  console.log(`Fetching friend requests for user ID: ${user_id}`);
+  const response = await supabase
+    .from("friends")
+    .select(
+      `
+          *,
+          requester:profiles!requester_id(id, full_name, username, avatar_url)
+        `
+    )
+    .eq("requestee_id", user_id)
+    .eq("status", "pending")
+    .order("updated_at", { ascending: false });
 
-    if (fetchError) {
-      console.error("Error fetching friend requests:", fetchError);
-      throw fetchError;
-    }
-    if (!requests || requests.length === 0) {
-      return []; // No friend requests found
-    }
-  } catch (error) {
-    console.error("Error in fetchFriendRequests:", error);
-    throw error;
-  }
+  return response;
 }
 
 export default fetchFriendRequests;

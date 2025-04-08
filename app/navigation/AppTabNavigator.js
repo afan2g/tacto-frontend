@@ -10,10 +10,12 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react-native";
+import { ActivityIndicator } from "react-native";
 import PeopleTopTabNavigator from "../navigation/PeopleTopTabNavigator";
 import ActivityScreen from "../screens/ActivityScreen";
 import AccountNavigator from "./AccountNavigator";
 import TransactScreen from "../screens/transact/TransactScreen";
+import { useData } from "../contexts";
 const Tab = createBottomTabNavigator();
 const config = {
   animation: "spring", // or 'timing'
@@ -23,7 +25,17 @@ const config = {
   },
 };
 
+const LoadingScreen = () => (
+  <View style={styles.loadingContainer}>
+    <ActivityIndicator size="large" color="#0000ff" />
+  </View>
+);
 function AppTabNavigator(props) {
+  const { isLoadingData } = useData();
+  if (isLoadingData) {
+    return <LoadingScreen />;
+  }
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -105,6 +117,11 @@ const styles = StyleSheet.create({
   modal: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

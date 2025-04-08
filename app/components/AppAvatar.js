@@ -5,8 +5,13 @@ import { colors, fonts } from "../config";
 import { SvgUri } from "react-native-svg";
 import { Image } from "react-native";
 function AppAvatar({ user, scale = 1 }) {
-  const url = user?.avatar_url || null;
+  const [url, setUrl] = useState(user.avatar_url || null);
 
+  useEffect(() => {
+    if (user.avatar_url) {
+      setUrl(user.avatar_url);
+    }
+  }, [user.avatar_url]);
   const isSvg = url?.toLowerCase().endsWith(".svg");
   const size = 54 * scale;
 

@@ -26,6 +26,7 @@ import { useProfileSheet } from "../hooks/useProfileSheet";
 import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
 import { set } from "zod";
 import { useFocusEffect } from "@react-navigation/native";
+import FriendRequestCard from "../components/cards/FriendRequestCard";
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const {
@@ -38,10 +39,15 @@ function ActivityScreen({ navigation }) {
     loadMoreTransactions,
     pullToRefreshTransactions,
     refreshPaymentRequests,
+    friendRequests,
   } = useData();
   const { session } = useAuthContext();
   const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState([
+    {
+      title: "Friend Requests",
+      data: friendRequests,
+    },
     {
       title: "Requests",
       data: paymentRequests,
@@ -59,17 +65,16 @@ function ActivityScreen({ navigation }) {
       sessionUserId: session.user.id,
     });
   useEffect(() => {
-    if (completedTransactions && paymentRequests) {
+    if (completedTransactions && paymentRequests && friendRequests) {
       setTransactions([
+        { title: "Friend Requests", data: friendRequests },
         { title: "Requests", data: paymentRequests },
         { title: "Completed", data: completedTransactions },
       ]);
     }
-  }, [completedTransactions, paymentRequests]);
+  }, [completedTransactions, paymentRequests, friendRequests]);
 
-  useEffect(() => {
-    console.log("new completed transactions", completedTransactions);
-  }, [completedTransactions]);
+  useEffect(() => {}, [completedTransactions]);
 
   const handleLongPress = (transaction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -121,23 +126,31 @@ function ActivityScreen({ navigation }) {
   const handleDismissBottomSheet = () => {
     dismissSheet();
   };
-  const renderItem = ({ item }) => {
-    return (
-      <ActivityTransactionCard
-        transaction={item}
-        onPress={() => handlePress(item)}
-        onLongPress={() => handleLongPress(item)}
-        navigation={navigation}
-        onDelete={() => handleRemove(item)}
-        onUserPress={handleUserPress}
-      />
-    );
+  const renderItem = ({ item, section }) => {
+    if (section.title === "Friend Requests") {
+      return <FriendRequestCard request={item} />;
+    } else {
+      return (
+        <ActivityTransactionCard
+          transaction={item}
+          onPress={() => handlePress(item)}
+          onLongPress={() => handleLongPress(item)}
+          navigation={navigation}
+          onDelete={() => handleRemove(item)}
+          onUserPress={handleUserPress}
+        />
+      );
+    }
   };
 
-  const renderSectionHeader = ({ section: { title } }) => {
+  const renderSectionHeader = ({ section }) => {
+    if (section.data?.length === 0) {
+      return null; // Don't show header for Friend Requests
+    }
+
     return (
       <View style={{ backgroundColor: colors.blue, zIndex: 1 }}>
-        <AppText style={styles.header}>{title}</AppText>
+        <AppText style={styles.header}>{section.title}</AppText>
       </View>
     );
   };
@@ -163,7 +176,7 @@ function ActivityScreen({ navigation }) {
   return (
     <Screen style={styles.screen}>
       <AccountBalanceCard
-        balance={wallet.usdc_balance}
+        balance={wallet?.usdc_balance || 0}
         style={styles.balanceCard}
       />
       <SectionList

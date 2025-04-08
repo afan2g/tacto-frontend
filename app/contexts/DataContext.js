@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { storage } from "../../lib/storage";
 import { supabase } from "../../lib/supabase";
-import { fetchCompletedTransactions, fetchPaymentRequests } from "../api";
+import {
+  fetchCompletedTransactions,
+  fetchFriendRequests,
+  fetchPaymentRequests,
+} from "../api";
 import { useAuthContext } from "./AuthContext";
 const DataContext = createContext();
 
@@ -50,6 +54,7 @@ export function DataProvider({ children }) {
   const { session } = useAuthContext();
   const [transactionsPage, setTransactionsPage] = useState(0);
   const [transactionsHasMore, setTransactionsHasMore] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [isLoadingPaymentRequests, setIsLoadingPaymentRequests] =
     useState(false);
@@ -79,7 +84,7 @@ export function DataProvider({ children }) {
   // Using React state for transactions and payment requests instead of storage
   const [completedTransactions, setCompletedTransactions] = useState([]);
   const [paymentRequests, setPaymentRequests] = useState([]);
-
+  const [friendRequests, setFriendRequests] = useState([]);
   useEffect(() => {
     fetchUserData();
 
@@ -180,6 +185,8 @@ export function DataProvider({ children }) {
   }, [profile]); // Re-run this effect when profile changes
 
   const fetchUserData = async () => {
+    if (isLoadingData) return; // Prevent multiple fetches
+    setIsLoadingData(true); // Set loading state
     console.log("Fetching user data...");
     try {
       const userId = session?.user?.id;
@@ -196,6 +203,7 @@ export function DataProvider({ children }) {
         walletResponse,
         completedTransactionsResponse,
         paymentRequestsResponse,
+        friendRequestsResponse,
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("wallets").select("*").eq("owner_id", userId).single(),
@@ -204,6 +212,7 @@ export function DataProvider({ children }) {
           pageSize,
         }),
         fetchPaymentRequests(userId),
+        fetchFriendRequests(userId),
       ]);
 
       if (profileResponse.error) {
@@ -256,8 +265,24 @@ export function DataProvider({ children }) {
           console.log("Payment requests fetched:", requestsData[0]);
         }
       }
+
+      if (friendRequestsResponse.error) {
+        console.error(
+          "Error fetching friend requests:",
+          friendRequestsResponse.error
+        );
+      } else {
+        // Just update state, no storage operations
+        const requestsData = friendRequestsResponse.data || [];
+        setFriendRequests(requestsData);
+        console.log("Friend requests fetched:", requestsData);
+        console.log("Count of friend requests:", requestsData.length);
+      }
     } catch (error) {
       console.error("Error in fetchUserData:", error);
+    } finally {
+      setIsLoadingData(false); // Reset loading state
+      console.log("User data fetched successfully");
     }
   };
 
@@ -384,12 +409,28 @@ export function DataProvider({ children }) {
     }
   };
 
+  const refreshFriendRequests = async () => {
+    if (!profile?.id) return;
+
+    try {
+      console.log("Refreshing friend requests...");
+      const response = await fetchFriendRequests(profile.id);
+      if (response.error) {
+        console.error("Error refreshing friend requests:", response.error);
+        return;
+      }
+      // Just update state, no storage operations
+      const requestsData = response.data || [];
+      setFriendRequests(requestsData);
+      console.log("Friend requests refreshed successfully");
+    } catch (error) {
+      console.error("Error in refreshFriendRequests:", error);
+    }
+  };
   const clearData = () => {
     try {
       // Only clear profile and wallet from storage
-      storage.delete(STORAGE_KEYS.PROFILE);
-      storage.delete(STORAGE_KEYS.WALLET);
-
+      storage.clearAll();
       // Reset all state
       setProfile(null);
       setWallet(null);
@@ -399,6 +440,8 @@ export function DataProvider({ children }) {
       setTransactionsHasMore(true);
       setIsLoadingTransactions(false);
       setIsLoadingPaymentRequests(false);
+      setIsLoadingData(false);
+      setFriendRequests(null);
     } catch (error) {
       console.error("Error clearing data:", error);
     }
@@ -415,6 +458,8 @@ export function DataProvider({ children }) {
         paymentRequests,
         isLoadingPaymentRequests,
         transactionsPage,
+        isLoadingData,
+        friendRequests,
         updateProfile,
         updateWallet,
         clearData,
@@ -423,6 +468,7 @@ export function DataProvider({ children }) {
         refreshTransactions,
         pullToRefreshTransactions,
         refreshPaymentRequests,
+        refreshFriendRequests,
       }}
     >
       {children}
@@ -444,6 +490,8 @@ export function DataProvider({ children }) {
  * @property {Array} paymentRequests - List of payment requests.
  * @property {boolean} isLoadingPaymentRequests - Loading state for payment requests.
  * @property {number} transactionsPage - Current page for transactions.
+ * @property {boolean} isLoadingData - Loading state for user data.
+ * @property {Array} friendRequests - List of friend requests.
  * @property {Function} updateProfile - Function to update the user's profile.
  * @property {Function} updateWallet - Function to update the user's wallet.
  * @property {Function} clearData - Function to clear user data from storage.
@@ -452,6 +500,8 @@ export function DataProvider({ children }) {
  * @property {Function} refreshTransactions - Function to refresh transactions.
  * @property {Function} pullToRefreshTransactions - Function to pull to refresh transactions.
  * @property {Function} refreshPaymentRequests - Function to refresh payment requests.
+ * @property {Function} refreshFriendRequests - Function to refresh friend requests.
+ * 
  */
 export const useData = () => {
   const context = useContext(DataContext);
