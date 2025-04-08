@@ -1,5 +1,11 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet, RefreshControl } from "react-native";
+import React, { useEffect, useCallback, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  RefreshControl,
+  SectionList,
+  Button,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 import { FlashList } from "@shopify/flash-list";
 
@@ -18,32 +24,36 @@ import TransactionBottomSheet from "../components/modals/TransactionBottomSheet"
 import { supabase } from "../../lib/supabase";
 import { useProfileSheet } from "../hooks/useProfileSheet";
 import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
+import { set } from "zod";
+import { useFocusEffect } from "@react-navigation/native";
 function ActivityScreen({ navigation }) {
   const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const {
-    profile,
     wallet,
     completedTransactions,
     transactionsHasMore,
-    loadMoreTransactions,
     isLoadingTransactions,
-    pullToRefreshTransactions,
     paymentRequests,
-    isLoadingPaymentRequests,
-    refreshPaymentRequests,
     transactionsPage,
+    loadMoreTransactions,
+    pullToRefreshTransactions,
+    refreshPaymentRequests,
   } = useData();
   const { session } = useAuthContext();
-  const [refreshing, setRefreshing] = React.useState(false);
-  const [stickyHeaderIndices, setStickyHeaderIndices] = React.useState([
-    0,
-    paymentRequests.length + 1,
+  const [refreshing, setRefreshing] = useState(false);
+  const [transactions, setTransactions] = useState([
+    {
+      title: "Requests",
+      data: paymentRequests,
+    },
+    {
+      title: "Completed",
+      data: completedTransactions,
+    },
   ]);
-  const [transactions, setTransactions] = React.useState([]);
   const isInitialLoading = !completedTransactions || !paymentRequests;
-  const [bottomSheetItem, setBottomSheetItem] = React.useState(null);
+  const [bottomSheetItem, setBottomSheetItem] = useState(null);
   const transactionSheetRef = React.useRef(null);
-
   const { bottomSheetRef, loading, data, presentSheet, dismissSheet } =
     useProfileSheet({
       sessionUserId: session.user.id,
@@ -51,14 +61,15 @@ function ActivityScreen({ navigation }) {
   useEffect(() => {
     if (completedTransactions && paymentRequests) {
       setTransactions([
-        "Requests",
-        ...paymentRequests,
-        "Completed",
-        ...completedTransactions,
+        { title: "Requests", data: paymentRequests },
+        { title: "Completed", data: completedTransactions },
       ]);
-      setStickyHeaderIndices([0, paymentRequests.length + 1]);
     }
   }, [completedTransactions, paymentRequests]);
+
+  useEffect(() => {
+    console.log("new completed transactions", completedTransactions);
+  }, [completedTransactions]);
 
   const handleLongPress = (transaction) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -103,11 +114,32 @@ function ActivityScreen({ navigation }) {
   };
 
   const handleUserPress = (user) => {
+    console.log("User pressed", user);
     presentSheet(user);
   };
 
   const handleDismissBottomSheet = () => {
     dismissSheet();
+  };
+  const renderItem = ({ item }) => {
+    return (
+      <ActivityTransactionCard
+        transaction={item}
+        onPress={() => handlePress(item)}
+        onLongPress={() => handleLongPress(item)}
+        navigation={navigation}
+        onDelete={() => handleRemove(item)}
+        onUserPress={handleUserPress}
+      />
+    );
+  };
+
+  const renderSectionHeader = ({ section: { title } }) => {
+    return (
+      <View style={{ backgroundColor: colors.blue, zIndex: 1 }}>
+        <AppText style={styles.header}>{title}</AppText>
+      </View>
+    );
   };
 
   if (isInitialLoading) {
@@ -134,37 +166,12 @@ function ActivityScreen({ navigation }) {
         balance={wallet.usdc_balance}
         style={styles.balanceCard}
       />
-      <FlashList
-        data={transactions}
-        renderItem={({ item }) => {
-          if (typeof item === "string") {
-            // Rendering header
-            return (
-              <View style={{ backgroundColor: colors.blue, zIndex: 1 }}>
-                <AppText style={styles.header}>{item}</AppText>
-              </View>
-            );
-          } else {
-            // Render item
-            return (
-              <ActivityTransactionCard
-                transaction={item}
-                onPress={() => handlePress(item)}
-                onLongPress={() => handleLongPress(item)}
-                navigation={navigation}
-                onDelete={() => handleRemove(item)}
-                onUserPress={handleUserPress}
-              />
-            );
-          }
-        }}
-        stickyHeaderIndices={stickyHeaderIndices}
-        getItemType={(item) => {
-          // To achieve better performance, specify the type based on the item
-          return typeof item === "string" ? "sectionHeader" : "row";
-        }}
-        estimatedItemSize={100}
-        keyExtractor={(item) => (typeof item === "string" ? item : item.id)}
+      <SectionList
+        sections={transactions}
+        keyExtractor={(item, index) => item.id + index}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={true}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -172,7 +179,6 @@ function ActivityScreen({ navigation }) {
             style={{ zIndex: 999999 }}
           />
         }
-        stickyHeaderHiddenOnScroll={false}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.2}
         ListFooterComponent={

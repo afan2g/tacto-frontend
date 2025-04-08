@@ -5,13 +5,8 @@ import { colors, fonts } from "../config";
 import { SvgUri } from "react-native-svg";
 import { Image } from "react-native";
 function AppAvatar({ user, scale = 1 }) {
-  const [url, setUrl] = useState(user.avatar_url || null);
+  const url = user?.avatar_url || null;
 
-  useEffect(() => {
-    if (user.avatar_url) {
-      setUrl(user.avatar_url);
-    }
-  }, [user.avatar_url]);
   const isSvg = url?.toLowerCase().endsWith(".svg");
   const size = 54 * scale;
 
@@ -20,18 +15,18 @@ function AppAvatar({ user, scale = 1 }) {
     width: size,
     borderRadius: size / 2,
   };
-  // if (!url) {
-  //   return (
-  //     <View style={[scaleStyle, styles.profilePic, styles.placeholderAvatar]}>
-  //       <AppText style={styles.placeholderText}>
-  //         {user.full_name
-  //           .split(" ")
-  //           .map((name) => name?.[0] || "")
-  //           .join("")}
-  //       </AppText>
-  //     </View>
-  //   );
-  // }
+  if (!url) {
+    return (
+      <View style={[scaleStyle, styles.profilePic, styles.placeholderAvatar]}>
+        <AppText style={styles.placeholderText}>
+          {user.full_name
+            .split(" ")
+            .map((name) => name?.[0] || "")
+            .join("")}
+        </AppText>
+      </View>
+    );
+  }
 
   if (isSvg) {
     return (

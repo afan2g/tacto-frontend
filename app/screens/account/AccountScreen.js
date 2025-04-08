@@ -8,12 +8,9 @@ import {
   Text,
 } from "react-native";
 import { ChevronRight, Settings } from "lucide-react-native";
-import * as SecureStore from "expo-secure-store";
-import { ethers } from "ethers";
 import { getLocales } from "expo-localization";
 import { AppText, Header, Screen } from "../../components/primitives";
 import { colors, fonts } from "../../config";
-import { FAKEPROFILE } from "../../data/fakeData";
 import { supabase } from "../../../lib/supabase";
 import {
   AccountBalanceCard,
@@ -21,7 +18,6 @@ import {
   UserCard,
 } from "../../components/cards";
 import { useData } from "../../contexts/DataContext";
-import { storage } from "../../../lib/storage";
 import { Button } from "react-native-paper";
 import routes from "../../navigation/routes";
 const SECTIONS = [
@@ -60,7 +56,7 @@ const SECTIONS = [
 ];
 
 function AccountScreen({ navigation }) {
-  const { profile, wallet } = useData();
+  const { profile, wallet, completedTransactions } = useData();
   const handleUserCardPress = () => {
     console.log("User card pressed!");
     const locale = getLocales();
@@ -96,6 +92,7 @@ function AccountScreen({ navigation }) {
         <Button onPress={() => navigation.navigate(routes.TESTBOTTOMSHEET)}>
           Go To Bottom Sheet Test
         </Button>
+        <AppText>{completedTransactions[0]?.hash}</AppText>
       </View>
       <SectionList
         sections={SECTIONS}

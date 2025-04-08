@@ -51,6 +51,7 @@ function AppTabNavigator(props) {
               return <ReceiptText color={color} size={size} />;
             },
             tabBarLabel: "Activity",
+            lazy: false,
           }}
         />
         <Tab.Screen

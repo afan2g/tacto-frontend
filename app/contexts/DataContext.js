@@ -8,8 +8,6 @@ const DataContext = createContext();
 const STORAGE_KEYS = {
   PROFILE: "profile",
   WALLET: "wallet",
-  COMPLETED_TRANSACTIONS: "completedTransactions",
-  PAYMENT_REQUESTS: "paymentRequests",
 };
 
 // Utility function to sanitize boolean fields
@@ -55,6 +53,7 @@ export function DataProvider({ children }) {
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [isLoadingPaymentRequests, setIsLoadingPaymentRequests] =
     useState(false);
+
   const [profile, setProfile] = useState(() => {
     const storedProfile = storage.getString(STORAGE_KEYS.PROFILE);
     try {
@@ -77,31 +76,10 @@ export function DataProvider({ children }) {
     }
   });
 
-  const [completedTransactions, setCompletedTransactions] = useState(() => {
-    const storedCompletedTransactions = storage.getString(
-      STORAGE_KEYS.COMPLETED_TRANSACTIONS
-    );
-    try {
-      return storedCompletedTransactions
-        ? JSON.parse(storedCompletedTransactions)
-        : null;
-    } catch (error) {
-      console.error("Error parsing stored completed transactions:", error);
-      return null;
-    }
-  });
+  // Using React state for transactions and payment requests instead of storage
+  const [completedTransactions, setCompletedTransactions] = useState([]);
+  const [paymentRequests, setPaymentRequests] = useState([]);
 
-  const [paymentRequests, setPaymentRequests] = useState(() => {
-    const storedPaymentRequests = storage.getString(
-      STORAGE_KEYS.PAYMENT_REQUESTS
-    );
-    try {
-      return storedPaymentRequests ? JSON.parse(storedPaymentRequests) : null;
-    } catch (error) {
-      console.error("Error parsing stored payment requests:", error);
-      return null;
-    }
-  });
   useEffect(() => {
     fetchUserData();
 
@@ -137,34 +115,35 @@ export function DataProvider({ children }) {
             filter: `owner_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log("Wallet update received!", payload);
             updateWallet(payload.new);
           }
         )
         .on(
           "postgres_changes",
           {
-            event: "INSERT",
+            event: "*",
             schema: "public",
             table: "transactions",
             filter: `from_user_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log("New transaction received!", payload);
-            refreshTransactions();
+            if (payload.new.status === "confirmed") {
+              refreshTransactions();
+            }
           }
         )
         .on(
           "postgres_changes",
           {
-            event: "INSERT",
+            event: "*",
             schema: "public",
             table: "transactions",
             filter: `to_user_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log("New transaction received!", payload);
-            refreshTransactions();
+            if (payload.new.status === "confirmed") {
+              refreshTransactions();
+            }
           }
         )
         .on(
@@ -176,7 +155,6 @@ export function DataProvider({ children }) {
             filter: `requester_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log("New request received!", payload);
             refreshPaymentRequests();
           }
         )
@@ -189,7 +167,6 @@ export function DataProvider({ children }) {
             filter: `requestee_id=eq.${profile.id}`,
           },
           (payload) => {
-            console.log("New request received!", payload);
             refreshPaymentRequests();
           }
         )
@@ -237,52 +214,31 @@ export function DataProvider({ children }) {
       } else {
         const sanitizedProfile = sanitizeProfileData(profileResponse.data);
         updateProfile(sanitizedProfile);
-        console.log("Profile fetched:", sanitizedProfile);
-        console.log("storage size: ", storage.size);
       }
 
       if (walletResponse.error && walletResponse.error.code !== "PGRST116") {
         console.error("Error fetching wallet:", walletResponse.error);
       } else if (walletResponse.data) {
         updateWallet(walletResponse.data);
-        console.log("Wallet fetched:", walletResponse.data);
-        console.log("storage size: ", storage.size);
       }
 
-      // In the fetchUserData function, modify the transactions part:
       if (completedTransactionsResponse.error) {
         console.error(
           "Error fetching completed transactions:",
           completedTransactionsResponse.error
         );
       } else {
-        // Clear existing transactions in storage
-        storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
-
-        setCompletedTransactions(completedTransactionsResponse.data);
+        // Just update state, no storage operations
+        const transactionsData = completedTransactionsResponse.data || [];
+        setCompletedTransactions(transactionsData);
         setTransactionsPage(0);
-        setTransactionsHasMore(
-          completedTransactionsResponse.data.length === pageSize
-        );
-
-        // Only store if we have data
-        if (
-          completedTransactionsResponse.data &&
-          completedTransactionsResponse.data.length > 0
-        ) {
-          storage.set(
-            STORAGE_KEYS.COMPLETED_TRANSACTIONS,
-            JSON.stringify(completedTransactionsResponse.data)
-          );
-        }
+        setTransactionsHasMore(transactionsData.length === pageSize);
 
         console.log(
           "Count of completed transactions:",
-          completedTransactionsResponse.data.length
+          transactionsData.length
         );
       }
-
-      console.log("storage size: ", storage.size);
 
       if (paymentRequestsResponse.error) {
         console.error(
@@ -290,27 +246,15 @@ export function DataProvider({ children }) {
           paymentRequestsResponse.error
         );
       } else {
-        setPaymentRequests(paymentRequestsResponse.data);
+        // Just update state, no storage operations
+        const requestsData = paymentRequestsResponse.data || [];
+        setPaymentRequests(requestsData);
 
-        // Only store if we have data
-        if (
-          paymentRequestsResponse.data &&
-          paymentRequestsResponse.data.length > 0
-        ) {
-          storage.set(
-            STORAGE_KEYS.PAYMENT_REQUESTS,
-            JSON.stringify(paymentRequestsResponse.data)
-          );
+        console.log("Count of payment requests:", requestsData.length);
+
+        if (requestsData.length > 0) {
+          console.log("Payment requests fetched:", requestsData[0]);
         }
-
-        console.log(
-          "Count of payment requests:",
-          paymentRequestsResponse.data.length
-        );
-        console.log(
-          "Payment requests fetched:",
-          paymentRequestsResponse.data[0]
-        );
       }
     } catch (error) {
       console.error("Error in fetchUserData:", error);
@@ -358,21 +302,11 @@ export function DataProvider({ children }) {
         return;
       }
 
-      // Clear existing transactions in storage before setting new ones
-      storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
-
-      // Reset pagination state
-      setCompletedTransactions(response.data);
+      // Just update state, no storage operations
+      const transactionsData = response.data || [];
+      setCompletedTransactions(transactionsData);
       setTransactionsPage(0);
-      setTransactionsHasMore(response.data.length === pageSize);
-
-      // Only store if we have data
-      if (response.data && response.data.length > 0) {
-        storage.set(
-          STORAGE_KEYS.COMPLETED_TRANSACTIONS,
-          JSON.stringify(response.data)
-        );
-      }
+      setTransactionsHasMore(transactionsData.length === pageSize);
 
       console.log("Transactions refreshed successfully");
     } catch (error) {
@@ -381,6 +315,7 @@ export function DataProvider({ children }) {
       setIsLoadingTransactions(false);
     }
   };
+
   const loadMoreTransactions = async () => {
     if (!profile?.id || isLoadingTransactions || !transactionsHasMore) return;
 
@@ -399,23 +334,16 @@ export function DataProvider({ children }) {
         return;
       }
 
-      if (response.data.length > 0) {
-        // Create the updated list first
-        const updatedList = completedTransactions
-          ? [...completedTransactions, ...response.data]
-          : [...response.data];
+      const responseData = response.data || [];
 
-        // Then update state with the combined list
-        setCompletedTransactions(updatedList);
+      if (responseData.length > 0) {
+        // Update state with the combined list
+        setCompletedTransactions((prevTransactions) => {
+          const prevData = prevTransactions || [];
+          return [...prevData, ...responseData];
+        });
         setTransactionsPage(nextPage);
-        setTransactionsHasMore(response.data.length === pageSize);
-
-        // Clear existing data and set the new combined list
-        storage.delete(STORAGE_KEYS.COMPLETED_TRANSACTIONS);
-        storage.set(
-          STORAGE_KEYS.COMPLETED_TRANSACTIONS,
-          JSON.stringify(updatedList)
-        );
+        setTransactionsHasMore(responseData.length === pageSize);
       } else {
         setTransactionsHasMore(false);
       }
@@ -424,9 +352,9 @@ export function DataProvider({ children }) {
     } finally {
       setIsLoadingTransactions(false);
       console.log("completed loading more transactions");
-      console.log("storage size: ", storage.size);
     }
   };
+
   const pullToRefreshTransactions = async () => {
     await refreshTransactions();
   };
@@ -444,21 +372,11 @@ export function DataProvider({ children }) {
         return;
       }
 
-      // Clear existing payment requests in storage before setting new ones
-      storage.delete(STORAGE_KEYS.PAYMENT_REQUESTS);
-
-      setPaymentRequests(response.data);
-
-      // Only store if we have data
-      if (response.data && response.data.length > 0) {
-        storage.set(
-          STORAGE_KEYS.PAYMENT_REQUESTS,
-          JSON.stringify(response.data)
-        );
-      }
+      // Just update state, no storage operations
+      const requestsData = response.data || [];
+      setPaymentRequests(requestsData);
 
       console.log("Payment requests refreshed successfully");
-      console.log("storage size: ", storage.size);
     } catch (error) {
       console.error("Error in refreshPaymentRequests:", error);
     } finally {
@@ -468,15 +386,19 @@ export function DataProvider({ children }) {
 
   const clearData = () => {
     try {
-      console.log(`storage size before clearing: ${storage.size}`);
-      storage.clearAll();
-      console.log(`storage size after clearing: ${storage.size}`);
+      // Only clear profile and wallet from storage
+      storage.delete(STORAGE_KEYS.PROFILE);
+      storage.delete(STORAGE_KEYS.WALLET);
+
+      // Reset all state
       setProfile(null);
       setWallet(null);
       setCompletedTransactions(null);
+      setPaymentRequests(null);
       setTransactionsPage(0);
       setTransactionsHasMore(true);
       setIsLoadingTransactions(false);
+      setIsLoadingPaymentRequests(false);
     } catch (error) {
       console.error("Error clearing data:", error);
     }
@@ -508,6 +430,29 @@ export function DataProvider({ children }) {
   );
 }
 
+/**
+ * @param {Object} children - The children components to be rendered inside the provider.
+ * @returns {UseData} - The DataProvider component.
+ * /
+/**
+ * @typedef {Object} UseData
+ * @property {Object} profile - The user's profile data.
+ * @property {Object} wallet - The user's wallet data.
+ * @property {Array} completedTransactions - List of completed transactions.
+ * @property {boolean} transactionsHasMore - Indicates if there are more transactions to load.
+ * @property {boolean} isLoadingTransactions - Loading state for transactions.
+ * @property {Array} paymentRequests - List of payment requests.
+ * @property {boolean} isLoadingPaymentRequests - Loading state for payment requests.
+ * @property {number} transactionsPage - Current page for transactions.
+ * @property {Function} updateProfile - Function to update the user's profile.
+ * @property {Function} updateWallet - Function to update the user's wallet.
+ * @property {Function} clearData - Function to clear user data from storage.
+ * @property {Function} fetchUserData - Function to fetch user data from the database.
+ * @property {Function} loadMoreTransactions - Function to load more transactions.
+ * @property {Function} refreshTransactions - Function to refresh transactions.
+ * @property {Function} pullToRefreshTransactions - Function to pull to refresh transactions.
+ * @property {Function} refreshPaymentRequests - Function to refresh payment requests.
+ */
 export const useData = () => {
   const context = useContext(DataContext);
   if (!context) {

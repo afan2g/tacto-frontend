@@ -2,14 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { checkWalletAccess } from "../utils/checkWalletAccess";
-import { storage } from "../../lib/storage";
 
-const STORAGE_KEYS = {
-  PROFILE: "profile",
-  WALLET: "wallet",
-  COMPLETED_TRANSACTIONS: "completedTransactions",
-  PAYMENT_REQUESTS: "paymentRequests",
-};
 const useAuth = () => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -231,42 +231,6 @@ function ActivityTransactionCard({
     }
   };
 
-  const handleUserPress = async (user) => {
-    console.log("User pressed:", user);
-    if (isLoading) return; // Prevent navigation if loading
-    try {
-      setIsLoading(true);
-      setError(null);
-      const { data, error } = await supabase.rpc("get_friend_data", {
-        current_user_id: session.user.id,
-        target_user_id: user.id,
-      });
-      if (error) {
-        console.error("Error fetching friend data:", error);
-        throw new Error("Failed to fetch friend data");
-      }
-      if (!data || data.length === 0) {
-        console.error("user not found: ", user.id);
-        throw new Error("User not found");
-      }
-      console.log("friend data fetched: ", data);
-      setBottomSheetItem({
-        user,
-        friendData: {
-          ...data.friendData,
-          mutualFriendCount: data.mutualFriendsCount,
-          friendCount: data.targetUserFriendsCount,
-        },
-        sharedTransactions: data.sharedTransactions,
-      });
-    } catch (error) {
-      console.error("Error navigating to user profile:", error);
-      setError("Failed to load recipient wallet information");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const transactionStyles = {
     confirmed: {
       receive: {
@@ -289,6 +253,8 @@ function ActivityTransactionCard({
         leftButtonDisabled:
           isReminding || !canSendReminder(transaction.last_reminder_sent_at),
         rightButtonDisabled: isCancelling,
+        leftButtonLoading: isReminding,
+        rightButtonLoading: isCancelling,
       },
       receive: {
         text: `$${formattedAmount}`,
@@ -299,6 +265,8 @@ function ActivityTransactionCard({
         rightButtonHandler: handleDecline,
         leftButtonDisabled: isPaying,
         rightButtonDisabled: isDeclining,
+        leftButtonLoading: isPaying,
+        rightButtonLoading: isDeclining,
       },
     },
   };
@@ -335,6 +303,7 @@ function ActivityTransactionCard({
             textStyle={styles.buttonText}
             onPress={displayConfig.leftButtonHandler}
             disabled={displayConfig.leftButtonDisabled}
+            loading={displayConfig.leftButtonLoading}
           />
           <AppButton
             title={displayConfig.rightButtonText}
@@ -342,6 +311,7 @@ function ActivityTransactionCard({
             textStyle={styles.buttonText}
             onPress={displayConfig.rightButtonHandler}
             disabled={displayConfig.rightButtonDisabled}
+            loading={displayConfig.rightButtonLoading}
           />
         </View>
       )}
