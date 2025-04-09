@@ -92,7 +92,6 @@ function AccountScreen({ navigation }) {
         <Button onPress={() => navigation.navigate(routes.TESTBOTTOMSHEET)}>
           Go To Bottom Sheet Test
         </Button>
-        <AppText>{completedTransactions[0]?.hash}</AppText>
       </View>
       <SectionList
         sections={SECTIONS}

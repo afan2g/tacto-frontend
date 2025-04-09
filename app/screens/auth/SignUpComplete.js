@@ -34,9 +34,9 @@ function SignUpComplete({ navigation }) {
         ...profileData,
       });
 
-      if (!profileData.avatar_url) {
-        await generateServerAvatar(session.user.id, profileData.full_name);
-      }
+      // if (!profileData.avatar_url) {
+      //   await generateServerAvatar(session.user.id, profileData.full_name);
+      // }
 
       // Register for push notifications after profile check
       await registerForPushNotifications(session.user.id);
@@ -56,52 +56,57 @@ function SignUpComplete({ navigation }) {
     }
   }
 
-  const generateServerAvatar = async (userId, fullName) => {
-    setIsLoading(true);
-    try {
-      if (!userId || !fullName) {
-        throw new Error("Missing required userId or fullName");
-      }
+  // const generateServerAvatar = async (userId, fullName) => {
+  //   setIsLoading(true);
+  //   try {
+  //     if (!userId || !fullName) {
+  //       throw new Error("Missing required userId or fullName");
+  //     }
 
-      const { data, error } = await supabase.functions.invoke(
-        "generate-avatar",
-        {
-          body: { userId, fullName },
-          options: {
-            headers: { "Content-Type": "application/json" },
-          },
-        }
-      );
+  //     const { data, error } = await supabase.functions.invoke(
+  //       "generate-avatar",
+  //       {
+  //         body: { userId, fullName },
+  //         options: {
+  //           headers: { "Content-Type": "application/json" },
+  //         },
+  //       }
+  //     );
 
-      if (error) throw error;
-      if (!data?.success) throw new Error("Avatar generation failed");
+  //     if (error) throw error;
+  //     if (!data?.success) throw new Error("Avatar generation failed");
 
-      // Fetch the updated profile to get the new avatar URL
-      const { data: updatedProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("avatar_url, full_name, id")
-        .eq("id", userId)
-        .single();
+  //     // Fetch the updated profile to get the new avatar URL
+  //     const { data: updatedProfile, error: profileError } = await supabase
+  //       .from("profiles")
+  //       .select("avatar_url, full_name, id")
+  //       .eq("id", userId)
+  //       .single();
 
-      if (profileError) throw profileError;
+  //     if (profileError) throw profileError;
 
-      if (updatedProfile) {
-        setProfile({
-          ...updatedProfile,
-        });
-      }
-    } catch (error) {
-      console.error("Avatar generation error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     if (updatedProfile) {
+  //       setProfile({
+  //         ...updatedProfile,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Avatar generation error:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleRefreshAvatar = async () => {
-    if (profile && !profile.avatar_url) {
-      await generateServerAvatar(profile.id, profile.full_name);
-    }
-  };
+  // const handleRefreshAvatar = async () => {
+  //   if (profile && !profile.avatar_url) {
+  //     await generateServerAvatar(profile.id, profile.full_name);
+  //   }
+  // };
+  // const handleRefreshAvatar = () => {
+  //   if (profile && !profile.avatar_url) {
+  //     await generateServerAvatar(profile.id, profile.full_name);
+  //   }
+  // };
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -134,7 +139,7 @@ function SignUpComplete({ navigation }) {
       <View style={styles.avatarContainer}>
         {profile && <AppAvatar user={profile} scale={1.5} />}
       </View>
-
+      {/* 
       {profile && !profile.avatar_url && (
         <AppButton
           color={colors.lightGray}
@@ -142,7 +147,7 @@ function SignUpComplete({ navigation }) {
           title="Refresh Avatar"
           style={styles.refreshButton}
         />
-      )}
+      )} */}
 
       <Text style={styles.text}>Sign Up Complete</Text>
 
