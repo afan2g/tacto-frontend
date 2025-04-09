@@ -55,9 +55,7 @@ function UserCard({
 }
 
 const styles = StyleSheet.create({
-  pressed: {
-    backgroundColor: colors.blueShade40,
-  },
+  pressed: {},
   notPressed: {
     backgroundColor: "transparent",
   },

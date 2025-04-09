@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     borderColor: colors.lightGray,
     borderRadius: 5,
     paddingHorizontal: 15,
-    backgroundColor: colors.blueShade30,
+    backgroundColor: colors.blueGray.shade30,
     paddingVertical: 10,
   },
   input: {

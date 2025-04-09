@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   },
   dialCode: {
     fontSize: 16,
-    color: colors.blueTint40,
+    color: colors.blueGray.Tint40,
     fontFamily: fonts.medium,
   },
 });

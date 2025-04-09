@@ -241,9 +241,9 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
             title={loading ? "" : friendAction}
             color={
               friendStatus === "pending"
-                ? colors.grayOpacity40
+                ? colors.gray.shade40
                 : friendStatus === "accepted"
-                ? colors.grayOpacity40
+                ? colors.gray.shade40
                 : colors.bluePop
             }
             textStyle={buttonStyles.text}

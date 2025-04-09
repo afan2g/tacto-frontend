@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.blueShade10,
+    backgroundColor: colors.blueGray.shade10,
     borderRadius: 5,
     paddingHorizontal: 10,
     borderWidth: 2,

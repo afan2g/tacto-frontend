@@ -10,20 +10,30 @@ const uuidColor = (uuid) => {
   const hash = uuid
     .split("")
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const hue = (hash % 360) / 360;
-  return `hsl(${hue * 360}, 70%, 50%)`;
+  const hue = hash % 290;
+  return `hsl(${hue}, 50%, 50%)`;
 };
 
 // Helper function to create SVG with initials
-const InitialsSvg = ({ initials, size, color }) => {
+const InitialsSvg = ({ user, size }) => {
   const fontSize = size * 0.4; // Scale font relative to container size
   const radius = size / 2;
-
+  // Get initials for placeholder
+  const initials = user.full_name
+    .split(" ")
+    .map((name) => name?.[0] || "")
+    .join("")
+    .toUpperCase();
   return (
     <Svg height={size} width={size} viewBox={`0 0 ${size} ${size}`}>
-      <Circle cx={radius} cy={radius} r={radius} fill={color} />
+      <Circle
+        cx={radius}
+        cy={radius}
+        r={radius}
+        fill={user.id ? uuidColor(user.id) : colors.black}
+      />
       <SvgText
-        fill="#2D3748"
+        fill={user.id ? colors.black : colors.lightGray}
         fontSize={fontSize}
         fontWeight="bold"
         x={radius}
@@ -47,28 +57,24 @@ function AppAvatar({ user, scale = 1 }) {
   const isSvg = url?.toLowerCase().endsWith(".svg");
   const size = 54 * scale;
 
-  // Get initials for placeholder
-  const initials = user.full_name
-    .split(" ")
-    .map((name) => name?.[0] || "")
-    .join("")
-    .toUpperCase();
-
   const scaleStyle = {
     height: size,
     width: size,
     borderRadius: size / 2,
   };
 
+  if (!user) {
+    return (
+      <View style={[scaleStyle, styles.placeholderAvatar]}>
+        <AppText style={styles.placeholderText}>?</AppText>
+      </View>
+    );
+  }
   // If no avatar URL or if it's an SVG, render our custom InitialsSvg component
   if (!url || isSvg) {
     return (
       <View style={[scaleStyle, styles.svgContainer]}>
-        <InitialsSvg
-          initials={initials}
-          size={size}
-          color={uuidColor(user.id)}
-        />
+        <InitialsSvg user={user} size={size} />
       </View>
     );
   } else {

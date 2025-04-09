@@ -31,7 +31,7 @@ function PeopleSplitCardPreview({ group, style, onPress, onLongPress }) {
 
 const styles = StyleSheet.create({
   pressed: {
-    backgroundColor: colors.blueShade40,
+    backgroundColor: colors.blueGray.shade40,
   },
   notPressed: {
     backgroundColor: "transparent",

@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
 
   selectedItemContainerStyle: {
-    backgroundColor: colors.blueShade50,
+    backgroundColor: colors.blueGray.shade50,
   },
   selectedItemLabelStyle: {
     fontFamily: fonts.black,

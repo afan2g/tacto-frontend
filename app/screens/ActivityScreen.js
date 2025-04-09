@@ -118,6 +118,12 @@ function ActivityScreen({ navigation }) {
     }
   };
 
+  const handlePress = (transaction) => {
+    console.log("Transaction pressed", transaction);
+    setBottomSheetItem(transaction);
+    transactionSheetRef.current?.present();
+  };
+
   const handleUserPress = (user) => {
     console.log("User pressed", user);
     presentSheet(user);
@@ -254,7 +260,7 @@ const styles = StyleSheet.create({
   separator: {
     height: 2,
     marginHorizontal: 10,
-    backgroundColor: colors.blueShade10,
+    backgroundColor: colors.blueGray.shade10,
   },
   header: {
     paddingBottom: 10,

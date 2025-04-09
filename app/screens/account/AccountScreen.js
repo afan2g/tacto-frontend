@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   pressed: {
-    backgroundColor: colors.blueShade40,
+    backgroundColor: colors.blueGray.shade40,
   },
   notPressed: {
     backgroundColor: "transparent",

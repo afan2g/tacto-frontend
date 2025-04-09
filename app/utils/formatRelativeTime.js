@@ -1,6 +1,13 @@
-const formatRelativeTime = (dateString) => {
+const formatRelativeTime = (dateString, locale = null) => {
   const now = new Date();
   const date = new Date(dateString);
+  if (locale) {
+    return date.toLocaleString(locale.languageTag, {
+      timeZone: locale.timeZone,
+      dateStyle: "long",
+      timeStyle: "short",
+    });
+  }
   const diffInMilliseconds = now.getTime() - date.getTime();
   const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
   const diffInHours = Math.floor(diffInMinutes / 60);

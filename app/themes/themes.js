@@ -6,7 +6,7 @@ export const theme = {
     activeOutlineColor: colors.yellow,
     textColor: colors.lightGray,
     style: {
-      backgroundColor: colors.blueShade10,
+      backgroundColor: colors.blueGray.shade10,
       fontSize: 18,
     },
     contentStyle: { fontFamily: fonts.bold },

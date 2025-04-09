@@ -28,7 +28,7 @@ function ActivityTransactionCard({
   navigation,
   onDelete,
 }) {
-  const { profile, wallet } = useData();
+  const { wallet } = useData();
   const { amount, status, method_id } = transaction;
   const { session } = useAuthContext();
   let time, from_user, to_user, otherUser, action;
@@ -36,15 +36,23 @@ function ActivityTransactionCard({
   if (method_id === 0 || method_id === 3) {
     ({ updated_at: time, from_user, to_user } = transaction);
     [otherUser, action] =
-      profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
+      session.user.id === from_user.id
+        ? [to_user, "send"]
+        : [from_user, "receive"];
   } else if (method_id === 4) {
     ({ created_at: time } = transaction);
     action = "send";
-    otherUser = { full_name: "External Wallet" };
+    otherUser = {
+      full_name: "External Wallet",
+      address: transaction.to_address,
+    };
   } else if (method_id === 5) {
     ({ created_at: time } = transaction);
     action = "receive";
-    otherUser = { full_name: "External Wallet" };
+    otherUser = {
+      full_name: "External Wallet",
+      address: transaction.from_address,
+    };
   } else if (!method_id) {
     ({
       created_at: time,
@@ -52,7 +60,9 @@ function ActivityTransactionCard({
       requestee: to_user,
     } = transaction);
     [otherUser, action] =
-      profile.id === from_user.id ? [to_user, "send"] : [from_user, "receive"];
+      session.user.id === from_user.id
+        ? [to_user, "send"]
+        : [from_user, "receive"];
   }
   const formattedAmount = amount % 1 === 0 ? amount : amount.toFixed(2);
   const [isReminding, setIsReminding] = React.useState(false);
@@ -87,7 +97,7 @@ function ActivityTransactionCard({
           amount,
           userJWT
         ),
-        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`),
+        SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${session.user.id}`),
       ]);
       const t0 = performance.now();
       if (!txRequest) {
@@ -324,7 +334,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   pressed: {
-    backgroundColor: colors.blueShade40,
+    backgroundColor: colors.blueGray.Shade40,
   },
   notPressed: {
     backgroundColor: "transparent",

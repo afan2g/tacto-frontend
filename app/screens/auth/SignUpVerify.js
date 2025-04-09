@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 2,
     borderColor: colors.fadedGray,
-    backgroundColor: colors.blueShade10,
+    backgroundColor: colors.blueGray.shade10,
   },
   pinCodeText: {
     color: colors.lightGray,

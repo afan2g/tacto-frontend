@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   pressed: {
     // Add styles for the pressed key
-    backgroundColor: colors.blueShade40,
+    backgroundColor: colors.blueGray.shade40,
   },
   notPressed: {
     // Add styles for the not pressed key
