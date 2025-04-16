@@ -3,7 +3,6 @@ import { View, StyleSheet, TextInput, ActivityIndicator } from "react-native";
 import { QrCode, Search } from "lucide-react-native";
 import colors from "../../config/colors";
 import fonts from "../../config/fonts";
-import AppNFCIcon from "../icons/AppNFCIcon";
 import { useNavigation } from "@react-navigation/native";
 import routes from "../../navigation/routes";
 
@@ -18,11 +17,7 @@ function FindUserBar({ style, onChangeText, value, isSearching = false }) {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.searchBar}>
-        {isSearching ? (
-          <ActivityIndicator size="small" color={colors.lightGray} />
-        ) : (
-          <Search color={colors.lightGray} size={16} />
-        )}
+        <Search color={colors.lightGray} size={16} />
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -39,6 +34,9 @@ function FindUserBar({ style, onChangeText, value, isSearching = false }) {
           maxLength={24}
           value={value}
         />
+        {isSearching && (
+          <ActivityIndicator size="small" color={colors.lightGray} />
+        )}
       </View>
       <View style={styles.iconsContainer}>
         <View style={styles.qrIcon}>

@@ -5,6 +5,7 @@ import { AppCardSeparator, TransactionCard } from "./cards";
 import formatRelativeTime from "../utils/formatRelativeTime";
 import { FlashList } from "@shopify/flash-list";
 import TransactionCardSkeletonLoader from "./skeletons/TransactionCardSkeletonLoader";
+import { colors } from "../config";
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 const ActivityList = React.forwardRef((props, ref) => {
@@ -61,6 +62,7 @@ const ActivityList = React.forwardRef((props, ref) => {
         horizontal={false}
         ItemSeparatorComponent={() => <AppCardSeparator />}
         ListFooterComponent={() => <View style={styles.footer} />}
+        ListFooterComponentStyle={styles.footer}
         overScrollMode="never"
         bounces={false}
         snapToEnd={false}
@@ -72,6 +74,7 @@ const ActivityList = React.forwardRef((props, ref) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.black,
   },
   footer: {
     height: 100, // Add some padding at the bottom to ensure scrollability

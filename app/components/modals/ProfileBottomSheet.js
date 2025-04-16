@@ -51,6 +51,7 @@ const ProfileBottomSheet = forwardRef(
       user,
       friendData,
       sharedTransactions,
+      external = false,
       loading = false, // Rename to make it clear it's external
       onDismiss,
       navigation,
@@ -106,6 +107,7 @@ const ProfileBottomSheet = forwardRef(
       >
         <ProfileSheetContent
           user={user}
+          external={external}
           friendData={friendData}
           profile={profile}
           sharedTransactions={sharedTransactions}

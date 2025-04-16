@@ -3,7 +3,7 @@ import { View, StyleSheet, TextInput, Pressable } from "react-native";
 import { ArrowBigDown, ArrowBigUp } from "lucide-react-native";
 
 import { AppText } from "../primitives";
-import { AvatarList, TransactionCard } from "../cards";
+import { AvatarList } from "../cards";
 import formatRelativeTime from "../../utils/formatRelativeTime";
 import { fonts, colors } from "../../config";
 

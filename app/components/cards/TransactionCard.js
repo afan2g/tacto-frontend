@@ -11,7 +11,8 @@ import AvatarList from "./AvatarList";
 import routes from "../../navigation/routes";
 import SkeletonLoader from "../skeletons/SkeletonLoader";
 import TransactionCardSkeletonLoader from "../skeletons/TransactionCardSkeletonLoader";
-function TransactionCard({ transaction, style, onLongPress, origin }) {
+import AppAvatar from "../AppAvatar";
+function TransactionCard({ transaction, style, onLongPress, avatar }) {
   const navigation = useNavigation();
 
   const { from, to, amount, memo, score, commentCount, time } = transaction;
@@ -74,7 +75,6 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
       ]}
       onPress={handlePress}
       onLongPress={onLongPress}
-      unstable_pressDelay={250}
     >
       <View style={styles.topContainer}>
         <View style={styles.actionContainer}>
@@ -85,11 +85,11 @@ function TransactionCard({ transaction, style, onLongPress, origin }) {
           />
           <View style={styles.usersContainer}>
             <AppText style={styles.users} onPress={() => handleUserPress(from)}>
-              {from.full_name}
+              {session.user.id === from.id ? "You" : from.full_name}
             </AppText>
             <AppText style={styles.sent}> paid </AppText>
             <AppText style={styles.users} onPress={() => handleUserPress(to)}>
-              {to.full_name}
+              {session.user.id === to.id ? "you" : to.full_name}
             </AppText>
           </View>
         </View>

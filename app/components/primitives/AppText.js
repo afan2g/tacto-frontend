@@ -3,9 +3,9 @@ import { Text, StyleSheet } from "react-native";
 import colors from "../../config/colors";
 import fonts from "../../config/fonts";
 
-function AppText({ children, onPress = null, style, ...props }) {
+function AppText({ children, onPress, style, ...props }) {
   return (
-    <Text onPress={onPress} style={[styles.text, style]} {...props}>
+    <Text style={[styles.text, style]} {...props} onPress={onPress}>
       {children}
     </Text>
   );

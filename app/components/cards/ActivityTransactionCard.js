@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   pressed: {
-    backgroundColor: colors.blueGray.Shade40,
+    backgroundColor: colors.blueGray.shade40,
   },
   notPressed: {
     backgroundColor: "transparent",

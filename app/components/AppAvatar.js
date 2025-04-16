@@ -45,18 +45,11 @@ const InitialsSvg = ({ user, size }) => {
     </Svg>
   );
 };
-function AppAvatar({ user, scale = 1 }) {
+function AppAvatar({ user, scale = 1, style }) {
   const [url, setUrl] = useState(user.avatar_url || null);
-
-  useEffect(() => {
-    if (user.avatar_url) {
-      setUrl(user.avatar_url);
-    }
-  }, [user.avatar_url]);
 
   const isSvg = url?.toLowerCase().endsWith(".svg");
   const size = 54 * scale;
-
   const scaleStyle = {
     height: size,
     width: size,
@@ -65,7 +58,7 @@ function AppAvatar({ user, scale = 1 }) {
 
   if (!user) {
     return (
-      <View style={[scaleStyle, styles.placeholderAvatar]}>
+      <View style={[scaleStyle, styles.placeholderAvatar, style]}>
         <AppText style={styles.placeholderText}>?</AppText>
       </View>
     );
@@ -73,7 +66,7 @@ function AppAvatar({ user, scale = 1 }) {
   // If no avatar URL or if it's an SVG, render our custom InitialsSvg component
   if (!url || isSvg) {
     return (
-      <View style={[scaleStyle, styles.svgContainer]}>
+      <View style={[scaleStyle, styles.svgContainer, style]}>
         <InitialsSvg user={user} size={size} />
       </View>
     );
@@ -83,7 +76,7 @@ function AppAvatar({ user, scale = 1 }) {
       <Image
         source={{ uri: url }}
         contentFit="cover"
-        style={[scaleStyle, styles.profilePic]}
+        style={[scaleStyle, styles.profilePic, style]}
       />
     );
   }
@@ -95,6 +88,8 @@ const styles = StyleSheet.create({
   },
   svgContainer: {
     overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
   },
   placeholderAvatar: {
     backgroundColor: colors.blackShade10,

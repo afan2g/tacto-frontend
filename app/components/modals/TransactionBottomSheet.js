@@ -1,16 +1,19 @@
 import React, {
   forwardRef,
+  memo,
   useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
 } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable, Text } from "react-native";
 import BottomSheet, {
   BottomSheetModal,
   BottomSheetView,
   BottomSheetBackdrop,
+  TouchableWithoutFeedback,
 } from "@gorhom/bottom-sheet";
+import { ScrollView } from "react-native-gesture-handler";
 import { AppText } from "../primitives";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
 import { colors, fonts } from "../../config";
@@ -20,7 +23,6 @@ import formatRelativeTime from "../../utils/formatRelativeTime";
 import { useCalendars, useLocales } from "expo-localization";
 import * as Clipboard from "expo-clipboard";
 const TransactionBottomSheet = forwardRef(({ transaction, onDismiss }, ref) => {
-  console.log("transaction", transaction);
   const { session } = useAuthContext();
   const { timeZone } = useCalendars()[0];
   const { languageTag } = useLocales()[0];
@@ -45,9 +47,10 @@ const TransactionBottomSheet = forwardRef(({ transaction, onDismiss }, ref) => {
     []
   );
 
-  const handleCopyToClipboard = useCallback(async (value) => {
+  const handleCopyToClipboard = async (value) => {
+    console.log("Copying to clipboard:", value);
     await Clipboard.setStringAsync(value);
-  }, []);
+  };
 
   if (!transaction) return null;
 
@@ -138,6 +141,21 @@ const TransactionBottomSheet = forwardRef(({ transaction, onDismiss }, ref) => {
             <AppText style={styles.amount}>{displayConfig.text}</AppText>
           </View>
         </View>
+        {otherUser.id && (
+          <>
+            <View style={styles.separator} />
+            <View style={styles.memoContainer}>
+              <AppText
+                style={[
+                  styles.memoText,
+                  !transaction.memo && styles.placeholderMemo,
+                ]}
+              >
+                {transaction.memo || "No memo provided"}
+              </AppText>
+            </View>
+          </>
+        )}
         <View style={styles.separator} />
         <View style={styles.detailContainer}>
           <View style={styles.detailRow}>
@@ -171,32 +189,39 @@ const TransactionBottomSheet = forwardRef(({ transaction, onDismiss }, ref) => {
             </AppText>
             <AppText style={styles.detailValue}>{shortId}</AppText>
           </View>
-          <View style={styles.detailRow}>
+          <TouchableWithoutFeedback
+            style={styles.detailRow}
+            onPress={() => handleCopyToClipboard(otherUser.address)}
+          >
             <AppText style={[styles.detailText, styles.labelText]}>
               Wallet address:
             </AppText>
-            <AppText
-              style={[styles.detailValue, { maxWidth: "50%", flex: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="middle"
-              onPress={() => handleCopyToClipboard(otherUser.address)}
+
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={true}
+              persistentScrollbar={true}
+              contentContainerStyle={styles.scrollTextViewContent}
             >
-              {otherUser.address}
-            </AppText>
-          </View>
-          <View style={styles.detailRow}>
+              <AppText style={[styles.scrollText]}>{otherUser.address}</AppText>
+            </ScrollView>
+          </TouchableWithoutFeedback>
+          <TouchableWithoutFeedback
+            style={styles.detailRow}
+            onPress={() => handleCopyToClipboard(transaction.hash)}
+          >
             <AppText style={[styles.detailText, styles.labelText]}>
               Hash:
             </AppText>
-            <AppText
-              style={[styles.detailValue, { maxWidth: "50%", flex: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="middle"
-              onPress={() => handleCopyToClipboard(transaction.hash)}
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={true}
+              persistentScrollbar={true}
+              contentContainerStyle={styles.scrollTextViewContent}
             >
-              {transaction.hash}
-            </AppText>
-          </View>
+              <AppText style={[styles.scrollText]}>{transaction.hash}</AppText>
+            </ScrollView>
+          </TouchableWithoutFeedback>
         </View>
       </BottomSheetView>
     </BottomSheetModal>
@@ -241,6 +266,24 @@ const styles = StyleSheet.create({
   separator: {
     height: 10,
   },
+  memoContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: colors.blackShade10,
+    marginHorizontal: 10,
+    height: 100,
+  },
+  memoText: {
+    color: colors.lightGray,
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    textAlignVertical: "bottom",
+  },
+  placeholderMemo: {
+    color: colors.gray.shade50,
+    fontFamily: fonts.italic,
+  },
   detailContainer: {
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -261,6 +304,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     textAlignVertical: "bottom",
     fontSize: 16,
+    marginRight: 20,
   },
   detailRow: {
     flexDirection: "row",
@@ -276,6 +320,21 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     fontSize: 16,
     textAlign: "right", // Align values to the right for a cleaner look
+    textAlignVertical: "bottom",
+  },
+  userCard: {
+    flex: 1,
+    marginRight: 10,
+  },
+  scrollTextViewContent: {
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+
+  scrollText: {
+    color: colors.lightGray,
+    fontFamily: fonts.medium,
+    fontSize: 16,
     textAlignVertical: "bottom",
   },
 });

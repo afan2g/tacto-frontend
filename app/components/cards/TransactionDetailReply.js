@@ -1,6 +1,5 @@
 import React from "react";
 import { View, StyleSheet, Image } from "react-native";
-import AvatarList from "./AvatarList";
 import { AppText } from "../primitives";
 import { ArrowBigDown, ArrowBigUp } from "lucide-react-native";
 import colors from "../../config/colors";

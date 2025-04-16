@@ -46,6 +46,7 @@ const Tab = createMaterialTopTabNavigator();
 
 const ProfileSheetContent = ({
   user,
+  external,
   profile,
   friendData,
   sharedTransactions,
