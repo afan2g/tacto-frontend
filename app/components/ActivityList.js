@@ -8,6 +8,16 @@ import TransactionCardSkeletonLoader from "./skeletons/TransactionCardSkeletonLo
 import { colors } from "../config";
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
+const EmptyListComponent = () => {
+  return (
+    <View style={styles.emptyList}>
+      <Text style={{ color: colors.lightGray, textAlign: "center" }}>
+        No transactions found.
+      </Text>
+    </View>
+  );
+};
+
 const ActivityList = React.forwardRef((props, ref) => {
   const { sharedTransactions, user, profile, navigation, minHeight } = props;
   const listRef = React.useRef(null);
@@ -66,6 +76,7 @@ const ActivityList = React.forwardRef((props, ref) => {
         overScrollMode="never"
         bounces={false}
         snapToEnd={false}
+        ListEmptyComponent={EmptyListComponent}
       />
     </View>
   );
@@ -78,6 +89,12 @@ const styles = StyleSheet.create({
   },
   footer: {
     height: 100, // Add some padding at the bottom to ensure scrollability
+  },
+  emptyList: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
 });
 
