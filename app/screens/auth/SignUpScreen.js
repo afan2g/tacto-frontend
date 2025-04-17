@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -30,6 +30,8 @@ import { countryLookup } from "../../../lib/countryData";
 import ProgressBar from "../../components/ProgressBar";
 import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { set } from "zod";
 
 const SignUpScreen = ({ navigation, route }) => {
   const { formData, updateFormData, updateProgress } = useFormData();
@@ -41,8 +43,11 @@ const SignUpScreen = ({ navigation, route }) => {
     phoneNumber: "",
     country: countryLookup["US"],
   });
+  const emailRef = useRef(null);
+  const phoneRef = useRef(null);
   const theme = useTheme();
-
+  const insets = useSafeAreaInsets();
+  const [initialLayout, setInitialLayout] = useState(true);
   // Handle back navigation
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -66,6 +71,16 @@ const SignUpScreen = ({ navigation, route }) => {
       };
     }, [route.name])
   );
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("transitionEnd", () => {
+      if (formState.isEmail && emailRef.current) {
+        emailRef.current.focus();
+        setInitialLayout(false);
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   // Validate input based on type
   const validateInput = (value, isEmailType = formState.isEmail) => {
@@ -110,6 +125,11 @@ const SignUpScreen = ({ navigation, route }) => {
       email: null,
       phone: null,
     });
+
+    console.log("Toggling input type to:", isEmail ? "email" : "phone");
+    if (isEmail && emailRef.current) {
+      emailRef.current.focus();
+    }
   };
 
   // Handle input changes
@@ -189,7 +209,10 @@ const SignUpScreen = ({ navigation, route }) => {
   );
 
   return (
-    <Screen style={styles.screen}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.keyboardView, { paddingTop: insets.top }]}
+    >
       <View style={styles.headerContainer}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -204,73 +227,66 @@ const SignUpScreen = ({ navigation, route }) => {
 
       <ProgressBar />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-            bounces={false}
-          >
-            <View style={styles.content}>
-              <View style={styles.inputTypeContainer}>
-                <InputTypeButton isEmail={true} icon={Mail} />
-                <InputTypeButton isEmail={false} icon={Phone} />
-              </View>
-
-              {formState.isEmail ? (
-                <TextInput
-                  {...theme.formInput}
-                  theme={{
-                    colors: {
-                      onSurfaceVariant: colors.softGray,
-                    },
-                  }}
-                  label={<Text style={{ fontFamily: fonts.bold }}>Email</Text>}
-                  autoComplete="email"
-                  autoCorrect={false}
-                  autoFocus
-                  value={formData.identifier}
-                  onChangeText={handleInputChange}
-                  onSubmitEditing={formState.isValid ? handleSubmit : undefined}
-                />
-              ) : (
-                <AppPhoneInput
-                  onChangeNumber={handleInputChange}
-                  onChangeCountry={(country) =>
-                    setFormState((prev) => ({ ...prev, country }))
-                  }
-                  initialCountry={formState.country}
-                  value={formState.phoneNumber}
-                />
-              )}
-
-              <ErrorMessage
-                error={formState.error}
-                visible={!!formState.error}
-              />
-
-              <AppButton
-                color={colors.yellow}
-                onPress={handleSubmit}
-                title={formState.isLoading ? "Checking..." : "Next"}
-                style={styles.next}
-                disabled={!formState.isValid || formState.isLoading}
-                loading={formState.isLoading}
-              />
-
-              <SSOOptions
-                grayText="Have an account? "
-                yellowText="Sign In"
-                onPress={() => navigation.navigate(routes.LOGIN)}
-              />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.inputTypeContainer}>
+              <InputTypeButton isEmail={true} icon={Mail} />
+              <InputTypeButton isEmail={false} icon={Phone} />
             </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </Screen>
+
+            {formState.isEmail ? (
+              <TextInput
+                {...theme.formInput}
+                theme={{
+                  colors: {
+                    onSurfaceVariant: colors.softGray,
+                  },
+                }}
+                ref={emailRef}
+                label={<Text style={{ fontFamily: fonts.bold }}>Email</Text>}
+                autoComplete="email"
+                autoCorrect={false}
+                autoFocus={!initialLayout}
+                value={formData.identifier}
+                onChangeText={handleInputChange}
+                onSubmitEditing={formState.isValid ? handleSubmit : undefined}
+              />
+            ) : (
+              <AppPhoneInput
+                onChangeNumber={handleInputChange}
+                onChangeCountry={(country) =>
+                  setFormState((prev) => ({ ...prev, country }))
+                }
+                initialCountry={formState.country}
+                value={formState.phoneNumber}
+              />
+            )}
+
+            <ErrorMessage error={formState.error} visible={!!formState.error} />
+
+            <AppButton
+              color={colors.yellow}
+              onPress={handleSubmit}
+              title={formState.isLoading ? "Checking..." : "Next"}
+              style={styles.next}
+              disabled={!formState.isValid || formState.isLoading}
+              loading={formState.isLoading}
+            />
+
+            <SSOOptions
+              grayText="Have an account? "
+              yellowText="Sign In"
+              onPress={() => navigation.navigate(routes.LOGIN)}
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

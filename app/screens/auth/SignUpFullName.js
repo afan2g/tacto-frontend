@@ -23,6 +23,7 @@ import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import { ChevronLeft } from "lucide-react-native";
 import ProgressBar from "../../components/ProgressBar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function SignUpFullName({ navigation, route }) {
   const inputRef = useRef(null);
@@ -30,6 +31,7 @@ function SignUpFullName({ navigation, route }) {
   const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -45,6 +47,15 @@ function SignUpFullName({ navigation, route }) {
   const handleBack = () => {
     navigation.goBack();
   };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("transitionEnd", () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -93,62 +104,58 @@ function SignUpFullName({ navigation, route }) {
   };
 
   return (
-    <Screen style={styles.screen}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.keyboardView, { paddingTop: insets.top }]}
+    >
       <View style={styles.headerContainer}>
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>What's your name?</Header>
       </View>
       <ProgressBar />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-            bounces={false}
-          >
-            <View style={styles.content}>
-              <TextInput
-                {...theme.formInput}
-                theme={{
-                  colors: {
-                    onSurfaceVariant: colors.softGray,
-                  },
-                }}
-                label={
-                  <Text style={{ fontFamily: fonts.black }}>Full name</Text>
-                }
-                ref={inputRef}
-                value={formData.fullName}
-                onChangeText={handleInputChange}
-                autoComplete="name"
-                autoCorrect={false}
-                autoFocus={true}
-                returnKeyType="done"
-                onSubmitEditing={isValid ? submitFullName : undefined}
-                accessibilityLabel="Username input"
-              />
-              <ErrorMessage error={error} />
-              <AppButton
-                color={colors.yellow}
-                onPress={submitFullName}
-                title="Next"
-                style={styles.next}
-                disabled={!isValid || Boolean(error)}
-              />
-              <SSOOptions
-                grayText="Have an account? "
-                yellowText="Sign In"
-                onPress={() => navigation.navigate(routes.LOGIN)}
-              />
-            </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </Screen>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <View style={styles.content}>
+            <TextInput
+              {...theme.formInput}
+              theme={{
+                colors: {
+                  onSurfaceVariant: colors.softGray,
+                },
+              }}
+              label={<Text style={{ fontFamily: fonts.black }}>Full name</Text>}
+              ref={inputRef}
+              value={formData.fullName}
+              onChangeText={handleInputChange}
+              autoComplete="name"
+              autoCorrect={false}
+              // autoFocus={true}
+              returnKeyType="done"
+              onSubmitEditing={isValid ? submitFullName : undefined}
+              accessibilityLabel="Username input"
+            />
+            <ErrorMessage error={error} />
+            <AppButton
+              color={colors.yellow}
+              onPress={submitFullName}
+              title="Next"
+              style={styles.next}
+              disabled={!isValid || Boolean(error)}
+            />
+            <SSOOptions
+              grayText="Have an account? "
+              yellowText="Sign In"
+              onPress={() => navigation.navigate(routes.LOGIN)}
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

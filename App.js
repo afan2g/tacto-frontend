@@ -38,12 +38,12 @@ export default function App() {
   const { isLoading } = authData;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <PaperProvider theme={theme}>
-        <NavigationContainer theme={navigationTheme}>
-          <AuthProvider value={authData}>
-            <SafeAreaProvider>
-              <GestureHandlerRootView style={styles.flex}>
+    <GestureHandlerRootView style={styles.flex}>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={theme}>
+          <NavigationContainer theme={navigationTheme}>
+            <AuthProvider value={authData}>
+              <SafeAreaProvider>
                 <BottomSheetModalProvider>
                   <StatusBar style="auto" />
                   <View style={styles.container}>
@@ -52,12 +52,12 @@ export default function App() {
                     </FormProvider>
                   </View>
                 </BottomSheetModalProvider>
-              </GestureHandlerRootView>
-            </SafeAreaProvider>
-          </AuthProvider>
-        </NavigationContainer>
-      </PaperProvider>
-    </QueryClientProvider>
+              </SafeAreaProvider>
+            </AuthProvider>
+          </NavigationContainer>
+        </PaperProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 

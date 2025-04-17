@@ -22,6 +22,7 @@ import ActivityList from "../ActivityList";
 import { OtherUserHeader } from "../cards";
 import AppTabBar from "../AppTabBar";
 import CollapsedHeader from "../cards/CollapsedHeader";
+import { useData } from "../../contexts"; // Import useData hook
 
 const TAB_BAR_HEIGHT = 50;
 const COLLAPSED_HEADER_HEIGHT = 80;
@@ -36,11 +37,13 @@ const Tab = createMaterialTopTabNavigator();
 
 const ProfileSheetContent = ({
   user,
-  profile,
   friendData,
   sharedTransactions,
   handleClose,
 }) => {
+  // Get profile from context instead of props
+  const { profile } = useData();
+
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(0);

@@ -32,13 +32,6 @@ function PeopleTopTabNavigator(props) {
         }}
       />
       <Tab.Screen
-        name={routes.PEOPLEFRIENDS}
-        component={PeopleFriendsScreen}
-        options={{
-          tabBarLabel: "Friends",
-        }}
-      />
-      <Tab.Screen
         name={routes.PEOPLESPLIT}
         component={PeopleSplitScreen}
         options={{

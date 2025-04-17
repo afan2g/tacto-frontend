@@ -7,7 +7,7 @@ import { AppButton, AppText } from "../primitives";
 import UserCardVertical from "./UserCardVertical";
 import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
-import { useAuthContext } from "../../contexts";
+import { useAuthContext, useData } from "../../contexts";
 import {
   sendFriendRequest,
   cancelFriendRequest,
@@ -21,6 +21,7 @@ const Spacer = ({ height = 16 }) => <View style={{ height }} />;
 function OtherUserHeader({ user, friendData, style, handleClose }) {
   const { friendCount, mutualFriendCount, status } = friendData || {};
   const { session } = useAuthContext();
+  const { refreshFriendRequests } = useData();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [loadingFriend, setLoadingFriend] = useState(false);
@@ -159,6 +160,10 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
           setFriendStatus("none");
           break;
       }
+      // Refresh friend requests after any action
+      await refreshFriendRequests();
+
+      console.log("Friend request action completed:", friendAction);
     } catch (err) {
       console.error("Error handling friend request:", err);
       setError("An error occurred while processing your request.");
@@ -168,6 +173,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   };
 
   const handleTransactNavigation = async (type) => {
+    console.log("Transact button pressed with type:", type);
     if (loading || loadingTransact) return; // Prevent navigation if loading
     console.log("Navigating to transact screen with type:", type);
     try {

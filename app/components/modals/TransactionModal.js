@@ -7,15 +7,13 @@ import {
 } from "react-native";
 
 import { colors, fonts } from "../../config";
-import { OtherUserHeader, UserCardVertical } from "../cards";
-import { FAKE_TRANSACTIONS_FULL } from "../../data/fakeData";
+import { UserCardVertical } from "../cards";
 import { MoveRight, X } from "lucide-react-native";
 import { AppText } from "../primitives";
 import { ArrowBigUp, ArrowBigDown } from "lucide-react-native";
 
 function TransactionModal({ transaction, visible, close }) {
   if (!transaction) return null; // Render nothing if no user is selected
-  // transaction = FAKE_TRANSACTIONS_FULL[0];
 
   const {
     from_user: from,

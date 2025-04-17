@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: colors.lightGray,
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: fonts.medium,
   },
 });

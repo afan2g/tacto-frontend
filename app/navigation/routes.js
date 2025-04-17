@@ -32,4 +32,5 @@ export default Object.freeze({
   RECOVERWALLET: "RecoverWallet",
   NEWWALLET: "NewWallet",
   TESTBOTTOMSHEET: "TestBottomSheet",
+  PROFILEBOTTOMSHEET: "ProfileBottomSheet",
 });

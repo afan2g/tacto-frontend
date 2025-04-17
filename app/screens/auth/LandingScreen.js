@@ -68,7 +68,6 @@ function LandingScreen({ navigation }) {
           loading={isLoading}
           icon={<GoogleIcon width={44} height={44} />}
           textStyle={{ fontSize: 19 }}
-
         />
         <AppButton
           color="#fff"

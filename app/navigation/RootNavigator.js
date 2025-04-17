@@ -15,6 +15,9 @@ import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScre
 import { DataProvider } from "../contexts";
 import ModalTestingScreen from "../screens/ModalTestingScreen";
 import QrScreen from "../screens/QrScreen";
+import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
+import ProfileSheetContent from "../components/modals/ProfileSheetContent";
+import { OtherUserHeader } from "../components/cards";
 const Stack = createNativeStackNavigator();
 
 const config = {

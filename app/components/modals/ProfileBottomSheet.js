@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors } from "../../config";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
-import { useData } from "../../contexts";
+import { DataProvider, useData } from "../../contexts";
 import ProfileSheetContent from "./ProfileSheetContent";
 
 /**
@@ -94,13 +94,14 @@ const ProfileBottomSheet = forwardRef(
         style={styles.bottomSheetModal}
         onDismiss={onDismiss}
       >
-        <ProfileSheetContent
-          user={user}
-          friendData={friendData}
-          profile={profile}
-          sharedTransactions={sharedTransactions}
-          handleClose={handleClose}
-        />
+        <DataProvider>
+          <ProfileSheetContent
+            user={user}
+            friendData={friendData}
+            sharedTransactions={sharedTransactions}
+            handleClose={handleClose}
+          />
+        </DataProvider>
       </BottomSheetModal>
     );
   }

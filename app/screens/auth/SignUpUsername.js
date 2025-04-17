@@ -29,12 +29,15 @@ import { colors, fonts } from "../../config";
 import routes from "../../navigation/routes";
 import { clientValidation } from "../../validation/clientValidation";
 import ProgressBar from "../../components/ProgressBar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 function SignUpUsername({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(false);
+  const inputRef = useRef(null);
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   // Handle hardware back press
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -45,6 +48,15 @@ function SignUpUsername({ navigation, route }) {
       }
     );
     return () => backHandler.remove();
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("transitionEnd", () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    });
+    return unsubscribe;
   }, [navigation]);
 
   const handleBack = () => {
@@ -143,64 +155,61 @@ function SignUpUsername({ navigation, route }) {
   };
 
   return (
-    <Screen style={styles.screen}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.keyboardView, { paddingTop: insets.top }]}
+    >
       <View style={styles.headerContainer}>
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Choose a username</Header>
       </View>
       <ProgressBar />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-            bounces={false}
-          >
-            <View style={styles.content}>
-              <TextInput
-                {...theme.formInput}
-                theme={{
-                  colors: {
-                    onSurfaceVariant: colors.softGray,
-                  },
-                }}
-                label={<Text style={{ fontFamily: fonts.bold }}>Username</Text>}
-                accessibilityLabel="Username input"
-                autoComplete="username"
-                autoCorrect={false}
-                autoFocus={true}
-                onChangeText={handleInputChange}
-                onSubmitEditing={
-                  isValid && !isLoading ? handleUsernameSubmit : undefined
-                }
-                returnKeyType="done"
-                value={formData.username}
-              />
-              <ErrorMessage error={error} />
-              <AppButton
-                color={colors.yellow}
-                onPress={handleUsernameSubmit}
-                title={isLoading ? "Checking..." : "Next"}
-                loading={isLoading}
-                style={styles.next}
-                disabled={
-                  isLoading || !isValid || !!error || !formData.username
-                }
-              />
-              <SSOOptions
-                grayText="Have an account? "
-                yellowText="Sign In"
-                onPress={() => navigation.navigate(routes.LOGIN)}
-              />
-            </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </Screen>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <View style={styles.content}>
+            <TextInput
+              {...theme.formInput}
+              theme={{
+                colors: {
+                  onSurfaceVariant: colors.softGray,
+                },
+              }}
+              ref={inputRef}
+              label={<Text style={{ fontFamily: fonts.bold }}>Username</Text>}
+              accessibilityLabel="Username input"
+              autoComplete="username"
+              autoCorrect={false}
+              // autoFocus={true}
+              onChangeText={handleInputChange}
+              onSubmitEditing={
+                isValid && !isLoading ? handleUsernameSubmit : undefined
+              }
+              returnKeyType="done"
+              value={formData.username}
+            />
+            <ErrorMessage error={error} />
+            <AppButton
+              color={colors.yellow}
+              onPress={handleUsernameSubmit}
+              title={isLoading ? "Checking..." : "Next"}
+              loading={isLoading}
+              style={styles.next}
+              disabled={isLoading || !isValid || !!error || !formData.username}
+            />
+            <SSOOptions
+              grayText="Have an account? "
+              yellowText="Sign In"
+              onPress={() => navigation.navigate(routes.LOGIN)}
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -24,6 +24,7 @@ import { SSOOptions } from "../../components/login";
 import { ChevronLeft } from "lucide-react-native";
 import { PROGRESS_STEPS } from "../../constants/progress";
 import ProgressBar from "../../components/ProgressBar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 function SignUpPassword({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
@@ -31,7 +32,9 @@ function SignUpPassword({ navigation, route }) {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const isPhoneVerification = formData.phone != null;
   const [showPassword, setShowPassword] = useState(false);
+  const inputRef = useRef(null);
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -42,6 +45,15 @@ function SignUpPassword({ navigation, route }) {
     );
 
     return () => backHandler.remove();
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("transitionEnd", () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    });
+    return unsubscribe;
   }, [navigation]);
 
   useFocusEffect(
@@ -139,85 +151,83 @@ function SignUpPassword({ navigation, route }) {
     formData.password && clientValidation.password(formData.password).success;
 
   return (
-    <Screen style={styles.screen}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.keyboardView, { paddingTop: insets.top }]}
+    >
       <View style={styles.headerContainer}>
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Create a password</Header>
       </View>
       <ProgressBar />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-            bounces={false}
-          >
-            <View style={styles.content}>
-              <TextInput
-                {...theme.formInput}
-                theme={{
-                  colors: {
-                    onSurfaceVariant: colors.softGray,
-                  },
-                }}
-                label={<Text style={{ fontFamily: fonts.bold }}>Password</Text>}
-                autoComplete="new-password"
-                autoCorrect={false}
-                autoFocus
-                value={formData.password}
-                onChangeText={handleInputChange}
-                onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
-                secureTextEntry={!showPassword}
-                returnKeyType="done"
-                right={
-                  <TextInput.Icon
-                    color={!showPassword ? colors.fadedGray : colors.lightGray}
-                    forceTextInputFocus={false}
-                    icon={showPassword ? "eye" : "eye-off"}
-                    onPress={() => setShowPassword((prev) => !prev)}
-                  />
-                }
-              />
-              <ErrorMessage error={error} />
-              {showLoginPrompt && (
-                <View style={styles.loginPrompt}>
-                  <AppText style={styles.loginPromptText}>
-                    Want to sign in instead?
-                  </AppText>
-                  <AppButton
-                    color={colors.yellow}
-                    onPress={() => {
-                      navigation.navigate(routes.LOGIN, {
-                        email: formData.email,
-                      });
-                    }}
-                    title="Go to Login"
-                    style={styles.loginButton}
-                  />
-                </View>
-              )}
-              <AppButton
-                color={colors.yellow}
-                onPress={handleSubmit}
-                title={isSubmitting ? "Sending..." : "Get Verification Code"}
-                disabled={isSubmitting || !isPasswordValid}
-                style={styles.next}
-                loading={isSubmitting}
-              />
-              <SSOOptions
-                grayText="Have an account? "
-                yellowText="Sign In"
-                onPress={() => navigation.navigate(routes.LOGIN)}
-              />
-            </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </Screen>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <View style={styles.content}>
+            <TextInput
+              {...theme.formInput}
+              theme={{
+                colors: {
+                  onSurfaceVariant: colors.softGray,
+                },
+              }}
+              label={<Text style={{ fontFamily: fonts.bold }}>Password</Text>}
+              autoComplete="new-password"
+              autoCorrect={false}
+              ref={inputRef}
+              value={formData.password}
+              onChangeText={handleInputChange}
+              onSubmitEditing={isPasswordValid ? handleSubmit : undefined}
+              secureTextEntry={!showPassword}
+              returnKeyType="done"
+              right={
+                <TextInput.Icon
+                  color={!showPassword ? colors.fadedGray : colors.lightGray}
+                  forceTextInputFocus={false}
+                  icon={showPassword ? "eye" : "eye-off"}
+                  onPress={() => setShowPassword((prev) => !prev)}
+                />
+              }
+            />
+            <ErrorMessage error={error} />
+            {showLoginPrompt && (
+              <View style={styles.loginPrompt}>
+                <AppText style={styles.loginPromptText}>
+                  Want to sign in instead?
+                </AppText>
+                <AppButton
+                  color={colors.yellow}
+                  onPress={() => {
+                    navigation.navigate(routes.LOGIN, {
+                      email: formData.email,
+                    });
+                  }}
+                  title="Go to Login"
+                  style={styles.loginButton}
+                />
+              </View>
+            )}
+            <AppButton
+              color={colors.yellow}
+              onPress={handleSubmit}
+              title={isSubmitting ? "Sending..." : "Get Verification Code"}
+              disabled={isSubmitting || !isPasswordValid}
+              style={styles.next}
+              loading={isSubmitting}
+            />
+            <SSOOptions
+              grayText="Have an account? "
+              yellowText="Sign In"
+              onPress={() => navigation.navigate(routes.LOGIN)}
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
