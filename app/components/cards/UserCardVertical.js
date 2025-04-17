@@ -6,6 +6,7 @@ import colors from "../../config/colors";
 import AppAvatar from "../AppAvatar";
 import { Skeleton } from "moti/skeleton";
 import { ScrollView } from "react-native-gesture-handler";
+import * as Clipboard from "expo-clipboard";
 function UserCardVertical({
   user,
   onPress = () => {},
@@ -27,6 +28,10 @@ function UserCardVertical({
     },
   };
 
+  const handleAddressCopy = async () => {
+    await Clipboard.setStringAsync(user.address);
+  };
+
   if (!user.id) {
     return (
       <View style={[styles.container, style]}>
@@ -35,7 +40,7 @@ function UserCardVertical({
           <AppText style={[styles.fullName, scaleStyle.fullName]}>
             {user.full_name}
           </AppText>
-          <View style={styles.scrollContainer}>
+          <Pressable style={styles.scrollContainer} onPress={handleAddressCopy}>
             <ScrollView
               contentContainerStyle={styles.scrollView}
               horizontal
@@ -45,7 +50,7 @@ function UserCardVertical({
                 {user.address}
               </AppText>
             </ScrollView>
-          </View>
+          </Pressable>
         </View>
       </View>
     );
