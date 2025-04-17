@@ -28,6 +28,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   const [error, setError] = useState(null);
   const [friendStatus, setFriendStatus] = useState(status || "none");
   const [friendRequestData, setFriendRequestData] = useState(friendData);
+  const [isExternal, setIsExternal] = useState(false); // Track if the user is external
   // Track who is the requester when we send a friend request
   const [isRequester, setIsRequester] = useState(
     friendRequestData?.requester_id === session.user.id
@@ -38,10 +39,15 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
       setFriendRequestData(friendData);
       setFriendStatus(friendData.status || "none");
       setLoading(false);
+    } else if (user.external) {
+      console.log("User is external:", user.external);
+      setIsExternal(true);
+      setLoading(false);
     } else {
-      setLoading(true);
+      console.log("No friend data available for user:", user.id);
+      setLoading(false);
     }
-  }, [friendData]);
+  }, [friendData, user]);
 
   // Compute friend action based on current status and requester information
   const friendAction = useMemo(() => {
@@ -162,6 +168,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
 
   const handleTransactNavigation = async (type) => {
     if (loading || loadingTransact) return; // Prevent navigation if loading
+    console.log("Navigating to transact screen with type:", type);
     try {
       setLoadingTransact(true);
       setError(null);
@@ -199,6 +206,14 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
       setLoadingTransact(false);
     }
   };
+
+  if (isExternal) {
+    return (
+      <View style={[styles.headerContainer, style]}>
+        <UserCardVertical user={user} scale={0.8} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.headerContainer, style]}>

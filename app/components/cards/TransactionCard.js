@@ -71,7 +71,8 @@ function TransactionCard({ transaction, style, onLongPress, avatar }) {
       style={({ pressed }) => [
         styles.container,
         style,
-        pressed ? styles.pressed : styles.notPressed,
+        // pressed ? styles.pressed : styles.notPressed,
+        styles.notPressed,
       ]}
       onPress={handlePress}
       onLongPress={onLongPress}

@@ -78,12 +78,51 @@ export const useProfileSheet = ({ sessionUserId, onSuccess, onError }) => {
     [sessionUserId, onSuccess, onError]
   );
 
+  const fetchExternalWalletData = useCallback(
+    async (targetWallet) => {
+      setLoading(true);
+      try {
+        const {
+          data: responseData,
+          count,
+          error,
+        } = await supabase
+          .from("transactions")
+          .select("*", { count: "exact" })
+          .or(`from_address.eq.${targetWallet},to_address.eq.${targetWallet}`);
+
+        if (error) {
+          console.error("Error fetching external wallet data:", error);
+          throw new Error("Failed to fetch external wallet data");
+        }
+
+        if (!responseData) {
+          console.error("No response data received for external wallet");
+          throw new Error("No data received for external wallet");
+        }
+
+        setData((prevData) => ({
+          ...prevData,
+          sharedTransactions: responseData || [],
+        }));
+        console.log("External wallet data:", responseData);
+        console.log("Count:", count);
+      } catch (error) {
+        console.error("Error loading external wallet data:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [sessionUserId]
+  );
+
   const presentSheet = useCallback(
     (targetUser) => {
       setData({ user: targetUser });
       bottomSheetRef.current?.present();
       if (!targetUser.id) {
-        setData((prevData) => ({ ...prevData, external: true }));
+        setData((prevData) => ({ user: { ...prevData.user, external: true } }));
+        fetchExternalWalletData(targetUser.address);
         return;
       }
       fetchProfileData(targetUser);

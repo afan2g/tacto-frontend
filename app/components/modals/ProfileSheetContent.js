@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { StyleSheet, useWindowDimensions } from "react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Animated, {
@@ -13,11 +7,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
-  withTiming,
-  withSpring,
   Extrapolation,
-  ReduceMotion,
-  Easing,
   useAnimatedReaction,
   runOnJS,
 } from "react-native-reanimated";
@@ -46,7 +36,6 @@ const Tab = createMaterialTopTabNavigator();
 
 const ProfileSheetContent = ({
   user,
-  external,
   profile,
   friendData,
   sharedTransactions,
@@ -307,6 +296,7 @@ const ProfileSheetContent = ({
               tabBarIndicatorStyle: { backgroundColor: colors.yellow },
               tabBarActiveTintColor: colors.lightGray,
               tabBarInactiveTintColor: colors.grayOpacity50,
+              animationEnabled: false,
             }}
           >
             <Tab.Screen name="activity">{renderActivityList}</Tab.Screen>
@@ -394,7 +384,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.blackShade40,
+    backgroundColor: colors.black,
     justifyContent: "center",
     zIndex: 2,
     alignItems: "center",

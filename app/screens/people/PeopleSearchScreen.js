@@ -185,10 +185,10 @@ function PeopleSearchScreen({ navigation, ...props }) {
         <ProfileBottomSheet
           ref={bottomSheetRef}
           user={data?.user}
-          loading={loadingBottomSheet}
-          onDismiss={dismissSheet}
           friendData={data?.friendData}
           sharedTransactions={data?.sharedTransactions}
+          loading={loadingBottomSheet}
+          onDismiss={dismissSheet}
         />
       </Pressable>
     </KeyboardAvoidingView>

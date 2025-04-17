@@ -232,7 +232,6 @@ function ActivityScreen({ navigation }) {
         user={data?.user}
         friendData={data?.friendData}
         sharedTransactions={data?.sharedTransactions}
-        external={data?.external}
         loading={loading}
         navigation={navigation}
         onDismiss={handleDismissBottomSheet}

@@ -76,23 +76,26 @@ function ConfirmTransactionScreen({ navigation, route }) {
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
-      () => {
-        const prevRoute =
-          navigation.getState().routes[navigation.getState().index - 1];
-        if (prevRoute.name === routes.TRANSACTCONFIRM) {
-          navigation.navigate(routes.TRANSACTSELECTUSER, {
-            ...transaction,
-            amount: getFormattedAmountWithoutSymbol(value),
-          });
-          return true;
-        } else {
-          navigation.popToTop();
-          return true;
-        }
-      }
+      handleBackPress
     );
     return () => subscription.remove();
   }, []);
+
+  const handleBackPress = () => {
+    const prevRoute =
+      navigation.getState().routes[navigation.getState().index - 1];
+    if (prevRoute.name === routes.TRANSACTSELECTUSER) {
+      navigation.navigate(routes.TRANSACTSELECTUSER, {
+        ...transaction,
+        amount: getFormattedAmountWithoutSymbol(value),
+      });
+      return true;
+    } else {
+      navigation.goBack();
+      return true;
+    }
+  };
+
   // Fetch recipient wallet address when recipient user changes
   useEffect(() => {
     if (!transaction.recipientUser) return;

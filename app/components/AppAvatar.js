@@ -63,6 +63,13 @@ function AppAvatar({ user, scale = 1, style }) {
       </View>
     );
   }
+  if (!user.id) {
+    return (
+      <View style={[scaleStyle, styles.placeholderAvatar, style]}>
+        <AppText style={styles.placeholderText}>?</AppText>
+      </View>
+    );
+  }
   // If no avatar URL or if it's an SVG, render our custom InitialsSvg component
   if (!url || isSvg) {
     return (

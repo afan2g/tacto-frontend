@@ -5,6 +5,7 @@ import fonts from "../../config/fonts";
 import colors from "../../config/colors";
 import AppAvatar from "../AppAvatar";
 import { Skeleton } from "moti/skeleton";
+import { ScrollView } from "react-native-gesture-handler";
 function UserCardVertical({
   user,
   onPress = () => {},
@@ -25,6 +26,30 @@ function UserCardVertical({
       fontSize: 20 * scale,
     },
   };
+
+  if (!user.id) {
+    return (
+      <View style={[styles.container, style]}>
+        <AppAvatar user={user} scale={scale * 1.5} />
+        <View style={styles.userNameContainer}>
+          <AppText style={[styles.fullName, scaleStyle.fullName]}>
+            {user.full_name}
+          </AppText>
+          <View style={styles.scrollContainer}>
+            <ScrollView
+              contentContainerStyle={styles.scrollView}
+              horizontal
+              showsHorizontalScrollIndicator
+            >
+              <AppText style={[styles.fullName, styles.address]}>
+                {user.address}
+              </AppText>
+            </ScrollView>
+          </View>
+        </View>
+      </View>
+    );
+  }
   return (
     <Pressable
       onPress={onPress}
@@ -68,6 +93,19 @@ const styles = StyleSheet.create({
     fontFamily: fonts.light,
     color: colors.lightGray,
     textAlign: "center",
+  },
+  scrollContainer: {
+    width: "100%",
+  },
+  scrollView: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  address: {
+    fontSize: 14,
+    fontFamily: fonts.black,
   },
 });
 

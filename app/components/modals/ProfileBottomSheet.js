@@ -46,18 +46,7 @@ import ProfileSheetContent from "./ProfileSheetContent";
  * */
 
 const ProfileBottomSheet = forwardRef(
-  (
-    {
-      user,
-      friendData,
-      sharedTransactions,
-      external = false,
-      loading = false, // Rename to make it clear it's external
-      onDismiss,
-      navigation,
-    },
-    ref
-  ) => {
+  ({ user, friendData, sharedTransactions, onDismiss }, ref) => {
     // Internal state to manage content
     const bottomSheetRef = useRef(null);
     const { handleSheetPositionChange } = useBottomSheetBackHandler(
@@ -107,7 +96,6 @@ const ProfileBottomSheet = forwardRef(
       >
         <ProfileSheetContent
           user={user}
-          external={external}
           friendData={friendData}
           profile={profile}
           sharedTransactions={sharedTransactions}
@@ -136,7 +124,6 @@ const styles = StyleSheet.create({
   },
   bottomSheetModal: {
     borderWidth: 0,
-    backgroundColor: colors.black,
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
     shadowColor: colors.lightGray,
