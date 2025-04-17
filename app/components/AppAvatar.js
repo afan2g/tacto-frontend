@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { AppText } from "./primitives";
 import { colors, fonts } from "../config";
 import { Svg, Circle, Text as SvgText } from "react-native-svg";
@@ -56,17 +56,10 @@ function AppAvatar({ user, scale = 1, style }) {
     borderRadius: size / 2,
   };
 
-  if (!user) {
+  if (!user || !user.id) {
     return (
       <View style={[scaleStyle, styles.placeholderAvatar, style]}>
-        <AppText style={styles.placeholderText}>?</AppText>
-      </View>
-    );
-  }
-  if (!user.id) {
-    return (
-      <View style={[scaleStyle, styles.placeholderAvatar, style]}>
-        <AppText style={styles.placeholderText}>?</AppText>
+        <Text style={styles.placeholderText}>?</Text>
       </View>
     );
   }
@@ -105,7 +98,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: colors.lightGray,
-    fontSize: 20,
+    fontSize: 24,
     fontFamily: fonts.medium,
   },
 });

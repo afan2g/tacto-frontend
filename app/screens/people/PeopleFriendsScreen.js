@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 5,
     marginVertical: 5,
+    paddingLeft: 10,
   },
   sortByIcon: {
     marginLeft: 10,

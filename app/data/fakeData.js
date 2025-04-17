@@ -5,6 +5,7 @@ import {
   ChartSpline,
   ArrowDownUp,
   CircleDollarSign,
+  CircleSlash,
 } from "lucide-react-native";
 import generateRandomHash from "../utils/generateRandomHash";
 import { memo } from "react";
@@ -513,8 +514,13 @@ export const FAKEUSERS = [
 
 export const FAKE_DROPDOWN_ITEMS = [
   {
-    label: "Age",
-    value: "age",
+    label: "None",
+    value: "none",
+    icon: () => <CircleSlash size={24} color={colors.fadedGray} />,
+  },
+  {
+    label: "Last Transaction",
+    value: "recent",
     icon: () => <Clock size={24} color={colors.fadedGray} />,
   },
   {
@@ -524,7 +530,7 @@ export const FAKE_DROPDOWN_ITEMS = [
   },
   {
     label: "Transaction Count",
-    value: "transactionCount",
+    value: "count",
     icon: () => <ArrowDownUp size={24} color={colors.fadedGray} />,
   },
   {

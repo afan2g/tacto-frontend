@@ -77,7 +77,6 @@ export const useProfileSheet = ({ sessionUserId, onSuccess, onError }) => {
     },
     [sessionUserId, onSuccess, onError]
   );
-
   const fetchExternalWalletData = useCallback(
     async (targetWallet) => {
       setLoading(true);
@@ -125,6 +124,7 @@ export const useProfileSheet = ({ sessionUserId, onSuccess, onError }) => {
         fetchExternalWalletData(targetUser.address);
         return;
       }
+
       fetchProfileData(targetUser);
     },
     [fetchProfileData]

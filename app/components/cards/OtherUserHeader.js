@@ -36,6 +36,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
 
   useEffect(() => {
     if (friendData) {
+      console.log("Friend data available:", friendData);
       setFriendRequestData(friendData);
       setFriendStatus(friendData.status || "none");
       setLoading(false);
@@ -45,7 +46,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
       setLoading(false);
     } else {
       console.log("No friend data available for user:", user.id);
-      setLoading(false);
+      setLoading(true);
     }
   }, [friendData, user]);
 

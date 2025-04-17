@@ -23,6 +23,12 @@ import { useProfileSheet } from "../../hooks/useProfileSheet";
 import ProfileBottomSheet from "../../components/modals/ProfileBottomSheet";
 import { debounce } from "lodash";
 import { supabase } from "../../../lib/supabase";
+import DropDownPickerComponent from "../../components/forms/DropDownPickerComponent";
+import { ChevronsUpDown } from "lucide-react-native";
+import { FAKE_DROPDOWN_ITEMS } from "../../data/fakeData";
+import { AppText } from "../../components/primitives";
+import { set } from "zod";
+import formatRelativeTime from "../../utils/formatRelativeTime";
 function PeopleSearchScreen({ navigation, ...props }) {
   const { modalVisible, selectedItem, openModal, closeModal } = useModal();
   const { session } = useAuthContext();
@@ -31,7 +37,12 @@ function PeopleSearchScreen({ navigation, ...props }) {
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [loadingProfiles, setLoadingProfiles] = useState(false);
+  const [dropDownOpen, setDropDownOpen] = useState(false);
+  const [dropDownItem, setDropDownItem] = useState(
+    FAKE_DROPDOWN_ITEMS[0].value
+  ); // Default dropdown item
+  const [sortDirection, setSortDirection] = useState("desc"); // Default sort direction
+
   const {
     bottomSheetRef,
     data,
@@ -44,7 +55,12 @@ function PeopleSearchScreen({ navigation, ...props }) {
 
   const handleRefresh = async () => {
     setLoading(true); // Show loading state immediately for better UX
-
+    setError(false); // Reset error state
+    setSearch(""); // Clear search input
+    setIsSearching(false); // Reset searching state
+    setDropDownOpen(false); // Close dropdown if open
+    setDropDownItem(null); // Reset dropdown item
+    setSortDirection("desc"); // Reset sort direction
     // await new Promise((resolve) => setTimeout(resolve, 10000)); // Optional: Add a delay for the loading state
     try {
       await fetchInitialProfiles();
@@ -58,8 +74,8 @@ function PeopleSearchScreen({ navigation, ...props }) {
 
   // Refactored fetchUsers function
   const fetchInitialProfiles = async () => {
-    if (loadingProfiles) return; // Prevent multiple fetches
-    setLoadingProfiles(true); // Set loading state
+    if (loading) return; // Prevent multiple fetches
+    setLoading(true); // Set loading state
     try {
       // Fetch profiles data
       const { data: profiles, error } = await supabase
@@ -73,7 +89,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
     } catch (error) {
       console.error("Error fetching profiles:", error);
     } finally {
-      setLoadingProfiles(false); // Reset loading state
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -91,6 +107,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
 
       try {
         setIsSearching(true);
+        setDropDownItem("none");
 
         // Using trigram similarity for fuzzy matching
         const { data: searchResults, error } = await supabase.rpc(
@@ -147,16 +164,96 @@ function PeopleSearchScreen({ navigation, ...props }) {
 
   const handleOutsidePress = () => {
     Keyboard.dismiss();
+    setDropDownOpen(false);
   };
 
-  const handleInputChange = (value) => {
-    setSearch(value);
+  // First, update the handleItemChange function to use the new value directly
+  const handleItemChange = async (item) => {
+    console.log(item);
+    setDropDownOpen(false);
+    setDropDownItem(item); // Store the selected item
+
+    if (item === "none") {
+      handleRefresh(); // Reset to default state
+      return;
+    }
+    // Use the new item value directly instead of relying on state
+    try {
+      setLoading(true);
+      const { data: sortedProfiles, error } = await supabase.rpc(
+        "get_transaction_partners",
+        {
+          current_user_id: session.user.id,
+          sort_by: item, // Use the parameter directly
+          sort_direction: sortDirection,
+          limit_count: 20,
+        }
+      );
+
+      if (error) throw error;
+      console.log("Sorted profiles:", sortedProfiles);
+      setProfiles(sortedProfiles);
+    } catch (error) {
+      console.error("Error fetching sorted profiles:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = () => {
-    console.log("Submitted search:", search);
+  // Next, update the handleSortChange function to use the toggled value directly
+  const handleSortChange = async () => {
+    const newSortDirection = sortDirection === "asc" ? "desc" : "asc";
+    console.log("Sorting changed to:", newSortDirection);
+    setSortDirection(newSortDirection); // Update state
+
+    // Use the new sort direction directly
+    try {
+      setLoading(true);
+      const { data: sortedProfiles, error } = await supabase.rpc(
+        "get_transaction_partners",
+        {
+          current_user_id: session.user.id,
+          sort_by: dropDownItem,
+          sort_direction: newSortDirection, // Use the toggled value directly
+          limit_count: 20,
+        }
+      );
+
+      if (error) throw error;
+      console.log("Sorted profiles:", sortedProfiles);
+      setProfiles(sortedProfiles);
+    } catch (error) {
+      console.error("Error fetching sorted profiles:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const renderItem = ({ item }) => {
+    return (
+      <View style={styles.resultCard}>
+        <UserCard
+          user={loading ? null : item}
+          style={styles.userCard}
+          onPress={() => handleCardPress(item)}
+          onLongPress={() => handleCardLongPress(item)} // Long press logic here
+        />
+        {!loading && dropDownItem && (
+          <View style={styles.sortedDetailContainer}>
+            <AppText style={styles.sortByText}>
+              {dropDownItem === "count"
+                ? item.transaction_count
+                : dropDownItem === "volume"
+                ? `$${item.total_volume.toFixed(2)}`
+                : dropDownItem === "recent"
+                ? formatRelativeTime(item.last_transaction_date)
+                : null}
+            </AppText>
+          </View>
+        )}
+      </View>
+    );
+  };
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
       <Pressable style={styles.screen} onPress={handleOutsidePress}>
@@ -166,16 +263,25 @@ function PeopleSearchScreen({ navigation, ...props }) {
           value={search}
           isSearching={isSearching}
         />
+        <View style={styles.dropDownPicker}>
+          <DropDownPickerComponent
+            items={FAKE_DROPDOWN_ITEMS}
+            onChangeItem={handleItemChange}
+            defaultValue={dropDownItem}
+            open={dropDownOpen}
+            setOpen={setDropDownOpen}
+          />
+          <ChevronsUpDown
+            size={28}
+            color={colors.lightGray}
+            style={styles.sortByIcon}
+            onPress={handleSortChange}
+            disabled={!dropDownItem} // Disable icon if no dropdown item is selected
+          />
+        </View>
         <FlatList
           data={loading ? skeletonItems : profiles}
-          renderItem={({ item }) => (
-            <UserCard
-              user={loading ? null : item}
-              style={styles.userCard}
-              onPress={() => handleCardPress(item)}
-              onLongPress={() => handleCardLongPress(item)} // Long press logic here
-            />
-          )}
+          renderItem={renderItem}
           refreshing={loading}
           onRefresh={handleRefresh}
           keyExtractor={(item, index) => item?.id || index.toString()}
@@ -207,6 +313,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   flatList: {},
+  dropDownPicker: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 5,
+    paddingHorizontal: 10,
+    marginVertical: 5,
+  },
+  sortByIcon: {
+    marginLeft: 10,
+  },
+  resultCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flex: 1,
+  },
+  sortedDetailContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingRight: 20,
+  },
+  sortByText: {
+    fontSize: 22,
+    fontFamily: fonts.medium,
+    color: colors.lightGray,
+  },
 });
 
 export default PeopleSearchScreen;
