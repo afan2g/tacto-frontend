@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import routes from "./routes";
 import AppTabNavigator from "./AppTabNavigator";
 import UserProfileScreen from "../screens/UserProfileScreen";
@@ -12,12 +13,11 @@ import TransactionProvider from "../contexts/TransactionContext";
 import TestingScreen from "../screens/TestingScreen";
 import NotificationsTest from "../testing/NotificationsTest";
 import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScreen";
-import { DataProvider } from "../contexts";
+import { DataProvider, ModalProvider } from "../contexts";
 import ModalTestingScreen from "../screens/ModalTestingScreen";
 import QrScreen from "../screens/QrScreen";
+import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
 import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
-import ProfileSheetContent from "../components/modals/ProfileSheetContent";
-import { OtherUserHeader } from "../components/cards";
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -37,55 +37,64 @@ function RootNavigator() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["right", "left"]}>
         <DataProvider>
-          <TransactionProvider>
-            <Stack.Navigator
-              screenOptions={{
-                headerShown: false,
-                animation: "fade_from_bottom",
-              }}
-            >
-              <Stack.Group>
-                <Stack.Screen
-                  name={routes.APPTABS}
-                  component={AppTabNavigator}
-                />
-                <Stack.Group screenOptions={{ presentation: "modal" }}>
+          <BottomSheetModalProvider>
+            <ModalProvider>
+              <TransactionProvider>
+                <Stack.Navigator
+                  screenOptions={{
+                    headerShown: false,
+                    animation: "fade_from_bottom",
+                  }}
+                >
+                  <Stack.Group>
+                    <Stack.Screen
+                      name={routes.APPTABS}
+                      component={AppTabNavigator}
+                    />
+                    <Stack.Group screenOptions={{ presentation: "modal" }}>
+                      <Stack.Screen
+                        name={routes.TRANSACTSELECTUSER}
+                        component={SelectUserScreen}
+                      />
+                      <Stack.Screen
+                        name={routes.TRANSACTCONFIRM}
+                        component={ConfirmTransactionScreen}
+                      />
+                      <Stack.Screen
+                        name={routes.TRANSACTSUCCESS}
+                        component={TransactionSuccessScreen}
+                      />
+                    </Stack.Group>
+                  </Stack.Group>
+                  <Stack.Group screenOptions={{}}>
+                    <Stack.Screen
+                      name={routes.USERPROFILE}
+                      component={UserProfileScreen}
+                    />
+                    <Stack.Screen
+                      name={routes.TRANSACTIONDETAIL}
+                      component={TransactionDetailScreen}
+                    />
+                  </Stack.Group>
                   <Stack.Screen
-                    name={routes.TRANSACTSELECTUSER}
-                    component={SelectUserScreen}
+                    name={routes.TESTING}
+                    component={TestingScreen}
+                  />
+                  <Stack.Screen name={routes.QRTESTING} component={QrScreen} />
+                  <Stack.Screen
+                    name={routes.TESTNOTIFICATIONS}
+                    component={NotificationsTest}
                   />
                   <Stack.Screen
-                    name={routes.TRANSACTCONFIRM}
-                    component={ConfirmTransactionScreen}
+                    name={routes.TESTBOTTOMSHEET}
+                    component={ModalTestingScreen}
                   />
-                  <Stack.Screen
-                    name={routes.TRANSACTSUCCESS}
-                    component={TransactionSuccessScreen}
-                  />
-                </Stack.Group>
-              </Stack.Group>
-              <Stack.Group screenOptions={{}}>
-                <Stack.Screen
-                  name={routes.USERPROFILE}
-                  component={UserProfileScreen}
-                />
-                <Stack.Screen
-                  name={routes.TRANSACTIONDETAIL}
-                  component={TransactionDetailScreen}
-                />
-              </Stack.Group>
-              <Stack.Screen name={routes.TESTING} component={TestingScreen} />
-              <Stack.Screen name={routes.QRTESTING} component={QrScreen} />
-              <Stack.Screen
-                name={routes.TESTNOTIFICATIONS}
-                component={NotificationsTest}
-              />
-              <Stack.Screen
-                name={routes.TESTBOTTOMSHEET}
-                component={ModalTestingScreen}
-              />
-            </Stack.Navigator>
-          </TransactionProvider>
+                </Stack.Navigator>
+              </TransactionProvider>
+              <TransactionBottomSheet id="transaction" />
+              <ProfileBottomSheet id="profile" />
+            </ModalProvider>
+          </BottomSheetModalProvider>
         </DataProvider>
       </SafeAreaView>
     </SafeAreaProvider>

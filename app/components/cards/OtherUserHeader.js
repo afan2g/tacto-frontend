@@ -23,6 +23,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   const { session } = useAuthContext();
   const { refreshFriendRequests } = useData();
   const navigation = useNavigation();
+
   const [loading, setLoading] = useState(true);
   const [loadingFriend, setLoadingFriend] = useState(false);
   const [loadingTransact, setLoadingTransact] = useState(false);

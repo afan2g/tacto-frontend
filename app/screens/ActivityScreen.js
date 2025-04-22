@@ -18,7 +18,7 @@ import {
 
 import useModal from "../hooks/useModal";
 import TransactionModal from "../components/modals/TransactionModal";
-import { useAuthContext, useData } from "../contexts";
+import { useAuthContext, useData, useModalContext } from "../contexts";
 import { ActivityIndicator } from "react-native-paper";
 import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
 import { supabase } from "../../lib/supabase";
@@ -58,12 +58,12 @@ function ActivityScreen({ navigation }) {
     },
   ]);
   const isInitialLoading = !completedTransactions || !paymentRequests;
-  const [bottomSheetItem, setBottomSheetItem] = useState(null);
-  const transactionSheetRef = React.useRef(null);
-  const { bottomSheetRef, loading, data, presentSheet, dismissSheet } =
-    useProfileSheet({
-      sessionUserId: session.user.id,
-    });
+  // const { bottomSheetRef, loading, data, presentSheet, dismissSheet } =
+  //   useProfileSheet({
+  //     sessionUserId: session.user.id,
+  //   });
+
+  const { presentSheet } = useModalContext();
   useEffect(() => {
     if (completedTransactions && paymentRequests && friendRequests) {
       setTransactions([
@@ -120,13 +120,12 @@ function ActivityScreen({ navigation }) {
 
   const handlePress = (transaction) => {
     console.log("Transaction pressed", transaction);
-    setBottomSheetItem(transaction);
-    transactionSheetRef.current?.present();
+    presentSheet("transaction", { transaction: transaction });
   };
 
   const handleUserPress = (user) => {
     console.log("User pressed", user);
-    presentSheet(user);
+    presentSheet("profile", { user: user });
   };
 
   const handleDismissBottomSheet = () => {
@@ -140,7 +139,7 @@ function ActivityScreen({ navigation }) {
         <ActivityTransactionCard
           transaction={item}
           onPress={() => handlePress(item)}
-          onLongPress={() => handleLongPress(item)}
+          // onLongPress={() => handleLongPress(item)}
           navigation={navigation}
           onDelete={() => handleRemove(item)}
           onUserPress={handleUserPress}
@@ -222,12 +221,7 @@ function ActivityScreen({ navigation }) {
         visible={modalVisible}
         close={closeModal}
       />
-      <TransactionBottomSheet
-        ref={transactionSheetRef}
-        transaction={bottomSheetItem}
-      />
-
-      <ProfileBottomSheet
+      {/* <ProfileBottomSheet
         ref={bottomSheetRef}
         user={data?.user}
         friendData={data?.friendData}
@@ -235,7 +229,7 @@ function ActivityScreen({ navigation }) {
         loading={loading}
         navigation={navigation}
         onDismiss={handleDismissBottomSheet}
-      />
+      /> */}
     </Screen>
   );
 }

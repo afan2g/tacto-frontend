@@ -13,116 +13,136 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors } from "../../config";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
-import { DataProvider, useData } from "../../contexts";
+import { DataProvider, useAuthContext } from "../../contexts";
+import { useModalContext } from "../../contexts";
 import ProfileSheetContent from "./ProfileSheetContent";
-
-/**
- * ProfileBottomSheet component
- * @typedef {Object} ProfileBottomSheetProps
- * @property {Object} user - User object containing user data to be displayed.
- * @property {Object} friendData - Data related to the user's friends.
- * @property {Array} sharedTransactions - List of transactions shared with the user.
- * @property {boolean} loading - Loading state for the bottom sheet.
- * @property {Function} onDismiss - Callback function to be called when the bottom sheet is dismissed.
- * @property {Object} navigation - Navigation object for navigating between screens.
- */
-
-/**
- * @typedef {React.Ref} ProfileBottomSheetRef
- * @property {Function} present - Function to present the bottom sheet.
- * @property {Function} dismiss - Function to dismiss the bottom sheet.
- */
+import { useProfileSheet } from "../../hooks/useProfileSheet";
 
 /**
  * ProfileBottomSheet component
  * @component
- * @property {Object} user - User object containing user data to be displayed.
- * @property {Object} friendData - Data related to the user's friends.
- * @property {Array} sharedTransactions - List of transactions shared with the user.
- * @property {boolean} loading - Loading state for the bottom sheet.
- * @property {Function} onDismiss - Callback function to be called when the bottom sheet is dismissed.
- * @property {Object} navigation - Navigation object for navigating between screens.
- * @returns {JSX.Element} - Rendered component.
- * */
+ * @property {string} id - Unique identifier for this bottom sheet
+ * @property {Function} onDismiss - Callback function to be called when the bottom sheet is dismissed
+ * @returns {JSX.Element} - Rendered component
+ */
+const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
+  // Get modal context
+  const { registerSheet, unregisterSheet } = useModalContext();
+  const { session } = useAuthContext();
+  // Internal state
+  const [sheetProps, setSheetProps] = useState({});
+  const bottomSheetRef = useRef(null);
+  const { handleSheetPositionChange } = useBottomSheetBackHandler(
+    bottomSheetRef,
+    onDismiss
+  );
+  const insets = useSafeAreaInsets();
 
-const ProfileBottomSheet = forwardRef(
-  ({ user, friendData, sharedTransactions, onDismiss }, ref) => {
-    // Internal state to manage content
-    const bottomSheetRef = useRef(null);
-    const { handleSheetPositionChange } = useBottomSheetBackHandler(
-      bottomSheetRef,
-      onDismiss
-    );
-    const { profile } = useData();
-    const insets = useSafeAreaInsets();
+  // Use the profile sheet hook to fetch user data
+  const {
+    loading,
+    data,
+    presentSheet: presentHookSheet,
+    dismissSheet: dismissHookSheet,
+    fetchProfileData,
+  } = useProfileSheet({
+    sessionUserId: session.user.id,
+    onSuccess: (data) => console.log("Profile data loaded successfully"),
+    onError: (error) => console.error("Error loading profile data:", error),
+  });
 
-    // Enhanced ref methods - add setLoading to control internal state
-    useImperativeHandle(ref, () => ({
-      present: () => bottomSheetRef.current?.present(),
-      dismiss: () => bottomSheetRef.current?.dismiss(),
-    }));
+  // Register this sheet with the context
+  useEffect(() => {
+    console.log("Registering profile sheet:", id);
+    registerSheet(id, {
+      present: presentSheet,
+      dismiss: dismissSheet,
+    });
 
-    const snapPoints = useMemo(() => [364 + insets.top, "100%"], [insets.top]);
+    return () => {
+      unregisterSheet(id);
+    };
+  }, [id, registerSheet, unregisterSheet]);
 
-    const renderBackdrop = useCallback(
-      (props) => (
-        <BottomSheetBackdrop
-          {...props}
-          appearsOnIndex={0}
-          disappearsOnIndex={-1}
+  // Present the sheet with user data
+  const presentSheet = useCallback(
+    (props) => {
+      console.log("Presenting profile sheet with props:", props);
+      if (props && props.user) {
+        setSheetProps(props);
+
+        // Use the hook's presentSheet method with the user
+        presentHookSheet(props.user);
+      } else {
+        console.warn("No user data provided to ProfileBottomSheet");
+      }
+
+      bottomSheetRef.current?.present();
+    },
+    [presentHookSheet]
+  );
+
+  // Dismiss the sheet
+  const dismissSheet = useCallback(() => {
+    bottomSheetRef.current?.dismiss();
+    dismissHookSheet();
+  }, [dismissHookSheet]);
+
+  // Enhanced ref methods for external control
+  useImperativeHandle(ref, () => ({
+    present: presentSheet,
+    dismiss: dismissSheet,
+  }));
+
+  const snapPoints = useMemo(() => [364 + insets.top, "100%"], [insets.top]);
+
+  const renderBackdrop = useCallback(
+    (props) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    []
+  );
+
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.dismiss();
+  }, []);
+
+  return (
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      snapPoints={snapPoints}
+      onChange={handleSheetPositionChange}
+      backdropComponent={renderBackdrop}
+      handleIndicatorStyle={{ backgroundColor: colors.lightGray }}
+      backgroundStyle={{ backgroundColor: colors.black }}
+      containerStyle={{ marginTop: insets.top }}
+      enableOverDrag={false}
+      enableContentPanningGesture={true}
+      activeOffsetY={[-30, 30]}
+      style={styles.bottomSheetModal}
+      onDismiss={onDismiss}
+      enableDynamicSizing={false}
+      // Make sure this gets rendered on top of other sheets
+      stackBehavior="push"
+    >
+      <DataProvider>
+        <ProfileSheetContent
+          user={data?.user}
+          friendData={data?.friendData}
+          sharedTransactions={data?.sharedTransactions}
+          handleClose={handleClose}
+          loading={loading}
         />
-      ),
-      []
-    );
-
-    const handleClose = useCallback(() => {
-      bottomSheetRef.current?.dismiss();
-    }, []);
-
-    return (
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        onChange={handleSheetPositionChange}
-        backdropComponent={renderBackdrop}
-        handleIndicatorStyle={{ backgroundColor: colors.lightGray }}
-        backgroundStyle={{ backgroundColor: colors.black }}
-        containerStyle={{ marginTop: insets.top }}
-        enableOverDrag={false}
-        enableContentPanningGesture={true}
-        activeOffsetY={[-30, 30]}
-        style={styles.bottomSheetModal}
-        onDismiss={onDismiss}
-      >
-        <DataProvider>
-          <ProfileSheetContent
-            user={user}
-            friendData={friendData}
-            sharedTransactions={sharedTransactions}
-            handleClose={handleClose}
-          />
-        </DataProvider>
-      </BottomSheetModal>
-    );
-  }
-);
+      </DataProvider>
+    </BottomSheetModal>
+  );
+});
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.black,
-  },
-  header: {
-    paddingTop: 0,
-    paddingBottom: 20,
-    backgroundColor: colors.black,
-    // Remove any potential border
-    borderWidth: 0,
-  },
-  bottomSheetContainer: {
-    flex: 1,
-    backgroundColor: colors.black, // Ensure this matches the modal background
-  },
   bottomSheetModal: {
     borderWidth: 0,
     borderTopRightRadius: 20,
@@ -135,60 +155,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.black,
-    padding: 20,
-  },
-  errorText: {
-    color: colors.lightGray,
-    fontSize: 16,
-    textAlign: "center",
-  },
-  closeIcon: {
-    position: "absolute",
-    marginLeft: 12,
-    zIndex: 3,
-  },
-  tabBarContainer: {
-    top: 0,
-    left: 0,
-    right: 0,
-    position: "absolute",
-    zIndex: 1,
-    backgroundColor: colors.black, // Ensure consistent background
-    // Remove any borders that might be causing lines
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    elevation: 0, // Remove Android elevation shadow
-    shadowOpacity: 0, // Remove iOS shadow
-  },
-  headerContainer: {
-    top: 0,
-    left: 0,
-    right: 0,
-    position: "absolute",
-    zIndex: 1,
-    backgroundColor: colors.black, // Ensure consistent background
-    // Remove any borders
-    borderBottomWidth: 0,
-  },
-  collapsedHeaderStyle: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.blackShade40,
-    justifyContent: "center",
-    zIndex: 2,
-    alignItems: "center",
-    flexDirection: "row",
-    // Remove any borders
-    borderBottomWidth: 0,
-    borderTopWidth: 0,
   },
 });
 

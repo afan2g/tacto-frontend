@@ -15,6 +15,7 @@ import { BottomSheetView } from "@gorhom/bottom-sheet";
 import {
   NavigationContainer,
   NavigationIndependentTree,
+  useNavigation,
 } from "@react-navigation/native";
 
 import { colors, fonts } from "../../config";
@@ -43,11 +44,11 @@ const ProfileSheetContent = ({
 }) => {
   // Get profile from context instead of props
   const { profile } = useData();
-
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(0);
-
+  const navigation = useNavigation();
+  console.log("current navigation psc:", navigation.getState().routes[0].name);
   const rendered = headerHeight > 0;
 
   const heightCollapsed = COLLAPSED_HEADER_HEIGHT;

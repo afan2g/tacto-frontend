@@ -62,7 +62,6 @@ export const useProfileSheet = ({ sessionUserId, onSuccess, onError }) => {
           },
           sharedTransactions: responseData.sharedTransactions || [],
         };
-
         setData(processedData);
 
         if (onSuccess) onSuccess(processedData);

@@ -44,14 +44,12 @@ export default function App() {
           <NavigationContainer theme={navigationTheme}>
             <AuthProvider value={authData}>
               <SafeAreaProvider>
-                <BottomSheetModalProvider>
-                  <StatusBar style="auto" />
-                  <View style={styles.container}>
-                    <FormProvider>
-                      {isLoading ? <LoadingScreen /> : <AppNavigator />}
-                    </FormProvider>
-                  </View>
-                </BottomSheetModalProvider>
+                <StatusBar style="auto" />
+                <View style={styles.container}>
+                  <FormProvider>
+                    {isLoading ? <LoadingScreen /> : <AppNavigator />}
+                  </FormProvider>
+                </View>
               </SafeAreaProvider>
             </AuthProvider>
           </NavigationContainer>

@@ -10,9 +10,9 @@ const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 const EmptyListComponent = () => {
   return (
-    <View style={styles.emptyList}>
+    <View style={[styles.emptyList]}>
       <Text style={{ color: colors.lightGray, textAlign: "center" }}>
-        No transactions found.
+        No transactions with this user.
       </Text>
     </View>
   );
@@ -37,7 +37,6 @@ const ActivityList = React.forwardRef((props, ref) => {
     scrollToIndex: (params) => listRef.current?.scrollToIndex(params),
     getScrollableNode: () => listRef.current?.getScrollableNode(),
   }));
-
   return (
     <View style={[styles.container, minHeight]}>
       <AnimatedFlashList
@@ -94,7 +93,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 40,
+    borderWidth: 1,
+    borderColor: colors.lightGray,
+    width: "100%",
   },
 });
 
