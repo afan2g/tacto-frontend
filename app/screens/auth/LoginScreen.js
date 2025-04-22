@@ -25,13 +25,11 @@ import routes from "../../navigation/routes";
 import SSOOptions from "../../components/login/SSOOptions";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import { clientValidation } from "../../validation/clientValidation";
-import { useAuthContext } from "../../contexts";
+import { useAuthContext, useFormData } from "../../contexts";
+import { isAuthApiError } from "@supabase/supabase-js";
 function LoginScreen({ navigation }) {
   const passwordRef = useRef(null);
-  const [loginForm, setLoginForm] = useState({
-    identifier: "",
-    password: "",
-  });
+  const { formData, updateFormData } = useFormData();
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -49,10 +47,11 @@ function LoginScreen({ navigation }) {
   }, [navigation]);
 
   const handleInputChange = (name, value) => {
-    setLoginForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    // setLoginForm((prev) => ({
+    //   ...prev,
+    //   [name]: value,
+    // }));
+    updateFormData({ [name]: value });
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
@@ -67,13 +66,13 @@ function LoginScreen({ navigation }) {
     setIsSubmitting(true);
 
     try {
-      if (!loginForm.identifier) {
+      if (!formData.identifier) {
         setErrors((prev) => ({
           ...prev,
           identifier: "Please enter your username, email, or phone #",
         }));
       }
-      if (!loginForm.password) {
+      if (!formData.password) {
         setErrors((prev) => ({
           ...prev,
           password: "Please enter your password",
@@ -81,11 +80,11 @@ function LoginScreen({ navigation }) {
       }
 
       const { success: emailSuccess, error: emailError } =
-        clientValidation.email(loginForm.identifier);
+        clientValidation.email(formData.identifier);
       const { success: phoneSuccess, error: phoneError } =
-        clientValidation.phone(loginForm.identifier);
+        clientValidation.phone(formData.identifier);
       const { success: passwordSuccess, error: passwordError } =
-        clientValidation.password(loginForm.password);
+        clientValidation.password(formData.password);
       if (!emailSuccess && !phoneSuccess) {
         setErrors((prev) => ({
           ...prev,
@@ -98,14 +97,14 @@ function LoginScreen({ navigation }) {
 
       if (emailSuccess) {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: loginForm.identifier,
-          password: loginForm.password,
+          email: formData.identifier,
+          password: formData.password,
         });
         if (error) throw error;
       } else if (phoneSuccess) {
         const { data, error } = await supabase.auth.signInWithPassword({
-          phone: `+1${loginForm.identifier}`,
-          password: loginForm.password,
+          phone: `+1${formData.identifier}`,
+          password: formData.password,
         });
         if (error) throw error;
       } else {
@@ -115,9 +114,72 @@ function LoginScreen({ navigation }) {
       await new Promise((resolve) => setTimeout(resolve, 500));
       // Session update will handle navigation
     } catch (error) {
-      Alert.alert("Login Failed", error.message);
+      console.error("Login error:", error);
+
+      if (isAuthApiError(error)) {
+        if (
+          error.code === "email_not_confirmed" ||
+          error.code === "phone_not_confirmed"
+        ) {
+          error.code === "email_not_confirmed"
+            ? updateFormData({ email: formData.identifier, phone: null })
+            : updateFormData({ email: null, phone: formData.identifier });
+          Alert.alert(
+            "Email or Phone Not Confirmed",
+            "Please confirm your email or phone number before logging in.",
+            [
+              {
+                text: "Resend Confirmation",
+                onPress: handleVerify,
+              },
+            ]
+          );
+        } else {
+          Alert.alert("Login Failed", error.message);
+        }
+      }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    const isPhoneVerification = clientValidation.phone(
+      formData.identifier
+    ).success;
+    const isEmailVerification = clientValidation.email(
+      formData.identifier
+    ).success;
+
+    console.log("isPhoneVerification", isPhoneVerification);
+    console.log("isEmailVerification", isEmailVerification);
+    if (!isPhoneVerification && !isEmailVerification) {
+      setErrors((prev) => ({
+        ...prev,
+        identifier: "Please enter a valid email or phone #",
+      }));
+      return;
+    }
+    try {
+      if (isPhoneVerification) {
+        console.log("Sending SMS verification to", formData.identifier);
+        const { error } = await supabase.auth.resend({
+          type: "sms",
+          phone: `+1${formData.identifier}`,
+        });
+        if (error) throw error;
+      } else if (isEmailVerification) {
+        console.log("Sending email verification to", formData.identifier);
+        const { error } = await supabase.auth.resend({
+          type: "signup",
+          email: formData.identifier,
+        });
+        if (error) throw error;
+      }
+      navigation.navigate(routes.SIGNUPVERIFY);
+    } catch (error) {
+      console.error("Error sending verification:", error);
+      Alert.alert("Error", "Failed to send verification. Please try again.");
     }
   };
 
@@ -164,7 +226,7 @@ function LoginScreen({ navigation }) {
                     handleInputChange("identifier", value)
                   }
                   onSubmitEditing={() => passwordRef.current?.focus()}
-                  value={loginForm.identifier}
+                  value={formData.identifier}
                 />
                 {errors.identifier && (
                   <ErrorMessage error={errors.identifier} />
@@ -188,7 +250,7 @@ function LoginScreen({ navigation }) {
                   ref={passwordRef}
                   returnKeyType="done"
                   secureTextEntry={!showPassword}
-                  value={loginForm.password}
+                  value={formData.password}
                   right={
                     <TextInput.Icon
                       color={

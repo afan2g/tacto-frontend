@@ -27,12 +27,15 @@ import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
 import ProgressBar from "../../components/ProgressBar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function SignUpVerify({ navigation, route }) {
   const { formData, updateFormData, updateProgress } = useFormData();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const isPhoneVerification = formData.phone != null;
+  const inputRef = React.useRef(null);
+  const insets = useSafeAreaInsets();
   console.log("formData:", formData);
   // ---------------------------
   // OTP Resend Cooldown Timer
@@ -74,6 +77,15 @@ function SignUpVerify({ navigation, route }) {
       }
     );
     return () => backHandler.remove();
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("transitionEnd", () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    });
+    return unsubscribe;
   }, [navigation]);
 
   useFocusEffect(
@@ -194,87 +206,86 @@ function SignUpVerify({ navigation, route }) {
   };
 
   return (
-    <Screen style={styles.screen}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.keyboardView, { paddingTop: insets.top }]}
+    >
       <View style={styles.headerContainer}>
         <ChevronLeft color={colors.lightGray} size={42} onPress={handleBack} />
         <Header style={styles.header}>Verify your account</Header>
       </View>
       <ProgressBar />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardView}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-            bounces={false}
-          >
-            <AppText style={styles.grayText}>
-              Enter the {isPhoneVerification ? "6-digit" : "verification"} code
-              sent to{" "}
-              <AppText style={styles.yellowText}>{formatContactInfo()}</AppText>
-            </AppText>
-            <View style={styles.content}>
-              <View style={styles.textInputContainer}>
-                <OtpInput
-                  blurOnFilled={true}
-                  focusColor={colors.yellow}
-                  numberOfDigits={6}
-                  textInputProps={{
-                    accessibilityLabel: "Verification code input",
-                    autoComplete: "one-time-code",
-                  }}
-                  type="numeric"
-                  onFilled={verifyOTP}
-                  onTextChange={handleInputChange}
-                  disabled={loading}
-                  theme={{
-                    containerStyle: styles.inputContainer,
-                    pinCodeContainerStyle: styles.pinCodeContainer,
-                    pinCodeTextStyle: styles.pinCodeText,
-                    focusedPinCodeContainerStyle:
-                      styles.focusedPinCodeContainer,
-                    inputsContainerStyle: { gap: 10 },
-                  }}
-                />
-              </View>
-              <ErrorMessage error={error} />
-              <AppButton
-                color={colors.yellow}
-                onPress={verifyOTP}
-                title={loading ? "Verifying..." : "Verify"}
-                style={styles.next}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <AppText style={styles.grayText}>
+            Enter the {isPhoneVerification ? "6-digit" : "verification"} code
+            sent to{" "}
+            <AppText style={styles.yellowText}>{formatContactInfo()}</AppText>
+          </AppText>
+          <View style={styles.content}>
+            <View style={styles.textInputContainer}>
+              <OtpInput
+                blurOnFilled={true}
+                ref={inputRef}
+                focusColor={colors.yellow}
+                numberOfDigits={6}
+                textInputProps={{
+                  accessibilityLabel: "Verification code input",
+                  autoComplete: "one-time-code",
+                }}
+                autoFocus={false}
+                type="numeric"
+                onFilled={verifyOTP}
+                onTextChange={handleInputChange}
                 disabled={loading}
-                loading={loading}
-              />
-              <Pressable
-                onPress={handleResendOTP}
-                style={styles.resendContainer}
-                disabled={timeLeft > 0 || loading}
-              >
-                <AppText
-                  style={[
-                    styles.resendText,
-                    {
-                      color: timeLeft > 0 ? colors.lightGray : colors.yellow,
-                    },
-                  ]}
-                >
-                  {timeLeft > 0 ? `Resend (${timeLeft}s)` : "Resend"}
-                </AppText>
-              </Pressable>
-              <SSOOptions
-                grayText="Have an account? "
-                yellowText="Sign In"
-                onPress={() => navigation.navigate(routes.LOGIN)}
+                theme={{
+                  containerStyle: styles.inputContainer,
+                  pinCodeContainerStyle: styles.pinCodeContainer,
+                  pinCodeTextStyle: styles.pinCodeText,
+                  focusedPinCodeContainerStyle: styles.focusedPinCodeContainer,
+                  inputsContainerStyle: { gap: 10 },
+                }}
               />
             </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </Screen>
+            <ErrorMessage error={error} />
+            <AppButton
+              color={colors.yellow}
+              onPress={verifyOTP}
+              title={loading ? "Verifying..." : "Verify"}
+              style={styles.next}
+              disabled={loading}
+              loading={loading}
+            />
+            <Pressable
+              onPress={handleResendOTP}
+              style={styles.resendContainer}
+              disabled={timeLeft > 0 || loading}
+            >
+              <AppText
+                style={[
+                  styles.resendText,
+                  {
+                    color: timeLeft > 0 ? colors.lightGray : colors.yellow,
+                  },
+                ]}
+              >
+                {timeLeft > 0 ? `Resend (${timeLeft}s)` : "Resend"}
+              </AppText>
+            </Pressable>
+            <SSOOptions
+              grayText="Have an account? "
+              yellowText="Sign In"
+              onPress={() => navigation.navigate(routes.LOGIN)}
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

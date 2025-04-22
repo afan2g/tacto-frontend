@@ -54,6 +54,7 @@ function SelectUserScreen({ navigation, route }) {
         .from("profiles")
         .select("*")
         .neq("id", session.user.id)
+        .eq("onboarding_complete", true)
         .limit(20); // Limit initial fetch
 
       if (error) throw error;
@@ -98,6 +99,7 @@ function SelectUserScreen({ navigation, route }) {
             .or(
               `username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`
             )
+            .eq("onboarding_complete", true)
             .neq("id", session.user.id)
             .limit(20);
 

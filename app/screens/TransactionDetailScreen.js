@@ -51,7 +51,7 @@ function TransactionDetailScreen({ transactionPost }) {
         styles.screen,
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
       <View style={styles.contentContainer}>

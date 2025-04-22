@@ -1,5 +1,7 @@
 import { z } from "zod";
-import parsePhoneNumberFromString from "libphonenumber-js/mobile";
+import parsePhoneNumberFromString, {
+  isValidPhoneNumber,
+} from "libphonenumber-js/mobile";
 import { Phone } from "lucide-react-native";
 type ValidationResult = {
   success: boolean;
@@ -50,13 +52,14 @@ export const validateEmail = (email: string): ValidationResult => {
 };
 
 export const validatePhoneNumber = (phoneNumber: string): ValidationResult => {
-  const number = parsePhoneNumberFromString(phoneNumber, "US");
-  if (!number) {
+  if (!isValidPhoneNumber(phoneNumber, "US")) {
+    console.log("Invalid phone number:", phoneNumber);
     return {
       success: false,
       error: "phone number must be a valid US phone number",
     };
   }
+  const number = parsePhoneNumberFromString(phoneNumber, "US");
   return { success: true, error: null, formatted: number.format("E.164") };
 };
 

@@ -15,7 +15,13 @@ import { UserCard, AppCardSeparator } from "../../components/cards";
 import { FAKE_OTHER_USERS, FAKEUSERS } from "../../data/fakeData";
 import useModal from "../../hooks/useModal";
 import UserModal from "../../components/modals/UserModal";
-import { Search } from "lucide-react-native";
+import {
+  ChevronDown,
+  ChevronDownSquare,
+  ChevronUp,
+  ChevronUpSquare,
+  Search,
+} from "lucide-react-native";
 import { colors, fonts } from "../../config";
 import { fetchFriends, fetchProfiles } from "../../api";
 import { useAuthContext } from "../../contexts";
@@ -59,7 +65,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
     setSearch(""); // Clear search input
     setIsSearching(false); // Reset searching state
     setDropDownOpen(false); // Close dropdown if open
-    setDropDownItem(null); // Reset dropdown item
+    setDropDownItem("none"); // Reset dropdown item
     setSortDirection("desc"); // Reset sort direction
     // await new Promise((resolve) => setTimeout(resolve, 10000)); // Optional: Add a delay for the loading state
     try {
@@ -82,6 +88,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
         .from("profiles")
         .select("*")
         .neq("id", session.user.id)
+        .eq("onboarding_complete", true)
         .limit(20); // Limit initial fetch
 
       if (error) throw error;
@@ -130,6 +137,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
             .or(
               `username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`
             )
+            .eq("onboarding_complete", true)
             .neq("id", session.user.id)
             .limit(20);
 
@@ -231,12 +239,14 @@ function PeopleSearchScreen({ navigation, ...props }) {
 
   const renderItem = ({ item }) => {
     return (
-      <View style={styles.resultCard}>
+      <Pressable
+        style={styles.resultCard}
+        onPress={() => handleCardPress(item)}
+      >
         <UserCard
           user={loading ? null : item}
           style={styles.userCard}
           onPress={() => handleCardPress(item)}
-          onLongPress={() => handleCardLongPress(item)} // Long press logic here
         />
         {!loading && dropDownItem && (
           <View style={styles.sortedDetailContainer}>
@@ -251,7 +261,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
             </AppText>
           </View>
         )}
-      </View>
+      </Pressable>
     );
   };
   return (
@@ -271,13 +281,22 @@ function PeopleSearchScreen({ navigation, ...props }) {
             open={dropDownOpen}
             setOpen={setDropDownOpen}
           />
-          <ChevronsUpDown
-            size={28}
-            color={colors.lightGray}
-            style={styles.sortByIcon}
-            onPress={handleSortChange}
-            disabled={!dropDownItem} // Disable icon if no dropdown item is selected
-          />
+          {dropDownItem !== "none" &&
+            (sortDirection === "asc" ? (
+              <ChevronUp
+                size={28}
+                color={colors.lightGray}
+                style={styles.sortByIcon}
+                onPress={handleSortChange}
+              />
+            ) : (
+              <ChevronDown
+                size={28}
+                color={colors.lightGray}
+                style={styles.sortByIcon}
+                onPress={handleSortChange}
+              />
+            ))}
         </View>
         <FlatList
           data={loading ? skeletonItems : profiles}

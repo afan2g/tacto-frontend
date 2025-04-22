@@ -42,4 +42,14 @@ export const FormProvider = ({ children }) => {
   );
 };
 
+/**
+ * @param {Object} children - The children components to be rendered inside the provider.
+ * @returns {UseData} - The DataProvider component.
+ * /
+/**
+ * @typedef {Object} UseData
+ * @property {Object} formData - The form data state.
+ * @property {Function} updateFormData - Function to update the form data state.
+ * @property {Function} updateProgress - Function to update the progress state based on the current route.
+ */
 export const useFormData = () => useContext(FormContext);
