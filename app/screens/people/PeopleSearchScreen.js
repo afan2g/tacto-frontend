@@ -24,7 +24,7 @@ import {
 } from "lucide-react-native";
 import { colors, fonts } from "../../config";
 import { fetchFriends, fetchProfiles } from "../../api";
-import { useAuthContext } from "../../contexts";
+import { useAuthContext, useModalContext } from "../../contexts";
 import { useProfileSheet } from "../../hooks/useProfileSheet";
 import ProfileBottomSheet from "../../components/modals/ProfileBottomSheet";
 import { debounce } from "lodash";
@@ -36,7 +36,6 @@ import { AppText } from "../../components/primitives";
 import { set } from "zod";
 import formatRelativeTime from "../../utils/formatRelativeTime";
 function PeopleSearchScreen({ navigation, ...props }) {
-  const { modalVisible, selectedItem, openModal, closeModal } = useModal();
   const { session } = useAuthContext();
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,14 +48,7 @@ function PeopleSearchScreen({ navigation, ...props }) {
   ); // Default dropdown item
   const [sortDirection, setSortDirection] = useState("desc"); // Default sort direction
 
-  const {
-    bottomSheetRef,
-    data,
-    dismissSheet,
-    fetchProfileData,
-    loading: loadingBottomSheet,
-    presentSheet,
-  } = useProfileSheet({ sessionUserId: session.user.id });
+  const { presentSheet } = useModalContext();
   const skeletonItems = Array.from({ length: 5 });
 
   const handleRefresh = async () => {
@@ -309,14 +301,6 @@ function PeopleSearchScreen({ navigation, ...props }) {
           keyExtractor={(item, index) => item?.id || index.toString()}
           contentContainerStyle={styles.flatList}
           ItemSeparatorComponent={<AppCardSeparator />}
-        />
-        <ProfileBottomSheet
-          ref={bottomSheetRef}
-          user={data?.user}
-          friendData={data?.friendData}
-          sharedTransactions={data?.sharedTransactions}
-          loading={loadingBottomSheet}
-          onDismiss={dismissSheet}
         />
       </Pressable>
     </KeyboardAvoidingView>

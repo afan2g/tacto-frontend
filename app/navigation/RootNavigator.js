@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import routes from "./routes";
 import AppTabNavigator from "./AppTabNavigator";
 import UserProfileScreen from "../screens/UserProfileScreen";
@@ -13,11 +12,10 @@ import TransactionProvider from "../contexts/TransactionContext";
 import TestingScreen from "../screens/TestingScreen";
 import NotificationsTest from "../testing/NotificationsTest";
 import TransactionSuccessScreen from "../screens/transact/TransactionSuccessScreen";
-import { DataProvider, ModalProvider } from "../contexts";
+import { DataProvider } from "../contexts";
 import ModalTestingScreen from "../screens/ModalTestingScreen";
 import QrScreen from "../screens/QrScreen";
-import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
-import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
+
 const Stack = createNativeStackNavigator();
 
 const config = {
@@ -38,7 +36,6 @@ function RootNavigator() {
       <SafeAreaView style={styles.container} edges={["right", "left"]}>
         <DataProvider>
           <TransactionProvider>
-            {/* <BottomSheetModalProvider> */}
             <Stack.Navigator
               screenOptions={{
                 headerShown: false,
@@ -50,7 +47,12 @@ function RootNavigator() {
                   name={routes.APPTABS}
                   component={AppTabNavigator}
                 />
-                <Stack.Group screenOptions={{ presentation: "modal" }}>
+                <Stack.Group
+                  screenOptions={{
+                    presentation: "card",
+                    animation: "fade_from_bottom",
+                  }}
+                >
                   <Stack.Screen
                     name={routes.TRANSACTSELECTUSER}
                     component={SelectUserScreen}
@@ -86,8 +88,6 @@ function RootNavigator() {
                 component={ModalTestingScreen}
               />
             </Stack.Navigator>
-
-            {/* </BottomSheetModalProvider> */}
           </TransactionProvider>
         </DataProvider>
       </SafeAreaView>

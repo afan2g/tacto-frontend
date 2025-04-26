@@ -335,12 +335,7 @@ function ConfirmTransactionScreen({ navigation, route }) {
           <ChevronLeft
             size={36}
             color={colors.lightGray}
-            onPress={() =>
-              navigation.navigate(routes.TRANSACTSELECTUSER, {
-                ...transaction,
-                amount: getFormattedAmountWithoutSymbol(value),
-              })
-            }
+            onPress={handleBackPress}
             style={styles.backButton}
           />
           <AppText style={styles.headerText}>{transaction.action}</AppText>

@@ -1,13 +1,5 @@
-import React, { useEffect, useCallback, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  RefreshControl,
-  SectionList,
-  Button,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import { FlashList } from "@shopify/flash-list";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, StyleSheet, RefreshControl, SectionList } from "react-native";
 
 import { AppText, Screen } from "../components/primitives";
 import { colors, fonts } from "../config";
@@ -16,19 +8,11 @@ import {
   ActivityTransactionCard,
 } from "../components/cards";
 
-import useModal from "../hooks/useModal";
-import TransactionModal from "../components/modals/TransactionModal";
-import { useAuthContext, useData, useModalContext } from "../contexts";
+import { useData, useModalContext } from "../contexts";
 import { ActivityIndicator } from "react-native-paper";
-import TransactionBottomSheet from "../components/modals/TransactionBottomSheet";
-import { supabase } from "../../lib/supabase";
-import { useProfileSheet } from "../hooks/useProfileSheet";
-import ProfileBottomSheet from "../components/modals/ProfileBottomSheet";
-import { set } from "zod";
-import { useFocusEffect } from "@react-navigation/native";
+
 import FriendRequestCard from "../components/cards/FriendRequestCard";
 function ActivityScreen({ navigation }) {
-  const { closeModal, openModal, modalVisible, selectedItem } = useModal();
   const {
     wallet,
     completedTransactions,
@@ -41,7 +25,6 @@ function ActivityScreen({ navigation }) {
     refreshPaymentRequests,
     friendRequests,
   } = useData();
-  const { session } = useAuthContext();
   const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState([
     {
@@ -58,11 +41,6 @@ function ActivityScreen({ navigation }) {
     },
   ]);
   const isInitialLoading = !completedTransactions || !paymentRequests;
-  // const { bottomSheetRef, loading, data, presentSheet, dismissSheet } =
-  //   useProfileSheet({
-  //     sessionUserId: session.user.id,
-  //   });
-
   const { presentSheet } = useModalContext();
   useEffect(() => {
     if (completedTransactions && paymentRequests && friendRequests) {
@@ -75,11 +53,6 @@ function ActivityScreen({ navigation }) {
   }, [completedTransactions, paymentRequests, friendRequests]);
 
   useEffect(() => {}, [completedTransactions]);
-
-  const handleLongPress = (transaction) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    openModal(transaction);
-  };
 
   const handleRemove = (transaction) => {
     const updatedTransactions = transactions.filter(
@@ -128,25 +101,24 @@ function ActivityScreen({ navigation }) {
     presentSheet("profile", { user: user, navigation });
   };
 
-  const handleDismissBottomSheet = () => {
-    dismissSheet();
-  };
-  const renderItem = ({ item, section }) => {
-    if (section.title === "Friend Requests") {
-      return <FriendRequestCard request={item} />;
-    } else {
-      return (
-        <ActivityTransactionCard
-          transaction={item}
-          onPress={() => handlePress(item)}
-          // onLongPress={() => handleLongPress(item)}
-          navigation={navigation}
-          onDelete={() => handleRemove(item)}
-          onUserPress={handleUserPress}
-        />
-      );
-    }
-  };
+  const renderItem = useCallback(
+    ({ item, section }) => {
+      if (section.title === "Friend Requests") {
+        return <FriendRequestCard request={item} />;
+      } else {
+        return (
+          <ActivityTransactionCard
+            transaction={item}
+            onPress={() => handlePress(item)}
+            navigation={navigation}
+            onDelete={() => handleRemove(item)}
+            onUserPress={handleUserPress}
+          />
+        );
+      }
+    },
+    [handlePress, handleRemove, handleUserPress, navigation]
+  );
 
   const renderSectionHeader = ({ section }) => {
     if (section.data?.length === 0) {
@@ -215,21 +187,6 @@ function ActivityScreen({ navigation }) {
         }
         ListFooterComponentStyle={styles.activityEnd}
       />
-
-      <TransactionModal
-        transaction={selectedItem}
-        visible={modalVisible}
-        close={closeModal}
-      />
-      {/* <ProfileBottomSheet
-        ref={bottomSheetRef}
-        user={data?.user}
-        friendData={data?.friendData}
-        sharedTransactions={data?.sharedTransactions}
-        loading={loading}
-        navigation={navigation}
-        onDismiss={handleDismissBottomSheet}
-      /> */}
     </Screen>
   );
 }

@@ -6,6 +6,7 @@ import React, {
   useRef,
   useEffect,
   useState,
+  useLayoutEffect,
 } from "react";
 import { View, StyleSheet } from "react-native";
 import {
@@ -44,19 +45,10 @@ const TransactionBottomSheet = forwardRef(
       presentSheet: openSheet,
     } = useModalContext();
 
-    // Register this sheet with the context
-    useEffect(() => {
-      console.log("Registering transaction sheet:", id);
-      registerSheet(id, {
-        present: presentSheet,
-        dismiss: dismissSheet,
-      });
-
-      return () => {
-        unregisterSheet(id);
-      };
-    }, [id, registerSheet, unregisterSheet]);
-
+    useLayoutEffect(() => {
+      registerSheet(id, { present: presentSheet, dismiss: dismissSheet });
+      return () => unregisterSheet(id);
+    }, [id, registerSheet, unregisterSheet, presentSheet, dismissSheet]);
     // Present the sheet with transaction data
     const presentSheet = useCallback(
       (data) => {

@@ -8,30 +8,29 @@ import React, {
   useImperativeHandle,
 } from "react";
 import { StyleSheet } from "react-native";
-import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import {
+  BottomSheetModal,
+  BottomSheetBackdrop,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors } from "../../config";
 import { useBottomSheetBackHandler } from "../../hooks/useBottomSheetBackHandler";
-import { DataProvider, useAuthContext } from "../../contexts";
-import { useModalContext } from "../../contexts";
-import ProfileSheetContent from "./ProfileSheetContent";
+import { DataProvider, useAuthContext, useModalContext } from "../../contexts";
 import { useProfileSheet } from "../../hooks/useProfileSheet";
+import ProfileSheetContent from "./ProfileSheetContent";
+import { OtherUserHeader } from "../cards";
 
-/**
- * ProfileBottomSheet component
- * @component
- * @property {string} id - Unique identifier for this bottom sheet
- * @property {Function} onDismiss - Callback function to be called when the bottom sheet is dismissed
- * @returns {JSX.Element} - Rendered component
- */
 const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
-  // Get modal context
-  const { registerSheet, unregisterSheet } = useModalContext();
+  /* ---------- hooks ---------- */
+  const {
+    registerSheet,
+    unregisterSheet,
+    dismissSheet: ctxDismissSheet,
+    dismissAllSheets,
+  } = useModalContext();
   const { session } = useAuthContext();
-  // Internal state
-  const [sheetProps, setSheetProps] = useState({});
-  const [rootNavigation, setRootNavigation] = useState(null); // Store the root navigation
   const bottomSheetRef = useRef(null);
   const { handleSheetPositionChange } = useBottomSheetBackHandler(
     bottomSheetRef,
@@ -39,67 +38,55 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
   );
   const insets = useSafeAreaInsets();
 
-  // Use the profile sheet hook to fetch user data
+  /* ---------- data ---------- */
   const {
     loading,
     data,
     presentSheet: presentHookSheet,
     dismissSheet: dismissHookSheet,
-    fetchProfileData,
   } = useProfileSheet({
-    sessionUserId: session.user.id,
-    onSuccess: (data) => console.log("Profile data loaded successfully"),
-    onError: (error) => console.error("Error loading profile data:", error),
+    sessionUserId: session?.user?.id,
   });
 
-  // Register this sheet with the context
+  const [rootNavigation, setRootNavigation] = useState(null);
+
+  /* ---------- raw dismiss (no context) ---------- */
+  const rawDismiss = useCallback(() => {
+    bottomSheetRef.current?.dismiss();
+    dismissHookSheet(); // clear query-state
+  }, [dismissHookSheet]);
+
+  /* ---------- registration ---------- */
   useEffect(() => {
-    console.log("Registering profile sheet:", id);
-    registerSheet(id, {
-      present: presentSheet,
-      dismiss: dismissSheet,
-    });
+    registerSheet(id, { present: presentSheet, dismiss: rawDismiss });
+  }, [id, registerSheet, unregisterSheet, rawDismiss]);
 
-    return () => {
-      unregisterSheet(id);
-    };
-  }, [id, registerSheet, unregisterSheet]);
-
-  // Present the sheet with user data
+  /* ---------- present ---------- */
   const presentSheet = useCallback(
     (props) => {
-      console.log("Presenting profile sheet with props:", props);
-      if (props && props.user) {
-        setSheetProps(props);
-
-        // Store the navigation reference if provided
-        if (props.navigation) {
-          setRootNavigation(props.navigation);
-        }
-
-        // Use the hook's presentSheet method with the user
+      if (props?.user) {
+        if (props.navigation) setRootNavigation(props.navigation);
         presentHookSheet(props.user);
+        bottomSheetRef.current?.present();
       } else {
-        console.warn("No user data provided to ProfileBottomSheet");
+        console.warn("No user provided to ProfileBottomSheet");
       }
-
-      bottomSheetRef.current?.present();
     },
     [presentHookSheet]
   );
 
-  // Dismiss the sheet
-  const dismissSheet = useCallback(() => {
-    bottomSheetRef.current?.dismiss();
-    dismissHookSheet();
-  }, [dismissHookSheet]);
+  /* ---------- public dismiss (through context) ---------- */
+  const dismiss = useCallback(() => {
+    dismissAllSheets();
+  }, [dismissAllSheets]);
 
-  // Enhanced ref methods for external control
-  useImperativeHandle(ref, () => ({
-    present: presentSheet,
-    dismiss: dismissSheet,
-  }));
+  /* expose to parent refs */
+  useImperativeHandle(ref, () => ({ present: presentSheet, dismiss }), [
+    presentSheet,
+    dismiss,
+  ]);
 
+  /* ---------- misc render helpers ---------- */
   const snapPoints = useMemo(() => [364 + insets.top, "100%"], [insets.top]);
 
   const renderBackdrop = useCallback(
@@ -113,10 +100,6 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
     []
   );
 
-  const handleClose = useCallback(() => {
-    bottomSheetRef.current?.dismiss();
-  }, []);
-
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
@@ -127,23 +110,34 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
       backgroundStyle={{ backgroundColor: colors.black }}
       containerStyle={{ marginTop: insets.top }}
       enableOverDrag={false}
-      enableContentPanningGesture={true}
+      enableContentPanningGesture
       activeOffsetY={[-30, 30]}
       style={styles.bottomSheetModal}
       onDismiss={onDismiss}
       enableDynamicSizing={false}
-      // Make sure this gets rendered on top of other sheets
       stackBehavior="push"
     >
       <DataProvider>
-        <ProfileSheetContent
-          user={data?.user}
-          friendData={data?.friendData}
-          sharedTransactions={data?.sharedTransactions}
-          handleClose={handleClose}
-          loading={loading}
-          rootNavigation={rootNavigation} // Pass the root navigation
-        />
+        {data?.friendData || data?.user?.external ? (
+          <ProfileSheetContent
+            user={data?.user}
+            friendData={data?.friendData}
+            sharedTransactions={data?.sharedTransactions}
+            handleClose={dismiss}
+            loading={loading}
+            rootNavigation={rootNavigation}
+          />
+        ) : (
+          <BottomSheetView style={styles.bottomSheetContainer}>
+            <OtherUserHeader
+              user={data?.user}
+              friendData={null}
+              sharedTransactions={null}
+              handleClose={dismiss}
+              style={styles.header}
+            />
+          </BottomSheetView>
+        )}
       </DataProvider>
     </BottomSheetModal>
   );
@@ -151,17 +145,27 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
 
 const styles = StyleSheet.create({
   bottomSheetModal: {
-    borderWidth: 0,
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
+    backgroundColor: colors.black,
     shadowColor: colors.lightGray,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  header: {
+    paddingTop: 0,
+    paddingBottom: 20,
+    backgroundColor: colors.black,
+    // Remove any potential border
+    borderWidth: 0,
+  },
+  bottomSheetContainer: {
+    flex: 1,
+    backgroundColor: colors.black, // Ensure this matches the modal background
+    marginTop: -1,
+    paddingTop: -1,
   },
 });
 

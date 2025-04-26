@@ -105,8 +105,19 @@ export const ModalProvider = ({ children }) => {
 };
 
 /**
- * Hook to use the modal context
- */
+ * @param {Object} children - The children components to be rendered inside the provider.
+ * @returns {UseModal} - The ModalProvider component.
+ * /
+/**
+ * @typedef {Object} UseModal
+  * @property {Function} registerSheet - Function to register a modal/sheet component.
+  * @property {Function} unregisterSheet - Function to unregister a modal/sheet component.
+  * @property {Function} presentSheet - Function to present a modal/sheet.
+  * @property {Function} dismissSheet - Function to dismiss a modal/sheet.
+  * @property {Function} dismissAllSheets - Function to dismiss all active modals/sheets.
+  * @property {Array} activeModals - Array of currently active modals/sheets.
+  */
+
 export const useModalContext = () => {
   const context = useContext(ModalContext);
   if (!context) {
