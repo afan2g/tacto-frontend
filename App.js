@@ -15,7 +15,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { ModalProvider } from "./app/contexts";
 import { StatusBar } from "expo-status-bar";
 import { PaperProvider } from "react-native-paper";
 import AppNavigator from "./app/navigation/AppNavigator";
@@ -24,7 +24,9 @@ import useAuth from "./app/hooks/useAuth";
 import { AuthProvider, FormProvider } from "./app/contexts";
 import { colors } from "./app/config";
 import { theme } from "./app/themes/themes";
-
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import TransactionBottomSheet from "./app/components/modals/TransactionBottomSheet";
+import ProfileBottomSheet from "./app/components/modals/ProfileBottomSheet";
 // Create a loading component
 const LoadingScreen = () => (
   <View style={styles.loadingContainer}>
@@ -42,16 +44,26 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={theme}>
           <NavigationContainer theme={navigationTheme}>
-            <AuthProvider value={authData}>
-              <SafeAreaProvider>
-                <StatusBar style="auto" />
-                <View style={styles.container}>
-                  <FormProvider>
-                    {isLoading ? <LoadingScreen /> : <AppNavigator />}
-                  </FormProvider>
-                </View>
-              </SafeAreaProvider>
-            </AuthProvider>
+            <ModalProvider>
+              <AuthProvider value={authData}>
+                <BottomSheetModalProvider>
+                  <SafeAreaProvider>
+                    <StatusBar style="auto" />
+                    <View style={styles.container}>
+                      <FormProvider>
+                        {isLoading ? <LoadingScreen /> : <AppNavigator />}
+                      </FormProvider>
+                    </View>
+                  </SafeAreaProvider>
+                  {authData.session && (
+                    <>
+                      <TransactionBottomSheet id="transaction" />
+                      <ProfileBottomSheet id="profile" />
+                    </>
+                  )}
+                </BottomSheetModalProvider>
+              </AuthProvider>
+            </ModalProvider>
           </NavigationContainer>
         </PaperProvider>
       </QueryClientProvider>

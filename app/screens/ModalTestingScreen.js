@@ -10,6 +10,8 @@ import { Skeleton } from "moti/skeleton";
 import TransactionCardSkeletonLoader from "../components/skeletons/TransactionCardSkeletonLoader";
 import { TransactionCard } from "../components/cards";
 import { useModalContext } from "../contexts/ModalContext";
+import routes from "../navigation/routes";
+import { useRoute } from "@react-navigation/native";
 const SAMPLE_TX = {
   transaction: {
     amount: 1,
@@ -53,22 +55,32 @@ const SAMPLE_USER = {
 function ModalTestingScreen({ navigation }) {
   const { session } = useAuthContext();
   const { presentSheet } = useModalContext();
-
+  const routeParams = useRoute();
   const handleProfilePress = () => {
     presentSheet("profile", {
       user: SAMPLE_USER,
+      navigation: navigation,
     });
   };
 
   const handleTransactionPress = () => {
     console.log("Presenting transaction sheet");
-    presentSheet("transaction", { transaction: SAMPLE_TX.transaction });
+    presentSheet("transaction", {
+      transaction: SAMPLE_TX.transaction,
+      navigation,
+    });
   };
 
+  const handleNavigation = () => {
+    console.log("navigation mts:", navigation.getState());
+    console.log("routeParams mts:", routeParams.name);
+    navigation.navigate(routes.QRTESTING);
+  };
   return (
     <View style={styles.container}>
       <Button title="Open Profile Modal" onPress={handleProfilePress} />
       <Button title="Open Transaction Modal" onPress={handleTransactionPress} />
+      <Button title="test navigation" onPress={handleNavigation} />
     </View>
   );
 }

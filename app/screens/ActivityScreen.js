@@ -120,12 +120,12 @@ function ActivityScreen({ navigation }) {
 
   const handlePress = (transaction) => {
     console.log("Transaction pressed", transaction);
-    presentSheet("transaction", { transaction: transaction });
+    presentSheet("transaction", { transaction: transaction, navigation });
   };
 
   const handleUserPress = (user) => {
     console.log("User pressed", user);
-    presentSheet("profile", { user: user });
+    presentSheet("profile", { user: user, navigation });
   };
 
   const handleDismissBottomSheet = () => {

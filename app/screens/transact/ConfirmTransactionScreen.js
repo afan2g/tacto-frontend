@@ -146,7 +146,10 @@ function ConfirmTransactionScreen({ navigation, route }) {
   };
 
   const handleUserPress = () => {
-    presentSheet(transaction.recipientUser);
+    presentSheet("profile", {
+      user: transaction.recipientUser,
+      navigation,
+    });
   };
 
   const dismissInputs = () => {

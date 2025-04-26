@@ -161,7 +161,10 @@ function PeopleSearchScreen({ navigation, ...props }) {
   };
   const handleCardPress = (item) => {
     console.log("User pressed:", item);
-    presentSheet(item); // Open the bottom sheet with user data
+    presentSheet("profile", {
+      user: item,
+      navigation: navigation,
+    }); // Open the bottom sheet with user data
   };
 
   const handleCardLongPress = (item) => {

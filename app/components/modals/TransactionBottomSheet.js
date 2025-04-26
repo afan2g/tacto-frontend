@@ -121,7 +121,7 @@ const TransactionBottomSheet = forwardRef(
       (user) => {
         if (user && (user.id || user.address)) {
           console.log("Opening profile sheet for user:", user);
-          openSheet("profile", { user });
+          openSheet("profile", { user, navigation: null });
         }
       },
       [openSheet]

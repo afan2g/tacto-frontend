@@ -18,7 +18,13 @@ import { supabase } from "../../../lib/supabase";
 import { Skeleton } from "moti/skeleton";
 import SkeletonLoader from "../skeletons/SkeletonLoader";
 const Spacer = ({ height = 16 }) => <View style={{ height }} />;
-function OtherUserHeader({ user, friendData, style, handleClose }) {
+function OtherUserHeader({
+  user,
+  friendData,
+  style,
+  handleClose,
+  rootNavigation,
+}) {
   const { friendCount, mutualFriendCount, status } = friendData || {};
   const { session } = useAuthContext();
   const { refreshFriendRequests } = useData();
@@ -176,7 +182,7 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
   const handleTransactNavigation = async (type) => {
     console.log("Transact button pressed with type:", type);
     if (loading || loadingTransact) return; // Prevent navigation if loading
-    console.log("Navigating to transact screen with type:", type);
+
     try {
       setLoadingTransact(true);
       setError(null);
@@ -188,18 +194,34 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
         .select("*")
         .eq("owner_id", user.id)
         .maybeSingle();
+
       if (error) {
         console.error("Error fetching wallet information:", error);
         throw new Error("Failed to fetch wallet information");
       }
+
       if (!data) {
         console.error("Wallet not found for user:", user.id);
         throw new Error("Wallet not found");
       }
+
       console.log("Wallet data:", data);
-      // Pass the wallet information to the next screen
-      handleClose(); // Close the modal before navigating
-      navigation.navigate(routes.TRANSACTCONFIRM, {
+
+      // Close the bottom sheet first to avoid navigation issues
+      handleClose();
+
+      // Determine which navigation object to use
+      const navObject = rootNavigation || navigation;
+
+      // Check if we have the root navigation
+      if (rootNavigation) {
+        console.log("Using root navigation to navigate");
+      } else {
+        console.log("Using local navigation to navigate");
+      }
+
+      // Navigate with the appropriate navigation object
+      navObject.navigate(routes.TRANSACTCONFIRM, {
         action: type,
         amount: null,
         recipientUser: user,
@@ -207,6 +229,8 @@ function OtherUserHeader({ user, friendData, style, handleClose }) {
         memo: "",
         methodId: type === "send" ? 0 : null,
       });
+
+      console.log("Navigation completed");
     } catch (error) {
       console.error("Error navigating to transact screen:", error);
       setError("Failed to load recipient wallet information");

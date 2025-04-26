@@ -37,64 +37,58 @@ function RootNavigator() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["right", "left"]}>
         <DataProvider>
-          <BottomSheetModalProvider>
-            <ModalProvider>
-              <TransactionProvider>
-                <Stack.Navigator
-                  screenOptions={{
-                    headerShown: false,
-                    animation: "fade_from_bottom",
-                  }}
-                >
-                  <Stack.Group>
-                    <Stack.Screen
-                      name={routes.APPTABS}
-                      component={AppTabNavigator}
-                    />
-                    <Stack.Group screenOptions={{ presentation: "modal" }}>
-                      <Stack.Screen
-                        name={routes.TRANSACTSELECTUSER}
-                        component={SelectUserScreen}
-                      />
-                      <Stack.Screen
-                        name={routes.TRANSACTCONFIRM}
-                        component={ConfirmTransactionScreen}
-                      />
-                      <Stack.Screen
-                        name={routes.TRANSACTSUCCESS}
-                        component={TransactionSuccessScreen}
-                      />
-                    </Stack.Group>
-                  </Stack.Group>
-                  <Stack.Group screenOptions={{}}>
-                    <Stack.Screen
-                      name={routes.USERPROFILE}
-                      component={UserProfileScreen}
-                    />
-                    <Stack.Screen
-                      name={routes.TRANSACTIONDETAIL}
-                      component={TransactionDetailScreen}
-                    />
-                  </Stack.Group>
+          <TransactionProvider>
+            {/* <BottomSheetModalProvider> */}
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: false,
+                animation: "fade_from_bottom",
+              }}
+            >
+              <Stack.Group>
+                <Stack.Screen
+                  name={routes.APPTABS}
+                  component={AppTabNavigator}
+                />
+                <Stack.Group screenOptions={{ presentation: "modal" }}>
                   <Stack.Screen
-                    name={routes.TESTING}
-                    component={TestingScreen}
-                  />
-                  <Stack.Screen name={routes.QRTESTING} component={QrScreen} />
-                  <Stack.Screen
-                    name={routes.TESTNOTIFICATIONS}
-                    component={NotificationsTest}
+                    name={routes.TRANSACTSELECTUSER}
+                    component={SelectUserScreen}
                   />
                   <Stack.Screen
-                    name={routes.TESTBOTTOMSHEET}
-                    component={ModalTestingScreen}
+                    name={routes.TRANSACTCONFIRM}
+                    component={ConfirmTransactionScreen}
                   />
-                </Stack.Navigator>
-              </TransactionProvider>
-              <TransactionBottomSheet id="transaction" />
-              <ProfileBottomSheet id="profile" />
-            </ModalProvider>
-          </BottomSheetModalProvider>
+                  <Stack.Screen
+                    name={routes.TRANSACTSUCCESS}
+                    component={TransactionSuccessScreen}
+                  />
+                </Stack.Group>
+              </Stack.Group>
+              <Stack.Group screenOptions={{}}>
+                <Stack.Screen
+                  name={routes.USERPROFILE}
+                  component={UserProfileScreen}
+                />
+                <Stack.Screen
+                  name={routes.TRANSACTIONDETAIL}
+                  component={TransactionDetailScreen}
+                />
+              </Stack.Group>
+              <Stack.Screen name={routes.TESTING} component={TestingScreen} />
+              <Stack.Screen name={routes.QRTESTING} component={QrScreen} />
+              <Stack.Screen
+                name={routes.TESTNOTIFICATIONS}
+                component={NotificationsTest}
+              />
+              <Stack.Screen
+                name={routes.TESTBOTTOMSHEET}
+                component={ModalTestingScreen}
+              />
+            </Stack.Navigator>
+
+            {/* </BottomSheetModalProvider> */}
+          </TransactionProvider>
         </DataProvider>
       </SafeAreaView>
     </SafeAreaProvider>

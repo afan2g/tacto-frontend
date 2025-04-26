@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { StyleSheet, useWindowDimensions } from "react-native";
+import { StyleSheet, useWindowDimensions, Button, View } from "react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Animated, {
   interpolate,
@@ -16,6 +16,7 @@ import {
   NavigationContainer,
   NavigationIndependentTree,
   useNavigation,
+  useRoute,
 } from "@react-navigation/native";
 
 import { colors, fonts } from "../../config";
@@ -24,6 +25,8 @@ import { OtherUserHeader } from "../cards";
 import AppTabBar from "../AppTabBar";
 import CollapsedHeader from "../cards/CollapsedHeader";
 import { useData } from "../../contexts"; // Import useData hook
+import routes from "../../navigation/routes";
+import { z } from "zod";
 
 const TAB_BAR_HEIGHT = 50;
 const COLLAPSED_HEADER_HEIGHT = 80;
@@ -41,14 +44,13 @@ const ProfileSheetContent = ({
   friendData,
   sharedTransactions,
   handleClose,
+  rootNavigation,
 }) => {
   // Get profile from context instead of props
   const { profile } = useData();
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(0);
-  const navigation = useNavigation();
-  console.log("current navigation psc:", navigation.getState().routes[0].name);
   const rendered = headerHeight > 0;
 
   const heightCollapsed = COLLAPSED_HEADER_HEIGHT;
@@ -268,6 +270,7 @@ const ProfileSheetContent = ({
           friendData={friendData}
           style={styles.header}
           handleClose={handleClose}
+          rootNavigation={rootNavigation} // Pass the root navigation
         />
       </Animated.View>
       <Animated.View style={collapsedHeaderStyle}>

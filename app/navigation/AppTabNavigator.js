@@ -96,18 +96,6 @@ function AppTabNavigator(props) {
           }}
         />
       </Tab.Group>
-      {/* <Tab.Group
-        screenOptions={{
-          presentation: "modal",
-          animation: "shift",
-        }}
-      >
-        <Tab.Screen
-          name={routes.USERPROFILE}
-          component={UserProfileScreen}
-          options={{ headerShown: false }}
-        />
-      </Tab.Group> */}
     </Tab.Navigator>
   );
 }

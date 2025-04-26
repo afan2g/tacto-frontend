@@ -31,6 +31,7 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
   const { session } = useAuthContext();
   // Internal state
   const [sheetProps, setSheetProps] = useState({});
+  const [rootNavigation, setRootNavigation] = useState(null); // Store the root navigation
   const bottomSheetRef = useRef(null);
   const { handleSheetPositionChange } = useBottomSheetBackHandler(
     bottomSheetRef,
@@ -70,6 +71,11 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
       console.log("Presenting profile sheet with props:", props);
       if (props && props.user) {
         setSheetProps(props);
+
+        // Store the navigation reference if provided
+        if (props.navigation) {
+          setRootNavigation(props.navigation);
+        }
 
         // Use the hook's presentSheet method with the user
         presentHookSheet(props.user);
@@ -136,6 +142,7 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
           sharedTransactions={data?.sharedTransactions}
           handleClose={handleClose}
           loading={loading}
+          rootNavigation={rootNavigation} // Pass the root navigation
         />
       </DataProvider>
     </BottomSheetModal>
