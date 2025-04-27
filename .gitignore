@@ -45,3 +45,5 @@ secrets/
 credentials.json
 
 workers/
+
+!app/assets/icons/google/android
