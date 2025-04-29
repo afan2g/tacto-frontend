@@ -25,14 +25,28 @@ import formatRelativeTime from "../../utils/formatRelativeTime";
 import { useCalendars, useLocales } from "expo-localization";
 import * as Clipboard from "expo-clipboard";
 import { useModalContext } from "../../contexts";
+import { set } from "zod";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TransactionBottomSheet = forwardRef(
   ({ id = "transaction", onDismiss }, ref) => {
-    const [transactionData, setTransactionData] = useState(null);
+    const [transactionData, setTransactionData] = useState({
+      id: "placeholder",
+      amount: 0,
+      status: "confirmed",
+      method_id: 0,
+      updated_at: new Date().toISOString(),
+      from_user: { id: session?.user?.id || "unknown" },
+      to_user: { id: "placeholder" },
+      from_address: "0x0000000000000000000000000000000000000000",
+      to_address: "0x0000000000000000000000000000000000000000",
+      hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    });
     const { session } = useAuthContext();
     const { timeZone } = useCalendars()[0] || { timeZone: "UTC" };
     const { languageTag } = useLocales()[0] || { languageTag: "en-US" };
     const bottomSheetRef = useRef(null);
+    const insets = useSafeAreaInsets();
     const { handleSheetPositionChange } = useBottomSheetBackHandler(
       bottomSheetRef,
       onDismiss
@@ -47,7 +61,7 @@ const TransactionBottomSheet = forwardRef(
 
     useLayoutEffect(() => {
       registerSheet(id, { present: presentSheet, dismiss: dismissSheet });
-      return () => unregisterSheet(id);
+      // return () => unregisterSheet(id);
     }, [id, registerSheet, unregisterSheet, presentSheet, dismissSheet]);
     // Present the sheet with transaction data
     const presentSheet = useCallback(
@@ -77,7 +91,6 @@ const TransactionBottomSheet = forwardRef(
       },
       [session?.user?.id]
     );
-
     // Dismiss the sheet
     const dismissSheet = useCallback(() => {
       bottomSheetRef.current?.dismiss();
@@ -88,7 +101,7 @@ const TransactionBottomSheet = forwardRef(
       dismiss: dismissSheet,
     }));
 
-    const snapPoints = useMemo(() => ["55%", "90%"], []);
+    const snapPoints = useMemo(() => ["55%", "100%"], []);
 
     const renderBackdrop = useCallback(
       (props) => (
@@ -113,6 +126,7 @@ const TransactionBottomSheet = forwardRef(
       (user) => {
         if (user && (user.id || user.address)) {
           console.log("Opening profile sheet for user:", user);
+          bottomSheetRef.current?.expand();
           openSheet("profile", { user, navigation: null });
         }
       },
@@ -215,8 +229,10 @@ const TransactionBottomSheet = forwardRef(
         backgroundStyle={{
           backgroundColor: colors.black,
         }}
-        // Make sure this gets rendered on top of other sheets
-        stackBehavior="push"
+        stackBehavior="switch"
+        containerStyle={{
+          marginTop: insets.top,
+        }}
       >
         <BottomSheetView style={styles.contentContainer}>
           <AppText style={styles.paymentText}>

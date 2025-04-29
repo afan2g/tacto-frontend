@@ -1,17 +1,20 @@
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { Button, Text } from "react-native-paper";
+import { Button, Text, ProgressBar } from "react-native-paper";
 import { AppText, Screen } from "../components/primitives";
 import { FunctionsHttpError } from "@supabase/functions-js";
 import * as SecureStore from "expo-secure-store";
-import { ethers } from "ethers";
+import { decryptKeystoreJson, ethers } from "ethers";
 import { useData } from "../contexts";
 import { colors, fonts } from "../config";
 import { supabase } from "../../lib/supabase";
 import routes from "../navigation/routes";
 import { fetchAccountNonce, fetchTransactionRequest } from "../api";
 import { useAuthContext } from "../contexts/AuthContext";
-
+import { set } from "zod";
+import { useSharedValue } from "react-native-reanimated";
+import { scrypt } from "ethers";
+import argon2 from "react-native-argon2";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function TestingScreen({ navigation }) {
@@ -25,7 +28,9 @@ function TestingScreen({ navigation }) {
   const { session } = useAuthContext();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(false);
-
+  const [progressText, setProgressText] = React.useState(null);
+  const [progress, setProgress] = React.useState(0);
+  const animProgress = useSharedValue(0);
   const handleViewStorage = () => {
     console.log("Storage pressed!");
     console.log("storage profile: ", profile);
@@ -346,6 +351,67 @@ function TestingScreen({ navigation }) {
     }
   };
 
+  const progressCallback = (progress) => {
+    console.log("Progress:", progress);
+    setProgress(parseFloat(progress.toFixed(2)));
+  };
+
+  const handleEncryptWallet = async () => {
+    console.log("deriving key...");
+    animProgress.value = 0;
+    const salt = ethers.id("some-salt"); // Generate a random salt
+    console.log("salt:", salt);
+    const result = await argon2("password", salt, {
+      hashLength: 32, // 32 bytes = 256 bits
+      memory: 1024, // 1 MB
+      parallelism: 2, // Single thread for mobile
+      mode: "argon2id", // Use Argon2id
+      iterations: 5, // Single pass for Argon2id
+    });
+    const { rawHash, encodedHash } = result;
+    console.log("rawHash:", rawHash);
+    console.log("encodedHash:", encodedHash);
+  };
+
+  const handleDecryptWallet = async () => {
+    const encryptedWallet = await handleEncryptWallet();
+    console.log("Encrypted wallet:", encryptedWallet);
+    console.log("Decrypting wallet...");
+    const password = "password"; // Replace with your password
+    const decryptedWallet = await decryptKeystoreJson(
+      encryptedWallet,
+      password
+    );
+
+    console.log("Decrypted wallet:", decryptedWallet);
+  };
+
+  const handleBackupWalletRemote = async () => {
+    console.log("Backing up wallet remotely...");
+    setProgressText("Backing up wallet...");
+    animProgress.value = 0;
+    const encryptedWallet = await handleEncryptWallet();
+
+    console.log("Encrypted wallet:", encryptedWallet);
+    const { data, error } = await supabase.from("wallet_backups").upsert(
+      {
+        owner_id: session.user.id,
+        wallet_id: wallet.id,
+        keystore_json: encryptedWallet,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "owner_id, wallet_id",
+      }
+    );
+
+    if (error) {
+      console.error("Error backing up wallet:", error);
+    } else {
+      console.log("Backup successful:", data);
+    }
+  };
+
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
@@ -415,6 +481,20 @@ function TestingScreen({ navigation }) {
       </Button>
       <Button onPress={handleRefreshSession}>Refresh Session</Button>
       <Button onPress={handleUserPress}>Test User Profile</Button>
+      <Button onPress={handleEncryptWallet}>Encrypt Wallet</Button>
+      <Button onPress={handleDecryptWallet}>Decrypt Wallet</Button>
+      <Button onPress={handleBackupWalletRemote}>Backup Wallet</Button>
+      <View style={styles.progressBarContainer}>
+        {/* <AnimatedProgressBar progress={progress} /> */}
+        {/* <ProgressBar
+          animatedValue={animProgress}
+          style={styles.progressBar}
+          color={colors.blue}
+        /> */}
+        <AppText style={styles.progressText}>
+          {progressText} {progress}
+        </AppText>
+      </View>
     </Screen>
   );
 }
@@ -432,6 +512,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fonts.medium,
     color: colors.lightGray,
+  },
+  progressBarContainer: {
+    width: "100%",
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 5,
   },
 });
 

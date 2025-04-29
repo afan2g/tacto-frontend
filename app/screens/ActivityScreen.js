@@ -91,34 +91,40 @@ function ActivityScreen({ navigation }) {
     }
   };
 
-  const handlePress = (transaction) => {
-    console.log("Transaction pressed", transaction);
-    presentSheet("transaction", { transaction: transaction, navigation });
-  };
-
-  const handleUserPress = (user) => {
-    console.log("User pressed", user);
-    presentSheet("profile", { user: user, navigation });
-  };
-
-  const renderItem = useCallback(
-    ({ item, section }) => {
-      if (section.title === "Friend Requests") {
-        return <FriendRequestCard request={item} />;
-      } else {
-        return (
-          <ActivityTransactionCard
-            transaction={item}
-            onPress={() => handlePress(item)}
-            navigation={navigation}
-            onDelete={() => handleRemove(item)}
-            onUserPress={handleUserPress}
-          />
-        );
-      }
+  const handlePress = useCallback(
+    (transaction) => {
+      console.log("Transaction pressed", transaction);
+      presentSheet("transaction", { transaction: transaction, navigation });
     },
-    [handlePress, handleRemove, handleUserPress, navigation]
+    [presentSheet, navigation]
   );
+
+  const handleUserPress = useCallback(
+    (user) => {
+      console.log("User pressed", user);
+      presentSheet("profile", { user: user, navigation });
+    },
+    [presentSheet, navigation]
+  );
+
+  // const renderItem = useCallback(
+  //   ({ item, section }) => {
+  //     if (section.title === "Friend Requests") {
+  //       return <FriendRequestCard request={item} />;
+  //     } else {
+  //       return (
+  //         <ActivityTransactionCard
+  //           transaction={item}
+  //           onPress={() => handlePress(item)}
+  //           navigation={navigation}
+  //           onDelete={() => handleRemove(item)}
+  //           onUserPress={handleUserPress}
+  //         />
+  //       );
+  //     }
+  //   },
+  //   [handlePress, handleRemove, handleUserPress, navigation]
+  // );
 
   const renderSectionHeader = ({ section }) => {
     if (section.data?.length === 0) {
@@ -159,7 +165,21 @@ function ActivityScreen({ navigation }) {
       <SectionList
         sections={transactions}
         keyExtractor={(item, index) => item.id + index}
-        renderItem={renderItem}
+        renderItem={({ item, section }) => {
+          if (section.title === "Friend Requests") {
+            return <FriendRequestCard request={item} />;
+          } else {
+            return (
+              <ActivityTransactionCard
+                transaction={item}
+                onPress={() => handlePress(item)}
+                navigation={navigation}
+                onDelete={() => handleRemove(item)}
+                onUserPress={handleUserPress}
+              />
+            );
+          }
+        }}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={true}
         refreshControl={

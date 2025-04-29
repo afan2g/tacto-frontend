@@ -115,7 +115,7 @@ const ProfileBottomSheet = forwardRef(({ id = "profile", onDismiss }, ref) => {
       style={styles.bottomSheetModal}
       onDismiss={onDismiss}
       enableDynamicSizing={false}
-      stackBehavior="push"
+      stackBehavior="switch"
     >
       <DataProvider>
         {data?.friendData || data?.user?.external ? (
