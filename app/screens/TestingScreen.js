@@ -1,36 +1,26 @@
-import React, { memo, useEffect } from "react";
+import React from "react";
 import { View, StyleSheet } from "react-native";
-import { Button, Text, ProgressBar } from "react-native-paper";
-import { AppText, Screen } from "../components/primitives";
-import { FunctionsHttpError } from "@supabase/functions-js";
+import { Button, Text, TextInput } from "react-native-paper";
+import { Screen } from "../components/primitives";
 import * as SecureStore from "expo-secure-store";
-import { decryptKeystoreJson, ethers } from "ethers";
+import { ethers, randomBytes } from "ethers";
 import { useData } from "../contexts";
 import { colors, fonts } from "../config";
 import { supabase } from "../../lib/supabase";
-import routes from "../navigation/routes";
-import { fetchAccountNonce, fetchTransactionRequest } from "../api";
 import { useAuthContext } from "../contexts/AuthContext";
-import { set } from "zod";
-import { useSharedValue } from "react-native-reanimated";
-import { scrypt } from "ethers";
 import argon2 from "react-native-argon2";
+import AesGcmCrypto from "react-native-aes-gcm-crypto";
+import { ArrowRightCircle } from "lucide-react-native";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function TestingScreen({ navigation }) {
-  const {
-    profile,
-    wallet,
-    completedTransactions,
-    clearCompletedTransactions,
-    fetchUserData,
-  } = useData();
+  const { profile, wallet, completedTransactions } = useData();
   const { session } = useAuthContext();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState(false);
-  const [progressText, setProgressText] = React.useState(null);
-  const [progress, setProgress] = React.useState(0);
-  const animProgress = useSharedValue(0);
+  const [recoveryPassword, setRecoveryPassword] = React.useState("");
+  const [walletBackup, setWalletBackup] = React.useState(null);
+  const [error, setError] = React.useState(null);
+  const [decryptedData, setDecryptedData] = React.useState(null);
   const handleViewStorage = () => {
     console.log("Storage pressed!");
     console.log("storage profile: ", profile);
@@ -38,359 +28,139 @@ function TestingScreen({ navigation }) {
     console.log("storage completedTransactions: ", completedTransactions);
   };
 
-  const handleViewSecureStorage = async () => {
-    console.log("Secure storage pressed!");
-    const secureData = JSON.parse(
-      await SecureStore.getItemAsync(`${WALLET_STORAGE_KEY}_${profile.id}`)
-    );
-    console.log("Secure data: ", secureData);
-    const secureWallet = ethers.HDNodeWallet.fromPhrase(
-      secureData.phrase,
-      undefined,
-      secureData.path
-    );
-    console.log("Secure wallet: ", secureWallet);
-  };
-
-  const handleDataRefresh = async () => {
-    console.log("Refreshing data...");
-    await fetchUserData();
-    console.log("Data refreshed!");
-  };
-
-  const retrieveBlockNumber = async () => {
-    console.log("Retrieving block number...");
-    const { data, error } = await supabase.functions.invoke("ethereum", {
-      body: { action: "getBlockNumber" },
-    });
-    if (error) {
-      console.error("Error getting balance:", error);
-    } else {
-      console.log("Block:", data);
-    }
-  };
-
-  const retrieveBalance = async () => {
-    console.log("Retrieving balance...");
-    const { data, error } = await supabase.functions.invoke("ethereum", {
-      body: { action: "getBalance", address: wallet.address },
-    });
-    if (error) {
-      console.error("Error getting balance:", error);
-    } else {
-      console.log("Balance:", ethers.formatEther(data.balance));
-    }
-  };
-
-  const retrieveNetwork = async () => {
-    console.log("Retrieving network...");
-    const { data, error } = await supabase.functions.invoke("ethereum", {
-      body: { action: "getNetwork" },
-    });
-    if (error) {
-      console.error("Error getting network:", error);
-    } else {
-      console.log("Network:", data);
-    }
-  };
-
-  const createTransaction = async (to, amount) => {
-    try {
-      const wei = ethers.parseUnits(amount.toString(), "ether");
-
-      // Get transaction requirements from server
-      const { data, error } = await supabase.functions.invoke("ethereum", {
-        body: {
-          action: "getTransactionRequirements",
-          txRequest: {
-            from: wallet.address,
-            to: to,
-            value: wei.toString(), // Convert BigInt to string for JSON
-          },
-        },
-      });
-
-      if (error)
-        throw new Error(
-          `Failed to get transaction requirements: ${error.message}`
-        );
-      if (!data) throw new Error("No data received from server");
-
-      const transactionRequest = {
-        from: wallet.address,
-        to: to,
-        value: wei,
-        chainId: 11155111, // Consider making this configurable
-        nonce: data.nonce,
-        gasLimit: BigInt(data.gasLimit),
-        maxFeePerGas: BigInt(data.feeData.maxFeePerGas),
-        maxPriorityFeePerGas: BigInt(data.feeData.maxPriorityFeePerGas),
-      };
-
-      console.log("Transaction Request Created:", {
-        ...transactionRequest,
-        value: transactionRequest.value.toString(),
-        gasLimit: transactionRequest.gasLimit.toString(),
-        maxFeePerGas: transactionRequest.maxFeePerGas.toString(),
-        maxPriorityFeePerGas:
-          transactionRequest.maxPriorityFeePerGas.toString(),
-      });
-
-      return transactionRequest;
-    } catch (error) {
-      console.error("Error creating transaction:", error);
-      throw error;
-    }
-  };
-
-  const signTransaction = async (transaction) => {
-    try {
-      const encryptedWallet = await SecureStore.getItemAsync(
-        "ENCRYPTED_WALLET"
-      );
-      if (!encryptedWallet) throw new Error("No wallet found");
-
-      const walletData = JSON.parse(encryptedWallet);
-      const signer = ethers.HDNodeWallet.fromPhrase(
-        walletData.phrase,
-        undefined,
-        walletData.path
-      );
-
-      const signedTx = await signer.signTransaction(transaction);
-      console.log("Transaction signed successfully");
-      return signedTx;
-    } catch (error) {
-      console.error("Error signing transaction:", error);
-      throw error;
-    }
-  };
-
-  const sendTransaction = async (to, amount) => {
-    try {
-      console.log("Creating transaction...");
-      const transactionRequest = await createTransaction(to, amount);
-
-      console.log("Signing transaction...");
-      const signedTx = await signTransaction(transactionRequest);
-
-      console.log("Broadcasting transaction...");
-      const { data, error } = await supabase.functions.invoke("ethereum", {
-        body: {
-          action: "sendDirectTransaction",
-          signedTransaction: signedTx,
-        },
-      });
-
-      if (error)
-        throw new Error(`Failed to broadcast transaction: ${error.message}`);
-
-      console.log("Transaction broadcast successful:", data);
-      return data;
-    } catch (error) {
-      console.error("Transaction failed:", error);
-      throw error;
-    }
-  };
-
-  const handleSignTransaction = async () => {
-    console.log("creating transaction...");
-    const transaction = await createTransaction(
-      "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
-      0.001
-    );
-    console.log("filled transaction: ", transaction);
-    console.log("signing transaction...");
-    const signedTx = await signTransaction(transaction);
-    console.log("signed transaction: ", signedTx);
-  };
-
-  const handleSendTransaction = async () => {
-    const result = await sendTransaction(
-      "0x328961a35076fF0610fb65d9e18cEB8f8B358dc6",
-      0.0001
-    );
-    console.log("result: ", result);
-  };
-
-  const handleLogWebhooks = async () => {
-    const { data, error } = await supabase.functions.invoke("alchemy-test");
-    if (error) {
-      console.error("Error logging webhooks:", error);
-    } else {
-      console.log("Webhooks logged:", data);
-    }
-  };
-
-  const retrieveBlockNumberZK = async () => {
-    console.log("Retrieving zksync block number...");
-    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
-      body: { action: "getBlockNumber" },
-    });
-    if (error) {
-      console.error("Error getting balance:", error);
-    } else {
-      console.log("Block:", data);
-    }
-  };
-
-  const retrieveBalanceZK = async () => {
-    console.log("Retrieving zksync balance...");
-    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
-      body: { action: "getBalance", address: wallet.address },
-    });
-    if (error) {
-      console.error("Error getting balance:", error);
-    } else {
-      console.log("Balance:", data);
-    }
-  };
-
-  const retrieveNetworkZK = async () => {
-    console.log("Retrieving zksync network...");
-    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
-      body: { action: "getNetwork" },
-    });
-    if (error) {
-      console.error("Error getting network:", error);
-    } else {
-      console.log("Network:", data);
-    }
-  };
-
-  const retrieveUSDCBalanceZK = async () => {
-    console.log("Retrieving zksync USDC balance...");
-    const { data, error } = await supabase.functions.invoke("ethereum-zksync", {
-      body: { action: "getUSDCBalance", address: wallet.address },
-    });
-    if (error) {
-      console.error("Error getting balance:", error);
-    } else {
-      console.log("Balance:", data);
-    }
-  };
-
-  const getAccountNonce = async () => {
-    const address = wallet.address;
-    const {
-      data: {
-        session: { access_token: userJWT },
-      },
-      error,
-    } = await supabase.auth.getSession();
-    if (error) {
-      console.error("Error getting session data:", error);
-      return;
-    }
-    console.log(`getting account nonce for ${address}. User JWT: ${userJWT}`);
-    const nonce = await fetchAccountNonce(address, userJWT);
-    console.log("Nonce:", nonce);
-  };
-
-  const handleShowCompletedTransactions = () => {
-    console.log("Completed Transactions:", completedTransactions);
-  };
-
-  const handleClearCompletedTransactions = () => {
-    clearCompletedTransactions();
-  };
-
-  const handleRefreshSession = async () => {
-    console.log("Refreshing session...");
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) {
-      console.error("Error refreshing session:", error);
-    } else {
-      console.log("Session refreshed:", data);
-    }
-  };
-
-  const handleUserPress = async () => {
-    const user = {
-      avatar_url:
-        "https://xxzucuadafldmamlluvh.supabase.co/storage/v1/object/public/avatars/963f9398-e270-4b14-8f7e-92f2b4c7b1fb/avatar.svg",
-      created_at: "2025-03-26T05:48:36.949486+00:00",
-      first_name: "Aoana",
-      full_name: "Aoana djdn",
-      id: "963f9398-e270-4b14-8f7e-92f2b4c7b1fb",
-      last_name: "djdn",
-      onboarding_complete: true,
-      username: "afndk",
-    };
-    console.log("User pressed:", user.id);
-    if (loading) return; // Prevent navigation if loading
-    try {
-      setLoading(true);
-      setError(null);
-      const { data, error } = await supabase.rpc("get_friend_data", {
-        current_user_id: session.user.id,
-        target_user_id: user.id,
-      });
-      if (error) {
-        console.error("Error fetching friend data:", error);
-        throw new Error("Failed to fetch friend data");
-      }
-      if (!data || data.length === 0) {
-        console.error("user not found: ", user.id);
-        throw new Error("User not found");
-      }
-      // navigation.navigate(routes.USERPROFILE, {
-      //   user,
-      //   friendData: {
-      //     ...data.friendData,
-      //     mutualFriendCount: data.mutualFriendCount,
-      //     friendCount: data.friendCount,
-      //   },
-      //   sharedTransactions: data.sharedTransactions,
-      // });
-    } catch (error) {
-      console.error("Error navigating to user profile:", error);
-      setError("Failed to load recipient wallet information");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const progressCallback = (progress) => {
-    console.log("Progress:", progress);
-    setProgress(parseFloat(progress.toFixed(2)));
-  };
-
-  const handleEncryptWallet = async () => {
+  const handleEncryptWallet = async (password) => {
     console.log("deriving key...");
-    animProgress.value = 0;
-    const salt = ethers.id("some-salt"); // Generate a random salt
-    console.log("salt:", salt);
-    const result = await argon2("password", salt, {
-      hashLength: 32, // 32 bytes = 256 bits
-      memory: 1024, // 1 MB
-      parallelism: 2, // Single thread for mobile
-      mode: "argon2id", // Use Argon2id
-      iterations: 5, // Single pass for Argon2id
-    });
+    const salt = Buffer.from(randomBytes(32)).toString("base64");
+    console.log("saltbytes:", salt);
+
+    const kdfoptions = {
+      hashLength: 32,
+      memory: 128 * 1024,
+      parallelism: 4,
+      mode: "argon2id",
+      iterations: 5,
+    };
+    const result = await generateKey("password", salt, kdfoptions);
     const { rawHash, encodedHash } = result;
     console.log("rawHash:", rawHash);
-    console.log("encodedHash:", encodedHash);
+    console.log("encodeHash:", encodedHash);
+    console.log("encrypting wallet...");
+    const walletString = await SecureStore.getItemAsync(
+      `${WALLET_STORAGE_KEY}_${profile.id}`
+    );
+    if (!walletString) throw new Error("No wallet found");
+
+    const { iv, tag, encryptedData } = await encryptData(walletString, rawHash);
+    console.log("iv:", iv);
+    console.log("tag:", tag);
+    console.log("encryptedData:", encryptedData);
+
+    const encryptedWalletJson = JSON.stringify({
+      address: wallet.address,
+      id: ethers.id(ethers.hexlify(randomBytes(16))),
+      version: 3,
+      Crypto: {
+        cipher: "aes-256-gcm",
+        cipherparams: {
+          iv: iv,
+        },
+        mac: tag,
+        ciphertext: encryptedData,
+        kdf: "argon2id",
+        kdfparams: {
+          salt: salt,
+          ...kdfoptions,
+        },
+      },
+    });
+    console.log("encryptedWalletJson:", encryptedWalletJson);
+    return encryptedWalletJson;
   };
 
-  const handleDecryptWallet = async () => {
-    const encryptedWallet = await handleEncryptWallet();
-    console.log("Encrypted wallet:", encryptedWallet);
-    console.log("Decrypting wallet...");
-    const password = "password"; // Replace with your password
-    const decryptedWallet = await decryptKeystoreJson(
-      encryptedWallet,
-      password
-    );
+  const encryptData = async (data, key) => {
+    try {
+      const base64Key = Buffer.from(key, "hex").toString("base64");
+      console.log("base64Key:", base64Key);
+      const { iv, tag, content } = await AesGcmCrypto.encrypt(
+        data,
+        false,
+        base64Key
+      );
+      return { iv, tag, encryptedData: content };
+    } catch (error) {
+      console.error("Error encrypting data:", error);
+      throw error;
+    }
+  };
 
-    console.log("Decrypted wallet:", decryptedWallet);
+  const generateKey = async (password, salt, options = {}) => {
+    const {
+      hashLength = 32,
+      memory = 128 * 1024,
+      parallelism = 4,
+      mode = "argon2id",
+      iterations = 5,
+    } = options;
+    console.log("generating key...");
+    try {
+      const key = await argon2(password, salt, {
+        hashLength,
+        memory,
+        parallelism,
+        mode,
+        iterations,
+      });
+      return key;
+    } catch (error) {
+      console.error("Error generating key:", error);
+      throw error;
+    }
+  };
+
+  const handleDecryptWallet = async (password) => {
+    console.log("Decrypting wallet with password:", password);
+
+    const { Crypto } = walletBackup;
+    const { ciphertext, kdf, kdfparams, cipher } = Crypto;
+    const { salt } = kdfparams;
+    const iv = Crypto.cipherparams.iv;
+    const tag = Crypto.mac;
+
+    console.log("ciphertext:", ciphertext);
+    console.log("kdf:", kdf);
+    console.log("kdfparams:", kdfparams);
+    console.log("salt:", salt);
+    console.log("iv:", iv);
+    console.log("cipher:", cipher);
+    console.log("tag:", tag);
+    try {
+      const { rawHash, encodedHash } = await generateKey(
+        password,
+        salt,
+        kdfparams
+      );
+      console.log("rawHash:", rawHash);
+      const base64Key = Buffer.from(rawHash, "hex").toString("base64");
+      console.log("base64Key:", base64Key);
+      const decryptedData = await AesGcmCrypto.decrypt(
+        ciphertext,
+        base64Key,
+        iv,
+        tag,
+        false
+      );
+      console.log("decryptedData:", decryptedData);
+      const parsedDecryptedData = JSON.parse(decryptedData);
+      console.log("Parsed decrypted data:", parsedDecryptedData);
+      setDecryptedData(parsedDecryptedData);
+    } catch (error) {
+      console.error("Error decrypting wallet:", error);
+    }
   };
 
   const handleBackupWalletRemote = async () => {
     console.log("Backing up wallet remotely...");
-    setProgressText("Backing up wallet...");
-    animProgress.value = 0;
-    const encryptedWallet = await handleEncryptWallet();
+    const encryptedWallet = await handleEncryptWallet("password");
 
     console.log("Encrypted wallet:", encryptedWallet);
     const { data, error } = await supabase.from("wallet_backups").upsert(
@@ -401,7 +171,7 @@ function TestingScreen({ navigation }) {
         updated_at: new Date().toISOString(),
       },
       {
-        onConflict: "owner_id, wallet_id",
+        onConflict: "wallet_id",
       }
     );
 
@@ -412,89 +182,79 @@ function TestingScreen({ navigation }) {
     }
   };
 
+  const handleRetrieveWalletBackup = async () => {
+    console.log("Retrieving wallet backup...");
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("wallet_backups")
+        .select("*")
+        .eq("owner_id", session.user.id)
+        .eq("wallet_id", wallet.id)
+        .single();
+
+      if (error) {
+        throw error;
+      } else {
+        console.log("Retrieved wallet backup:", data);
+        const { keystore_json } = data;
+        const parsedWalletData = JSON.parse(keystore_json);
+        console.log("Parsed wallet data:", parsedWalletData);
+        setWalletBackup(parsedWalletData);
+      }
+    } catch (error) {
+      console.error("Error retrieving wallet backup:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Screen style={styles.screen}>
       <Text>Testing Screen</Text>
       <Button onPress={() => navigation.goBack()}>Go back</Button>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          width: "100%",
-          paddingHorizontal: 20,
-        }}
-      >
-        <Button onPress={handleViewStorage}>View Storage</Button>
-        <Button onPress={handleViewSecureStorage}>View Secure Storage</Button>
-        <Button onPress={handleDataRefresh}>Refresh Data</Button>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          width: "100%",
-          paddingHorizontal: 20,
-        }}
-      >
-        <Button onPress={retrieveBlockNumber}>View Mainnet Block</Button>
-        <Button onPress={retrieveBlockNumberZK}>View ZKSync Block</Button>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          width: "100%",
-          paddingHorizontal: 20,
-        }}
-      >
-        <Button onPress={retrieveBalance}>View Balance</Button>
-        <Button onPress={retrieveBalanceZK}>View ZKSync Balance</Button>
-      </View>
-      <Button onPress={retrieveUSDCBalanceZK}>View ZKSync USDC balance</Button>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          width: "100%",
-          paddingHorizontal: 20,
-        }}
-      >
-        <Button onPress={retrieveNetwork}>View Current Network</Button>
-        <Button onPress={retrieveNetworkZK}>View ZKSync Network</Button>
-      </View>
-      <Button onPress={handleSignTransaction}>Sign Transaction</Button>
-      <Button onPress={handleSendTransaction}>Send Transaction</Button>
-      <Button onPress={handleLogWebhooks}>Log Webhooks</Button>
-      <Button onPress={() => navigation.navigate(routes.TESTNOTIFICATIONS)}>
-        Test Notifications
-      </Button>
-      <Button onPress={getAccountNonce}>Get Account Nonce</Button>
-      <Button onPress={handleShowCompletedTransactions}>
-        Show Completed Transactions
-      </Button>
-      <Button onPress={handleClearCompletedTransactions}>
-        Clear Completed Transactions
-      </Button>
-      <Button onPress={handleRefreshSession}>Refresh Session</Button>
-      <Button onPress={handleUserPress}>Test User Profile</Button>
+      <Button onPress={handleViewStorage}>View Storage</Button>
       <Button onPress={handleEncryptWallet}>Encrypt Wallet</Button>
-      <Button onPress={handleDecryptWallet}>Decrypt Wallet</Button>
       <Button onPress={handleBackupWalletRemote}>Backup Wallet</Button>
-      <View style={styles.progressBarContainer}>
-        {/* <AnimatedProgressBar progress={progress} /> */}
-        {/* <ProgressBar
-          animatedValue={animProgress}
-          style={styles.progressBar}
-          color={colors.blue}
-        /> */}
-        <AppText style={styles.progressText}>
-          {progressText} {progress}
-        </AppText>
-      </View>
+      <Button onPress={handleDecryptWallet}>Decrypt Wallet</Button>
+      <Button onPress={handleRetrieveWalletBackup}>
+        Retrieve Wallet Backup
+      </Button>
+
+      {walletBackup && (
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontFamily: fonts.medium,
+              color: colors.lightGray,
+            }}
+          >
+            Wallet Backup: {walletBackup.address}
+          </Text>
+          <View style={styles.backupDecryptContainer}>
+            <TextInput
+              label="Recovery Password"
+              value={recoveryPassword}
+              onChangeText={setRecoveryPassword}
+              secureTextEntry
+              style={styles.backupDecryptInput}
+            />
+            <View style={styles.backupDecryptButton}>
+              <ArrowRightCircle
+                size={44}
+                color={colors.lightGray}
+                onPress={() => handleDecryptWallet(recoveryPassword)}
+              />
+            </View>
+          </View>
+          {decryptedData && (
+            <Text
+              style={styles.backupDecryptText}
+            >{`Decrypted Data: ${decryptedData.phrase}`}</Text>
+          )}
+        </View>
+      )}
     </Screen>
   );
 }
@@ -521,6 +281,27 @@ const styles = StyleSheet.create({
   progressBar: {
     height: 10,
     borderRadius: 5,
+  },
+  backupDecryptContainer: {
+    width: "100%",
+    paddingHorizontal: 10,
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+  },
+  backupDecryptText: {
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    color: colors.lightGray,
+  },
+  backupDecryptInput: {
+    marginTop: 10,
+    width: "90%",
+  },
+  backupDecryptButton: {
+    marginTop: 10,
+    backgroundColor: colors.primary,
   },
 });
 

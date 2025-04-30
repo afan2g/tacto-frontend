@@ -60,6 +60,8 @@
     "react-content-loader": "^7.0.2",
     "react-hook-form": "^7.53.2",
     "react-native": "0.76.9",
+    "react-native-aes-crypto": "^3.2.1",
+    "react-native-aes-gcm-crypto": "^0.2.2",
     "react-native-argon2": "^2.0.1",
     "react-native-config": "^1.5.3",
     "react-native-confirmation-code-field": "^7.4.0",
