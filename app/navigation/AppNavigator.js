@@ -16,17 +16,40 @@ import LoginNavigator from "./LoginNavigator";
 import { useAuthContext } from "../contexts/AuthContext";
 import SignUpScreen from "../screens/auth/SignUpScreen";
 import SignUpImportWallet from "../screens/auth/SignUpImportWallet";
+import RecoverRemoteWallet from "../screens/auth/RecoverRemoteWallet";
 
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
-  const { session, needsWallet, secureWalletState } = useAuthContext();
+  const { session, needsWallet, secureWalletState, remoteBackup } =
+    useAuthContext();
 
   // Set up navigator based on auth state
   const renderNavigator = () => {
     // User is authenticated but needs a new wallet setup due to missing SecureStore access
+    if (session && secureWalletState === "remoteBackup") {
+      console.log("rendering wallet recovery stack with remote backup");
+      return (
+        <Stack.Group screenOptions={{ animation: "slide_from_right" }}>
+          <Stack.Screen
+            name={routes.RECOVERREMOTEBACKUP}
+            component={RecoverRemoteWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPIMPORTWALLET}
+            component={SignUpImportWallet}
+          />
+          <Stack.Screen
+            name={routes.SIGNUPGENERATEWALLET}
+            component={SignUpGenerateWallet}
+          />
+        </Stack.Group>
+      );
+    }
+
+    // User is authenticated but is missing wallet access and no remote backup
     if (session && secureWalletState === "missing") {
-      console.log("rendering wallet recovery stack");
+      console.log("rendering wallet recovery stack without remote backup");
       return (
         <Stack.Group screenOptions={{ animation: "slide_from_right" }}>
           <Stack.Screen
@@ -75,7 +98,6 @@ function AppNavigator() {
         </Stack.Group>
       );
     }
-
 
     // Not authenticated
     console.log("rendering non-authenticated stack");

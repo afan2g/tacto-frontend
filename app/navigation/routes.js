@@ -33,4 +33,5 @@ export default Object.freeze({
   NEWWALLET: "NewWallet",
   TESTBOTTOMSHEET: "TestBottomSheet",
   PROFILEBOTTOMSHEET: "ProfileBottomSheet",
+  RECOVERREMOTEBACKUP: "RecoverRemoteBackup",
 });

@@ -8,8 +8,30 @@ const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [needsWallet, setNeedsWallet] = useState(false);
   const [secureWalletState, setSecureWalletState] = useState("none");
+  const [remoteBackup, setRemoteBackup] = useState(null);
   const initialSessionChecked = useRef(false);
   const isMounted = useRef(true);
+
+  // const checkRemoteBackup = async () => {
+  //   const { data, error } = await supabase
+  //     .from("wallet_backups")
+  //     .select("keystore_json")
+  //     .eq("owner_id", session.user.id)
+  //     .maybeSingle();
+  //   if (error) {
+  //     console.error("Error fetching remote backup:", error.message);
+  //     return;
+  //   }
+  //   if (data) {
+  //     console.log("Remote backup data:", data.keystore_json);
+
+  //     const parsedData = JSON.parse(data.keystore_json);
+  //     console.log("remote backup found:", parsedData);
+  //     setRemoteBackup(parsedData);
+  //   } else {
+  //     console.log("No remote backup found for user:", session.user.id);
+  //   }
+  // };
 
   // Helper function to fetch user profile and update state
   const fetchProfileAndUpdateState = async (userSession) => {
@@ -49,10 +71,35 @@ const useAuth = () => {
       ) {
         console.warn("SecureStore access rejected");
         setSecureWalletState("rejected");
+      } else if (!hasWallet && profile?.onboarding_complete) {
+        const { data: remoteBackupData, error } = await supabase
+          .from("wallet_backups")
+          .select("keystore_json")
+          .eq("owner_id", userSession.user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching remote backup:", error.message);
+          throw error;
+        }
+
+        if (remoteBackupData) {
+          const parsedData = JSON.parse(remoteBackupData.keystore_json);
+
+          setRemoteBackup(parsedData);
+          setSecureWalletState("remoteBackup");
+        } else {
+          setRemoteBackup(null);
+          setSecureWalletState("missing");
+        }
+      } else if (hasWallet && profile?.onboarding_complete) {
+        console.warn("Wallet found, setting state to 'present'");
+        setSecureWalletState("present");
       } else {
-        setSecureWalletState(
-          !hasWallet && profile?.onboarding_complete ? "none" : "present"
+        console.warn(
+          "No wallet and onboarding not complete, setting state to 'none'"
         );
+        setSecureWalletState("none");
       }
 
       if (!initialSessionChecked.current) {
@@ -155,7 +202,14 @@ const useAuth = () => {
     };
   }, []);
 
-  return { session, isLoading, needsWallet, secureWalletState, setNeedsWallet };
+  return {
+    session,
+    isLoading,
+    needsWallet,
+    secureWalletState,
+    remoteBackup,
+    setNeedsWallet,
+  };
 };
 
 export default useAuth;
