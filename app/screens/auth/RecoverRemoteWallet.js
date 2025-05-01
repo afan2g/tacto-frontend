@@ -8,17 +8,17 @@ import { TextInput, useTheme } from "react-native-paper";
 import { decryptKeystoreJson } from "../../utils/CryptographicFunctions";
 import { ethers } from "ethers";
 import * as SecureStore from "expo-secure-store";
+import { set } from "zod";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function RecoverRemoteWallet({ navigation }) {
   const insets = useSafeAreaInsets();
-  const { remoteBackup } = useAuthContext();
+  const { remoteBackup, session, setSecureWalletState } = useAuthContext();
   const [backupPassword, setBackupPassword] = useState("");
   const [error, setError] = useState(null);
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedPhrase, setDecryptedPhrase] = useState("");
   const [isStoring, setIsStoring] = useState(false);
-  const { session } = useAuthContext();
   const theme = useTheme();
   const handlePasswordChange = (value) => {
     setBackupPassword(value);
@@ -55,6 +55,7 @@ function RecoverRemoteWallet({ navigation }) {
       );
       console.log("Wallet stored successfully!");
       setIsStoring(false);
+      setSecureWalletState("present");
     } catch (err) {
       console.error("Decryption error:", err.message);
       setError("Invalid password. Please try again.");

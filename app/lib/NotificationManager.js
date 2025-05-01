@@ -5,10 +5,17 @@ import { supabase } from "../../lib/supabase";
 export class NotificationManager {
   static async registerForPushNotifications(userId = null) {
     try {
-      const { status: existingStatus } =
+      const { status: existingStatus, canAskAgain } =
         await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
+      console.log("Existing status:", existingStatus);
+      console.log("Can ask again:", canAskAgain);
+
+      if (!canAskAgain) {
+        console.log("User has denied permission and cannot ask again.");
+        return null;
+      }
       if (existingStatus !== "granted") {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
@@ -26,7 +33,9 @@ export class NotificationManager {
       });
 
       if (!userId) {
-        const { data: { session } } = await supabase.auth.getUser();
+        const {
+          data: { session },
+        } = await supabase.auth.getUser();
         userId = session?.user?.id;
       }
 
@@ -58,7 +67,6 @@ export class NotificationManager {
       return token;
     } catch (error) {
       console.error("Error registering for push notifications:", error);
-      throw error;
     }
   }
 }

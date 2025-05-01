@@ -7,6 +7,7 @@ import {
   fetchPaymentRequests,
 } from "../api";
 import { useAuthContext } from "./AuthContext";
+import { NotificationManager } from "../lib/NotificationManager";
 const DataContext = createContext();
 
 const STORAGE_KEYS = {
@@ -14,6 +15,23 @@ const STORAGE_KEYS = {
   WALLET: "wallet",
 };
 
+const NULL_WALLET = {
+  id: null,
+  path: `m/44'/60'/0'/0/0`,
+  public_key: null,
+  address: null,
+  index: 0,
+  created_at: null,
+  updated_at: null,
+  owner_id: null,
+  name: "Primary Wallet",
+  parent_fingerprint: null,
+  chain_code: null,
+  depth: 0,
+  is_primary: true,
+  eth_balance: 0,
+  usdc_balance: 0,
+};
 // Utility function to sanitize boolean fields
 const sanitizeBoolean = (value) => {
   if (typeof value === "boolean") return value;
@@ -74,10 +92,10 @@ export function DataProvider({ children }) {
   const [wallet, setWallet] = useState(() => {
     const storedWallet = storage.getString(STORAGE_KEYS.WALLET);
     try {
-      return storedWallet ? JSON.parse(storedWallet) : null;
+      return storedWallet ? JSON.parse(storedWallet) : NULL_WALLET;
     } catch (error) {
       console.error("Error parsing stored wallet:", error);
-      return null;
+      return NULL_WALLET;
     }
   });
 
@@ -204,6 +222,7 @@ export function DataProvider({ children }) {
         completedTransactionsResponse,
         paymentRequestsResponse,
         friendRequestsResponse,
+        notificationsResponseToken,
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("wallets").select("*").eq("owner_id", userId).single(),
@@ -213,6 +232,7 @@ export function DataProvider({ children }) {
         }),
         fetchPaymentRequests(userId),
         fetchFriendRequests(userId),
+        NotificationManager.registerForPushNotifications(userId),
       ]);
 
       if (profileResponse.error) {
@@ -277,6 +297,13 @@ export function DataProvider({ children }) {
         setFriendRequests(requestsData);
         console.log("Friend requests fetched:", requestsData);
         console.log("Count of friend requests:", requestsData.length);
+      }
+
+      if (!notificationsResponseToken) {
+        console.error(
+          "Error fetching notification token:",
+          notificationsResponseToken
+        );
       }
     } catch (error) {
       console.error("Error in fetchUserData:", error);
@@ -430,10 +457,11 @@ export function DataProvider({ children }) {
   const clearData = () => {
     try {
       // Only clear profile and wallet from storage
+      console.log("Clearing data from storage...");
       storage.clearAll();
       // Reset all state
       setProfile(null);
-      setWallet(null);
+      setWallet(NULL_WALLET);
       setCompletedTransactions(null);
       setPaymentRequests(null);
       setTransactionsPage(0);
