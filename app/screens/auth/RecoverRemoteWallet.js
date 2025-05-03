@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Text, BackHandler, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, fonts } from "../../config";
 import { AppButton, AppText, Header } from "../../components/primitives";
@@ -9,6 +9,8 @@ import { decryptKeystoreJson } from "../../utils/CryptographicFunctions";
 import { ethers } from "ethers";
 import * as SecureStore from "expo-secure-store";
 import { set } from "zod";
+import { supabase } from "../../../lib/supabase";
+import routes from "../../navigation/routes";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function RecoverRemoteWallet({ navigation }) {
@@ -20,6 +22,39 @@ function RecoverRemoteWallet({ navigation }) {
   const [decryptedPhrase, setDecryptedPhrase] = useState("");
   const [isStoring, setIsStoring] = useState(false);
   const theme = useTheme();
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        handleBack();
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
+
+  const handleBack = () => {
+    if (!navigation.canGoBack()) {
+      console.log("No previous screen to go back to.");
+      Alert.alert(
+        "Quit Recovery",
+        "Are you sure you want to quit?",
+        [
+          { text: "OK", onPress: () => supabase.auth.signOut() },
+          {
+            text: "Cancel",
+            onPress: () => console.log("Cancel Pressed"),
+          },
+        ],
+        { cancelable: true }
+      );
+      return;
+    }
+    navigation.goBack();
+  };
+
   const handlePasswordChange = (value) => {
     setBackupPassword(value);
   };
@@ -103,6 +138,16 @@ function RecoverRemoteWallet({ navigation }) {
             onPress={handleDecrypt}
             loading={isDecrypting || isStoring}
             disabled={isDecrypting || isStoring || !backupPassword}
+          />
+          <AppButton
+            color={colors.yellow}
+            title="Restore from phrase"
+            onPress={() => navigation.navigate(routes.SIGNUPIMPORTWALLET)}
+          />
+          <AppButton
+            color={colors.yellow}
+            title="Create new wallet"
+            onPress={() => navigation.navigate(routes.SIGNUPGENERATEWALLET)}
           />
         </View>
         <AppText style={styles.infoText}>

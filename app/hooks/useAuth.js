@@ -51,6 +51,7 @@ const useAuth = () => {
         console.warn("SecureStore access rejected");
         setSecureWalletState("rejected");
       } else if (!hasWallet && profile?.onboarding_complete) {
+        console.warn("No wallet found, checking for remote backup");
         const { data: remoteBackupData, error } = await supabase
           .from("wallet_backups")
           .select("keystore_json")

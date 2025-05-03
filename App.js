@@ -27,6 +27,7 @@ import { theme } from "./app/themes/themes";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import TransactionBottomSheet from "./app/components/modals/TransactionBottomSheet";
 import ProfileBottomSheet from "./app/components/modals/ProfileBottomSheet";
+import MoreDetailsBottomSheet from "./app/components/modals/MoreDetailsBottomSheet";
 // Create a loading component
 const LoadingScreen = () => (
   <View style={styles.loadingContainer}>
@@ -61,6 +62,7 @@ export default function App() {
                       <ProfileBottomSheet id="profile" />
                     </>
                   )}
+                  <MoreDetailsBottomSheet id="moreDetails" />
                 </BottomSheetModalProvider>
               </AuthProvider>
             </ModalProvider>

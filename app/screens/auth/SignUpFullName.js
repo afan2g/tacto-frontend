@@ -21,7 +21,7 @@ import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
 import ErrorMessage from "../../components/forms/ErrorMessage";
 import SSOOptions from "../../components/login/SSOOptions";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Key } from "lucide-react-native";
 import ProgressBar from "../../components/ProgressBar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -45,6 +45,7 @@ function SignUpFullName({ navigation, route }) {
   }, [navigation]);
 
   const handleBack = () => {
+    updateFormData({ fullName: "" });
     navigation.goBack();
   };
 

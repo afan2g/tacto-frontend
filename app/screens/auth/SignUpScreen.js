@@ -31,18 +31,18 @@ import ProgressBar from "../../components/ProgressBar";
 import routes from "../../navigation/routes";
 import { colors, fonts } from "../../config";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { set } from "zod";
 
+const DEFAULT_FORM_STATE = {
+  isEmail: true,
+  error: "",
+  isValid: false,
+  isLoading: false,
+  phoneNumber: "",
+  country: countryLookup["US"],
+};
 const SignUpScreen = ({ navigation, route }) => {
   const { formData, updateFormData, updateProgress } = useFormData();
-  const [formState, setFormState] = useState({
-    isEmail: true,
-    error: "",
-    isValid: false,
-    isLoading: false,
-    phoneNumber: "",
-    country: countryLookup["US"],
-  });
+  const [formState, setFormState] = useState(DEFAULT_FORM_STATE);
   const emailRef = useRef(null);
   const phoneRef = useRef(null);
   const theme = useTheme();
@@ -53,6 +53,12 @@ const SignUpScreen = ({ navigation, route }) => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        updateFormData({
+          identifier: "",
+          email: null,
+          phone: null,
+        });
+        setFormState(DEFAULT_FORM_STATE);
         navigation.goBack();
         return true;
       }

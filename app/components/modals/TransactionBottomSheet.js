@@ -53,16 +53,12 @@ const TransactionBottomSheet = forwardRef(
     );
 
     // Get modal context
-    const {
-      registerSheet,
-      unregisterSheet,
-      presentSheet: openSheet,
-    } = useModalContext();
+    const { registerSheet, presentSheet: openSheet } = useModalContext();
 
     useLayoutEffect(() => {
       registerSheet(id, { present: presentSheet, dismiss: dismissSheet });
       // return () => unregisterSheet(id);
-    }, [id, registerSheet, unregisterSheet, presentSheet, dismissSheet]);
+    }, [id, registerSheet, presentSheet, dismissSheet]);
     // Present the sheet with transaction data
     const presentSheet = useCallback(
       (data) => {

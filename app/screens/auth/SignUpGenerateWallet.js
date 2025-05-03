@@ -1,5 +1,15 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { View, StyleSheet, BackHandler } from "react-native";
+import React, { useCallback, useEffect, useState, useRef } from "react";
+import {
+  View,
+  StyleSheet,
+  BackHandler,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  Pressable,
+  Text,
+} from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { ethers } from "ethers";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,14 +18,23 @@ import { AppText, Header, Screen } from "../../components/primitives";
 import MnemonicTable from "../../components/MnemonicTable";
 import routes from "../../navigation/routes";
 import { AppButton } from "../../components/primitives";
-import { colors } from "../../config";
+import { colors, fonts } from "../../config";
+import { Import, Info, RefreshCcw } from "lucide-react-native";
+import { Checkbox, TextInput, useTheme } from "react-native-paper";
+import { useModalContext } from "../../contexts";
 const WALLET_STORAGE_KEY = "TACTO_ENCRYPTED_WALLET";
 
 function SignUpGenerateWallet({ navigation }) {
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
   const [isStoring, setIsStoring] = useState(false);
-
+  const [checked, setChecked] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const passwordInputRef = useRef(null);
+  const theme = useTheme();
+  const { presentSheet } = useModalContext();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -29,6 +48,22 @@ function SignUpGenerateWallet({ navigation }) {
   }, [navigation]);
 
   const handleBack = () => {
+    if (!navigation.canGoBack()) {
+      console.log("No previous screen to go back to.");
+      Alert.alert(
+        "Quit Signup",
+        "Are you sure you want to quit the signup process?",
+        [
+          { text: "OK", onPress: () => supabase.auth.signOut() },
+          {
+            text: "Cancel",
+            onPress: () => console.log("Cancel Pressed"),
+          },
+        ],
+        { cancelable: true }
+      );
+      return;
+    }
     navigation.goBack();
   };
 
@@ -81,7 +116,9 @@ function SignUpGenerateWallet({ navigation }) {
           navigation.replace(routes.SIGNUPCOMPLETE);
         } else {
           console.log("No wallet in secure storage");
-          setError("Failed to retrieve existing wallet from your device. You can recover your wallet by importing it.");
+          setError(
+            "Failed to retrieve existing wallet from your device. You can recover your wallet by importing it."
+          );
           return;
         }
         return;
@@ -177,9 +214,10 @@ function SignUpGenerateWallet({ navigation }) {
 
       if (walletError) throw walletError;
 
-      const { data: addToWebhookData, error: addToWebhookError } = await supabase.functions.invoke("add-wallet-to-webhook", {
-        body: { address: publicInfo.address }
-      });
+      const { data: addToWebhookData, error: addToWebhookError } =
+        await supabase.functions.invoke("add-wallet-to-webhook", {
+          body: { address: publicInfo.address },
+        });
 
       if (addToWebhookError) throw addToWebhookError;
       clearMemory();
@@ -192,65 +230,181 @@ function SignUpGenerateWallet({ navigation }) {
     }
   };
 
+  const handleInputChange = (text) => {
+    setPassword(text);
+    setPasswordError(null);
+  };
+
+  const handleInfoSheet = () => {
+    presentSheet("moreDetails", { info: "This is a test", navigation });
+  };
+
+  const handleSubmitPassword = async () => {
+    if (!password) {
+      setPasswordError("Password is required");
+      return;
+    }
+    if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      return;
+    }
+    if (password.length > 32) {
+      setPasswordError("Password must be at most 32 characters long");
+      return;
+    }
+    console.log("Password submitted:", password);
+  };
+
   const insets = useSafeAreaInsets();
 
+  useEffect(() => {
+    const keyboardWillShowListener =
+      Platform.OS === "ios"
+        ? Keyboard.addListener("keyboardWillShow", () => {
+            setKeyboardVisible(true);
+          })
+        : Keyboard.addListener("keyboardDidShow", () => {
+            setKeyboardVisible(true);
+          });
+
+    const keyboardWillHideListener =
+      Platform.OS === "ios"
+        ? Keyboard.addListener("keyboardWillHide", () => {
+            setKeyboardVisible(false);
+          })
+        : Keyboard.addListener("keyboardDidHide", () => {
+            passwordInputRef.current?.blur();
+            setKeyboardVisible(false);
+          });
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, []);
+
   return (
-    <Screen style={[styles.screen, { paddingTop: insets.top }]}>
-      <Header>Generate Wallet</Header>
+    <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={[styles.keyboardView, styles.screen, { paddingTop: insets.top }]}
+      >
+        <Header>Generate Wallet</Header>
 
-      <View style={styles.info}>
-        <AppText style={styles.infoText}>
-          Below is your wallet recovery phrase. Please write it down and store
-          it in a secure place. Never share this phrase with anyone. We will
-          never ask you for this phrase.
-        </AppText>
-      </View>
+        {!keyboardVisible && (
+          <View style={styles.info}>
+            <AppText style={styles.infoText}>
+              Below is your wallet recovery phrase. Please write it down and
+              store it in a secure place. Never share this phrase with anyone.
+              We will never ask you for this phrase.
+            </AppText>
+          </View>
+        )}
+        {error && <AppText style={styles.error}>{error}</AppText>}
 
-      {error && <AppText style={styles.error}>{error}</AppText>}
+        {wallet && (
+          <View>
+            {!keyboardVisible && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  marginHorizontal: 10,
+                  alignSelf: "flex-end",
+                }}
+              >
+                <View style={styles.iconContainer}>
+                  <RefreshCcw
+                    size={24}
+                    color={colors.black}
+                    onPress={generateWallet}
+                    disabled={isStoring || keyboardVisible}
+                  />
+                </View>
+                <View style={styles.iconContainer}>
+                  <Import
+                    size={24}
+                    color={colors.black}
+                    onPress={() =>
+                      navigation.navigate(routes.SIGNUPIMPORTWALLET)
+                    }
+                    disabled={isStoring}
+                  />
+                </View>
+              </View>
+            )}
+            {/* {!keyboardVisible ? (
+            <MnemonicTable mnemonic={wallet?.mnemonic?.phrase.split(" ")} />
+          ) : null} */}
+            <MnemonicTable mnemonic={wallet?.mnemonic?.phrase.split(" ")} />
+          </View>
+        )}
 
-      {wallet && (
-        <MnemonicTable mnemonic={wallet?.mnemonic?.phrase.split(" ")} />
-      )}
-
-      <View style={styles.buttonContainer}>
-        <AppButton
-          style={styles.button}
-          title="Generate New Wallet"
-          onPress={generateWallet}
-          disabled={isStoring}
-          color={colors.lightGray}
-        />
-
-        <AppButton
-          style={styles.button}
-          title={isStoring ? "Storing..." : "Store and Continue"}
-          onPress={handleSaveWallet}
-          disabled={!wallet || isStoring}
-          color={colors.yellow}
-          loading={isStoring}
-        />
-        <AppButton
-          style={styles.button}
-          title="Import Wallet"
-          onPress={() => navigation.navigate(routes.SIGNUPIMPORTWALLET)}
-          disabled={isStoring}
-          color={colors.yellow}
-        />
-
-      </View>
-    </Screen>
+        <View style={[styles.buttonContainer]}>
+          <View style={styles.backupWalletContainer}>
+            <Pressable
+              style={styles.backupWalletContainer}
+              onPress={() => setChecked(!checked)}
+            >
+              <Checkbox
+                status={checked ? "checked" : "unchecked"}
+                color={colors.lightGray}
+              />
+              <AppText style={styles.infoText}>
+                Encrypt and backup my wallet to the cloud
+              </AppText>
+            </Pressable>
+            <Info
+              size={14}
+              color={colors.grayOpacity70}
+              style={{ alignSelf: "flex-start", marginLeft: 3, marginTop: 5 }}
+              onPress={handleInfoSheet}
+            />
+          </View>
+          {checked && (
+            <TextInput
+              {...theme.formInput}
+              theme={{
+                colors: {
+                  onSurfaceVariant: colors.softGray,
+                },
+              }}
+              ref={passwordInputRef}
+              label={<Text style={{ fontFamily: fonts.bold }}>Password</Text>}
+              autoComplete="new-password"
+              autoCorrect={false}
+              secureTextEntry
+              onChangeText={handleInputChange}
+              onSubmitEditing={handleSubmitPassword}
+              value={password}
+            />
+          )}
+          <AppButton
+            style={styles.button}
+            title={isStoring ? "Storing..." : "Store and Continue"}
+            onPress={handleSaveWallet}
+            disabled={!wallet || isStoring || (checked && !password)}
+            color={colors.yellow}
+            loading={isStoring}
+          />
+        </View>
+      </KeyboardAvoidingView>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
+    backgroundColor: colors.blue,
   },
   info: {
     marginBottom: 20,
   },
   infoText: {
     fontSize: 16,
+    color: colors.gray.shade20,
+    fontFamily: fonts.regular,
   },
   error: {
     color: "red",
@@ -261,6 +415,24 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {},
+  backupWalletContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkbox: {
+    marginRight: 10,
+  },
+  iconContainer: {
+    height: 32,
+    width: 32,
+    borderRadius: 16,
+    backgroundColor: colors.yellow,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  keyboardView: {
+    flex: 1,
+  },
 });
 
 export default SignUpGenerateWallet;

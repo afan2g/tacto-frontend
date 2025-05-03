@@ -31,7 +31,8 @@ import { clientValidation } from "../../validation/clientValidation";
 import ProgressBar from "../../components/ProgressBar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 function SignUpUsername({ navigation, route }) {
-  const { formData, updateFormData, updateProgress } = useFormData();
+  const { formData, updateFormData, updateProgress, clearFormData } =
+    useFormData();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isValid, setIsValid] = useState(false);
@@ -60,15 +61,7 @@ function SignUpUsername({ navigation, route }) {
   }, [navigation]);
 
   const handleBack = () => {
-    updateFormData({
-      progress: 0,
-      prevProgress: 0,
-      username: "",
-      fullName: "",
-      email: "",
-      password: "",
-      identifier: null,
-    });
+    clearFormData();
     navigation.goBack();
   };
 
@@ -184,7 +177,7 @@ function SignUpUsername({ navigation, route }) {
               accessibilityLabel="Username input"
               autoComplete="username"
               autoCorrect={false}
-              // autoFocus={true}
+              // autoFocus={false}
               onChangeText={handleInputChange}
               onSubmitEditing={
                 isValid && !isLoading ? handleUsernameSubmit : undefined

@@ -35,8 +35,21 @@ export const FormProvider = ({ children }) => {
     });
   };
 
+  const clearFormData = () => {
+    setFormData({
+      progress: 0,
+      prevProgress: 0,
+      username: "",
+      fullName: "",
+      email: "",
+      password: "",
+    });
+  };
+
   return (
-    <FormContext.Provider value={{ formData, updateFormData, updateProgress }}>
+    <FormContext.Provider
+      value={{ formData, updateFormData, updateProgress, clearFormData }}
+    >
       {children}
     </FormContext.Provider>
   );
@@ -51,5 +64,6 @@ export const FormProvider = ({ children }) => {
  * @property {Object} formData - The form data state.
  * @property {Function} updateFormData - Function to update the form data state.
  * @property {Function} updateProgress - Function to update the progress state based on the current route.
+ * @property {Function} clearFormData - Function to clear the form data state.
  */
 export const useFormData = () => useContext(FormContext);

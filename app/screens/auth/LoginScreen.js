@@ -29,7 +29,7 @@ import { useAuthContext, useFormData } from "../../contexts";
 import { isAuthApiError } from "@supabase/supabase-js";
 function LoginScreen({ navigation }) {
   const passwordRef = useRef(null);
-  const { formData, updateFormData } = useFormData();
+  const { formData, updateFormData, clearFormData } = useFormData();
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,12 +39,17 @@ function LoginScreen({ navigation }) {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        clearFormData();
         navigation.goBack();
         return true;
       }
     );
     return () => backHandler.remove();
   }, [navigation]);
+
+  useEffect(() => {
+    clearFormData();
+  }, []);
 
   const handleInputChange = (name, value) => {
     // setLoginForm((prev) => ({

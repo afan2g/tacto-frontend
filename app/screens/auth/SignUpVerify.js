@@ -79,6 +79,11 @@ function SignUpVerify({ navigation, route }) {
     return () => backHandler.remove();
   }, [navigation]);
 
+  const handleBack = () => {
+    updateFormData({ verificationCode: "" });
+    navigation.goBack();
+  };
+
   useEffect(() => {
     const unsubscribe = navigation.addListener("transitionEnd", () => {
       if (inputRef.current) {
@@ -96,10 +101,6 @@ function SignUpVerify({ navigation, route }) {
       };
     }, [route.name])
   );
-
-  const handleBack = () => {
-    navigation.goBack();
-  };
 
   const handleInputChange = (value) => {
     setError("");

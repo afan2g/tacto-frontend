@@ -124,18 +124,6 @@ function AppNavigator() {
             component={SignUpPassword}
           />
           <Stack.Screen name={routes.SIGNUPVERIFY} component={SignUpVerify} />
-          <Stack.Screen
-            name={routes.SIGNUPGENERATEWALLET}
-            component={SignUpGenerateWallet}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPIMPORTWALLET}
-            component={SignUpImportWallet}
-          />
-          <Stack.Screen
-            name={routes.SIGNUPCOMPLETE}
-            component={SignUpComplete}
-          />
         </Stack.Group>
       </Stack.Group>
     );

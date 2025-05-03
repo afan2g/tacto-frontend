@@ -22,7 +22,6 @@ import { colors, fonts } from "../../config";
 import { ErrorMessage } from "../../components/forms";
 import { SSOOptions } from "../../components/login";
 import { ChevronLeft } from "lucide-react-native";
-import { PROGRESS_STEPS } from "../../constants/progress";
 import ProgressBar from "../../components/ProgressBar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 function SignUpPassword({ navigation, route }) {
@@ -47,6 +46,11 @@ function SignUpPassword({ navigation, route }) {
     return () => backHandler.remove();
   }, [navigation]);
 
+  const handleBack = () => {
+    updateFormData({ password: "" });
+    navigation.goBack();
+  };
+
   useEffect(() => {
     const unsubscribe = navigation.addListener("transitionEnd", () => {
       if (inputRef.current) {
@@ -66,9 +70,6 @@ function SignUpPassword({ navigation, route }) {
       };
     }, [route.name])
   );
-  const handleBack = () => {
-    navigation.goBack();
-  };
 
   const handleInputChange = (value) => {
     setError("");

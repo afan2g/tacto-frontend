@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { View, StyleSheet, BackHandler } from "react-native";
+import { View, StyleSheet, BackHandler, Alert } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { ethers } from "ethers";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -32,35 +32,25 @@ function SignUpImportWallet({ navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
-  //   useEffect(() => {
-  //     const checkRemoteBackup = async () => {
-  //       const { data, error } = await supabase
-  //         .from("wallet_backups")
-  //         .select("keystore_json")
-  //         .eq("owner_id", session.user.id)
-  //         .maybeSingle();
-  //       if (error) {
-  //         console.error("Error fetching remote backup:", error.message);
-  //         return;
-  //       }
-  //       if (data) {
-  //         console.log("Remote backup data:", data.keystore_json);
-
-  //         const parsedData = JSON.parse(data.keystore_json);
-  //         console.log("remote backup found:", parsedData);
-  //         setRemoteBackup(parsedData);
-  //       } else {
-  //         console.log("No remote backup found for user:", session.user.id);
-  //       }
-  //     };
-
-  //     checkRemoteBackup();
-  //   }, []);
-
   const handleBack = () => {
-    navigation.navigate(routes.SIGNUPGENERATEWALLET);
+    if (!navigation.canGoBack()) {
+      console.log("No previous screen to go back to.");
+      Alert.alert(
+        "Quit Import",
+        "Are you sure you want to quit?",
+        [
+          { text: "OK", onPress: () => supabase.auth.signOut() },
+          {
+            text: "Cancel",
+            onPress: () => console.log("Cancel Pressed"),
+          },
+        ],
+        { cancelable: true }
+      );
+      return;
+    }
+    navigation.goBack();
   };
-
   // Handle when a valid phrase is entered
   const handlePhraseComplete = (validPhrase) => {
     console.log("Valid phrase:", validPhrase);
