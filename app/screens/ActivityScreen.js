@@ -14,6 +14,7 @@ import { ActivityIndicator } from "react-native-paper";
 import FriendRequestCard from "../components/cards/FriendRequestCard";
 function ActivityScreen({ navigation }) {
   const {
+    profile,
     wallet,
     completedTransactions,
     transactionsHasMore,
@@ -53,7 +54,9 @@ function ActivityScreen({ navigation }) {
   }, [completedTransactions, paymentRequests, friendRequests]);
 
   useEffect(() => {}, [completedTransactions]);
-
+  useEffect(() => {
+    console.log("ACTIVITY SCREEN: Profile changed:", profile);
+  }, [profile]);
   const handleRemove = (transaction) => {
     const updatedTransactions = transactions.filter(
       (t) => t.id !== transaction.id

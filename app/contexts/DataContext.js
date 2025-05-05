@@ -222,7 +222,7 @@ export function DataProvider({ children }) {
         completedTransactionsResponse,
         paymentRequestsResponse,
         friendRequestsResponse,
-        notificationsResponseToken,
+        // notificationsResponseToken,
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("wallets").select("*").eq("owner_id", userId).single(),
@@ -232,7 +232,7 @@ export function DataProvider({ children }) {
         }),
         fetchPaymentRequests(userId),
         fetchFriendRequests(userId),
-        NotificationManager.registerForPushNotifications(userId),
+        // NotificationManager.registerForPushNotifications(userId),
       ]);
 
       if (profileResponse.error) {
@@ -299,12 +299,12 @@ export function DataProvider({ children }) {
         console.log("Count of friend requests:", requestsData.length);
       }
 
-      if (!notificationsResponseToken) {
-        console.error(
-          "Error fetching notification token:",
-          notificationsResponseToken
-        );
-      }
+      // if (!notificationsResponseToken) {
+      //   console.warn(
+      //     "Error fetching notification token:",
+      //     notificationsResponseToken
+      //   );
+      // }
     } catch (error) {
       console.error("Error in fetchUserData:", error);
     } finally {

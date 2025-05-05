@@ -39,17 +39,22 @@ const useAuth = () => {
       const { hasWallet, error: secureWalletError } = await checkWalletAccess(
         userSession.user.id
       );
-
+      console.log(
+        "SecureStore wallet access check:",
+        hasWallet,
+        secureWalletError
+      );
       if (!isMounted.current) return;
 
       setSession(userSession);
       setNeedsWallet(!profile?.onboarding_complete);
-      if (
-        secureWalletError ===
-        "Call to function 'ExpoSecureStore.getValueWithKeyAsync' has been rejected."
-      ) {
-        console.warn("SecureStore access rejected");
-        setSecureWalletState("rejected");
+      if (secureWalletError) {
+        console.warn("SecureStore access rejected", secureWalletError);
+        supabase.auth.signOut();
+        setSession(null);
+        setNeedsWallet(false);
+        setSecureWalletState("none");
+        return;
       } else if (!hasWallet && profile?.onboarding_complete) {
         console.warn("No wallet found, checking for remote backup");
         const { data: remoteBackupData, error } = await supabase
@@ -154,6 +159,8 @@ const useAuth = () => {
         initialSessionChecked.current = true;
         setIsLoading(false);
         setSecureWalletState("none");
+        setRemoteBackup(null);
+        console.warn("AUTH SIGNED_OUT - no existing session");
       } else if (event === "SIGNED_IN") {
         // For sign in events, use setTimeout to avoid deadlock as per Supabase docs
         console.warn("AUTH SIGNED_IN");

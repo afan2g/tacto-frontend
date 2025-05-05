@@ -8,12 +8,12 @@ export const checkWalletAccess = async (userId) => {
     const walletData = await SecureStore.getItemAsync(
       `${WALLET_STORAGE_KEY}_${userId}`
     );
-    console.log("secure store data:", walletData);
     return {
       hasWallet: !!walletData,
       error: null,
     };
   } catch (error) {
+    console.error("Error accessing SecureStore:", error);
     console.error("Error checking wallet access:", error.message);
     return {
       hasWallet: false,

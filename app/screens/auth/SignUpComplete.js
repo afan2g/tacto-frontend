@@ -11,7 +11,7 @@ function SignUpComplete({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [userId, setUserId] = useState(null);
-  const { session, setNeedsWallet } = useAuthContext();
+  const { session, setNeedsWallet, setSecureWalletState } = useAuthContext();
   useEffect(() => {
     checkProfile();
   }, []);
@@ -71,6 +71,7 @@ function SignUpComplete({ navigation }) {
 
       if (profileError) throw profileError;
       setNeedsWallet(false);
+      setSecureWalletState("present");
     } catch (error) {
       console.error("Error in handleSubmit:", error);
     } finally {

@@ -9,6 +9,7 @@ import {
   Keyboard,
   Pressable,
   Text,
+  ScrollView,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { ethers } from "ethers";
@@ -32,8 +33,10 @@ function SignUpGenerateWallet({ navigation }) {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const passwordInputRef = useRef(null);
   const theme = useTheme();
+  const scrollViewRef = useRef(null);
   const { presentSheet } = useModalContext();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -262,9 +265,23 @@ function SignUpGenerateWallet({ navigation }) {
       Platform.OS === "ios"
         ? Keyboard.addListener("keyboardWillShow", () => {
             setKeyboardVisible(true);
+            console.log("Keyboard will show");
+            if (scrollViewRef.current) {
+              console.log("Scrolling to end");
+              setTimeout(() => {
+                scrollViewRef.current.scrollToEnd({ animated: true });
+              }, 200);
+            }
           })
         : Keyboard.addListener("keyboardDidShow", () => {
             setKeyboardVisible(true);
+            console.log("Keyboard did show");
+            if (scrollViewRef.current) {
+              console.log("Scrolling to end");
+              setTimeout(() => {
+                scrollViewRef.current.scrollToEnd({ animated: true });
+              }, 200);
+            }
           });
 
     const keyboardWillHideListener =
@@ -284,14 +301,19 @@ function SignUpGenerateWallet({ navigation }) {
   }, []);
 
   return (
-    <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={[styles.keyboardView, styles.screen, { paddingTop: insets.top }]}
+    // <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      style={[styles.keyboardView, { paddingTop: insets.top }]}
+    >
+      <ScrollView
+        style={{ flex: 1 }}
+        ref={scrollViewRef}
+        keyboardShouldPersistTaps="handled"
       >
-        <Header>Generate Wallet</Header>
+        <View style={[styles.screen, { marginBottom: 10 }]}>
+          <Header>Generate Wallet</Header>
 
-        {!keyboardVisible && (
           <View style={styles.info}>
             <AppText style={styles.infoText}>
               Below is your wallet recovery phrase. Please write it down and
@@ -299,12 +321,10 @@ function SignUpGenerateWallet({ navigation }) {
               We will never ask you for this phrase.
             </AppText>
           </View>
-        )}
-        {error && <AppText style={styles.error}>{error}</AppText>}
+          {error && <AppText style={styles.error}>{error}</AppText>}
 
-        {wallet && (
-          <View>
-            {!keyboardVisible && (
+          {wallet && (
+            <View>
               <View
                 style={{
                   flexDirection: "row",
@@ -332,64 +352,84 @@ function SignUpGenerateWallet({ navigation }) {
                   />
                 </View>
               </View>
-            )}
-            {/* {!keyboardVisible ? (
-            <MnemonicTable mnemonic={wallet?.mnemonic?.phrase.split(" ")} />
-          ) : null} */}
-            <MnemonicTable mnemonic={wallet?.mnemonic?.phrase.split(" ")} />
-          </View>
-        )}
 
-        <View style={[styles.buttonContainer]}>
-          <View style={styles.backupWalletContainer}>
-            <Pressable
-              style={styles.backupWalletContainer}
-              onPress={() => setChecked(!checked)}
-            >
-              <Checkbox
-                status={checked ? "checked" : "unchecked"}
-                color={colors.lightGray}
+              <MnemonicTable mnemonic={wallet?.mnemonic?.phrase.split(" ")} />
+            </View>
+          )}
+
+          <View style={[styles.buttonContainer]}>
+            <View style={styles.backupWalletContainer}>
+              <Pressable
+                style={styles.backupWalletContainer}
+                onPress={() => setChecked(!checked)}
+              >
+                <Checkbox
+                  status={checked ? "checked" : "unchecked"}
+                  color={colors.lightGray}
+                />
+                <AppText style={styles.infoText}>
+                  Encrypt and backup my wallet to the cloud
+                </AppText>
+              </Pressable>
+              <Info
+                size={14}
+                color={colors.grayOpacity70}
+                style={{
+                  alignSelf: "flex-start",
+                  marginLeft: 3,
+                  marginTop: 5,
+                }}
+                onPress={handleInfoSheet}
               />
-              <AppText style={styles.infoText}>
-                Encrypt and backup my wallet to the cloud
-              </AppText>
-            </Pressable>
-            <Info
-              size={14}
-              color={colors.grayOpacity70}
-              style={{ alignSelf: "flex-start", marginLeft: 3, marginTop: 5 }}
-              onPress={handleInfoSheet}
+            </View>
+            {checked && (
+              <TextInput
+                {...theme.formInput}
+                theme={{
+                  colors: {
+                    onSurfaceVariant: colors.softGray,
+                  },
+                }}
+                ref={passwordInputRef}
+                label={<Text style={{ fontFamily: fonts.bold }}>Password</Text>}
+                autoComplete="new-password"
+                autoCorrect={false}
+                autoFocus={true}
+                secureTextEntry={!showPassword}
+                onChangeText={handleInputChange}
+                onSubmitEditing={handleSubmitPassword}
+                value={password}
+                right={
+                  // <View style={{ flexDirection: "row" }}>
+                  // <TextInput.Icon
+                  //   color={colors.fadedGray}
+                  //   forceTextInputFocus={false}
+                  //   icon={"close-circle"}
+                  //   onPress={() => console.log("Clear password")}
+                  // />
+                  <TextInput.Icon
+                    color={!showPassword ? colors.fadedGray : colors.lightGray}
+                    forceTextInputFocus={false}
+                    icon={showPassword ? "eye" : "eye-off"}
+                    onPress={() => setShowPassword((prev) => !prev)}
+                  />
+                  // </View>
+                }
+              />
+            )}
+            <AppButton
+              style={styles.button}
+              title={isStoring ? "Storing..." : "Store and Continue"}
+              onPress={handleSaveWallet}
+              disabled={!wallet || isStoring || (checked && !password)}
+              color={colors.yellow}
+              loading={isStoring}
             />
           </View>
-          {checked && (
-            <TextInput
-              {...theme.formInput}
-              theme={{
-                colors: {
-                  onSurfaceVariant: colors.softGray,
-                },
-              }}
-              ref={passwordInputRef}
-              label={<Text style={{ fontFamily: fonts.bold }}>Password</Text>}
-              autoComplete="new-password"
-              autoCorrect={false}
-              secureTextEntry
-              onChangeText={handleInputChange}
-              onSubmitEditing={handleSubmitPassword}
-              value={password}
-            />
-          )}
-          <AppButton
-            style={styles.button}
-            title={isStoring ? "Storing..." : "Store and Continue"}
-            onPress={handleSaveWallet}
-            disabled={!wallet || isStoring || (checked && !password)}
-            color={colors.yellow}
-            loading={isStoring}
-          />
         </View>
-      </KeyboardAvoidingView>
-    </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
+    // </Pressable>
   );
 }
 

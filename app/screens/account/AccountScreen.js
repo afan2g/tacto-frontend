@@ -56,7 +56,7 @@ const SECTIONS = [
 ];
 
 function AccountScreen({ navigation }) {
-  const { profile, wallet, completedTransactions } = useData();
+  const { profile, wallet, completedTransactions, clearData } = useData();
   const handleUserCardPress = () => {
     console.log("User card pressed!");
     const locale = getLocales();
@@ -66,6 +66,11 @@ function AccountScreen({ navigation }) {
   const handleLogout = async () => {
     console.log("Logout pressed!");
     const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error.message);
+    } else {
+      clearData();
+    }
   };
 
   return (

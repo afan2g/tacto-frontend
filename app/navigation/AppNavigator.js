@@ -17,6 +17,7 @@ import { useAuthContext } from "../contexts/AuthContext";
 import SignUpScreen from "../screens/auth/SignUpScreen";
 import SignUpImportWallet from "../screens/auth/SignUpImportWallet";
 import RecoverRemoteWallet from "../screens/auth/RecoverRemoteWallet";
+import { NotificationManager } from "../lib/NotificationManager";
 
 const Stack = createNativeStackNavigator();
 
@@ -88,6 +89,8 @@ function AppNavigator() {
     // Fully authenticated user
     if (session && secureWalletState === "present") {
       console.log("rendering authenticated stack");
+      NotificationManager.registerForPushNotifications(session.user.id);
+
       return (
         <Stack.Group>
           <Stack.Screen
