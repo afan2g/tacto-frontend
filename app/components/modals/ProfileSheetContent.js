@@ -27,6 +27,7 @@ import CollapsedHeader from "../cards/CollapsedHeader";
 import { useData } from "../../contexts"; // Import useData hook
 import routes from "../../navigation/routes";
 import { z } from "zod";
+import StatsList from "../StatsList";
 
 const TAB_BAR_HEIGHT = 50;
 const COLLAPSED_HEADER_HEIGHT = 80;
@@ -71,7 +72,8 @@ const ProfileSheetContent = ({
   const scrollStatsToOffset = useCallback((offset, animated) => {
     if (statsRef.current) {
       statsRef.current.scrollToOffset({
-        offset,
+        x: 0,
+        y: offset,
         animated,
       });
     }
@@ -178,6 +180,12 @@ const ProfileSheetContent = ({
   const sharedProps = useMemo(
     () => ({
       minHeight: { height: calculatedMinHeight },
+      headerSize: {
+        height: headerHeight,
+        heightCollapsed: heightCollapsed,
+        heightExpanded: heightExpanded,
+        headerDiff: headerDiff,
+      },
       contentContainerStyle,
       scrollIndicatorInsets: {
         top: headerHeight,
@@ -202,10 +210,7 @@ const ProfileSheetContent = ({
 
   const renderStatsList = useCallback(() => {
     return (
-      <ActivityList
-        sharedTransactions={sharedTransactions}
-        user={user}
-        profile={profile}
+      <StatsList
         ref={statsRef}
         onScroll={statsScrollHandler}
         {...sharedProps}
@@ -262,6 +267,10 @@ const ProfileSheetContent = ({
     [heightCollapsed, collapsedHeaderAnimatedStyle]
   );
 
+  const handleCollapsedHeaderPress = useCallback(() => {
+    console.log("Collapsed header pressed");
+  }, []);
+
   return (
     <BottomSheetView style={styles.bottomSheetContainer}>
       <Animated.View onLayout={handleHeaderLayout} style={headerContainerStyle}>
@@ -274,7 +283,7 @@ const ProfileSheetContent = ({
         />
       </Animated.View>
       <Animated.View style={collapsedHeaderStyle}>
-        <CollapsedHeader user={user} />
+        <CollapsedHeader user={user} onPress={handleCollapsedHeaderPress} />
       </Animated.View>
       <NavigationIndependentTree>
         <NavigationContainer independent={true}>

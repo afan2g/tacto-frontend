@@ -1,18 +1,18 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet, Image, Pressable } from "react-native";
 
 import { AppText } from "../primitives";
 import { colors, fonts } from "../../config";
 import AppAvatar from "../AppAvatar";
-function CollapsedHeader({ user }) {
+function CollapsedHeader({ user, onPress }) {
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} onPress={onPress}>
       <AppAvatar user={user} scale={0.75} />
       <View style={styles.textContainer}>
         <AppText style={styles.fullName}>{user.full_name}</AppText>
         <AppText style={styles.username}>@{user.username}</AppText>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

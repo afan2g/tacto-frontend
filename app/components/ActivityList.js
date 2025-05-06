@@ -1,4 +1,11 @@
-import React, { useImperativeHandle, useMemo } from "react";
+import React, {
+  useImperativeHandle,
+  useMemo,
+  forwardRef,
+  useRef,
+  useCallback,
+  useState,
+} from "react";
 import { View, StyleSheet, Text } from "react-native";
 import Animated from "react-native-reanimated";
 import { AppCardSeparator, TransactionCard } from "./cards";
@@ -18,10 +25,19 @@ const EmptyListComponent = () => {
   );
 };
 
-const ActivityList = React.forwardRef((props, ref) => {
-  const { sharedTransactions, user, profile, navigation, minHeight } = props;
-  const listRef = React.useRef(null);
-
+const ActivityList = forwardRef((props, ref) => {
+  const {
+    sharedTransactions,
+    user,
+    profile,
+    navigation,
+    minHeight,
+    headerSize,
+  } = props;
+  const minListHeight = minHeight.height;
+  const listRef = useRef(null);
+  const initialRender = useRef(true);
+  const [bottomPadding, setBottomPadding] = useState(0);
   const dataPlaceholder = useMemo(() => {
     return Array.from({ length: 10 }, (_, index) => null);
   }, []);
@@ -37,12 +53,43 @@ const ActivityList = React.forwardRef((props, ref) => {
     scrollToIndex: (params) => listRef.current?.scrollToIndex(params),
     getScrollableNode: () => listRef.current?.getScrollableNode(),
   }));
+
+  const onContentSizeChange = useCallback(
+    (_, contentHeight) => {
+      // Don't adjust padding while showing skeleton placeholders
+      if (!sharedTransactions) {
+        return;
+      }
+      if (!initialRender.current) {
+        return;
+      }
+      if (contentHeight < 10) {
+        return;
+      }
+      // console.log("content height change");
+
+      // console.log("Header height:", headerSize.height);
+      // console.log("header expanded height:", headerSize.heightExpanded);
+      // console.log("header collapsed height:", headerSize.heightCollapsed);
+      // console.log("header diff:", headerSize.headerDiff);
+      // console.log("content height:", contentHeight);
+      // console.log("min list height:", minListHeight);
+      const diff = minListHeight - contentHeight + 32;
+      // console.log("min list height - content height:", diff);
+      // console.log("diff:", diff);
+      setBottomPadding(diff > 0 ? diff : 0);
+      initialRender.current = false;
+      console.log("-------------------");
+    },
+    [minListHeight, sharedTransactions]
+  );
   return (
     <View style={[styles.container, minHeight]}>
       <AnimatedFlashList
         ref={listRef}
         data={sharedTransactions || dataPlaceholder}
         estimatedItemSize={110}
+        onContentSizeChange={onContentSizeChange}
         renderItem={({ item }) =>
           // Render a placeholder if the item is null
           item === null ? (
@@ -70,8 +117,8 @@ const ActivityList = React.forwardRef((props, ref) => {
         showsVerticalScrollIndicator={false}
         horizontal={false}
         ItemSeparatorComponent={() => <AppCardSeparator />}
-        ListFooterComponent={() => <View style={styles.footer} />}
-        ListFooterComponentStyle={styles.footer}
+        ListFooterComponent={() => <View />}
+        ListFooterComponentStyle={{ height: bottomPadding }}
         overScrollMode="never"
         bounces={false}
         snapToEnd={false}
